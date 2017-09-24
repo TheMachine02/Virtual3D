@@ -18,7 +18,7 @@
 # Converters
 
 Virtual3D also feature an .obj converter to a .inc file which can be compiled into an .8xv or directly included in assembly source.
-To convert texture, please convpng from the C CE toolchain.
+To convert texture, please use convpng from the C CE toolchain.
 
 
 This is version alpha 0.9 - lot of thing missing, may be broken too. Don't hesitate to open issues.
