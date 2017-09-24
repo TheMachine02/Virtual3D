@@ -1,4 +1,4 @@
-#include	"IrisTimer.ez80"
+#include	"vxTimer.ez80"
 #include	"vxRaster.ez80"
 #include	"vxMatrix.ez80"
 #include	"vxQuaternion.ez80"

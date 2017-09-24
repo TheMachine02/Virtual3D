@@ -1,5 +1,5 @@
     1 00:0000 -  -  -  -  #include	"vx3D.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
     1 00:0000 -  -  -  -  #define dbgbreak   scf \ sbc hl, hl \ ld (hl), 2
     2 00:0000 -  -  -  -  #define dbgstart0 	push hl \ ld hl,$F20030 \ set 0,(hl) \ pop hl
     3 00:0000 -  -  -  -  #define dbgstop0	push hl \ ld hl,$F20030 \ res 0,(hl) \ pop hl
@@ -34,7 +34,7 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
    32 00:0000 -  -  -  -  #ifndef VX_3D_GUARD
    33 00:0000 -  -  -  -  #define VX_3D_GUARD
    34 00:0000 -  -  -  -  
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
    39 00:0000 -  -  -  -  #include "relocate.inc"
 Listing for file "include\\relocate.inc"
     1 00:0000 -  -  -  -  #macro relocate(new_location)
@@ -58,7 +58,7 @@ Listing for file "include\\relocate.inc"
    19 00:0000              #endif
    20 00:0000             #endmacro
    21 00:0000 -  -  -  -  #define .endrelocate endrelocate(
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
   178 00:0000 -  -  -  -  
   179 00:0000 -  -  -  -  ; global compilation variable ;
   180 00:0000 -  -  -  -  
@@ -115,7 +115,7 @@ Listing for file "example.ez80"
    38 D1:A8C5 -  -  -  -  
    39 D1:A8C5 -  -  -  -  MainLoop:
    40 D1:A8C5 -  -  -  -  
-   41 D1:A8C5 CD BD A9 D1 	call	ITimerStart
+   41 D1:A8C5 CD BD A9 D1 	call	vxTimerStart
    42 D1:A8C9 -  -  -  -  
    43 D1:A8C9 CD 74 0A D2 	call	Camera
    44 D1:A8CD C0 -  -  -  	ret	nz
@@ -196,7 +196,7 @@ Listing for file "example.ez80"
   113 D1:A96A 3E 00 -  -  	ld	a, 0
   114 D1:A96C 32 83 02 D2 	ld	(TextYPos_SMC), a
   115 D1:A970 -  -  -  -  
-  116 D1:A970 CD DB A9 D1 	call	ITimerRead
+  116 D1:A970 CD DB A9 D1 	call	vxTimerRead
   117 D1:A974 -  -  -  -  ; do (ade/256)/187
   118 D1:A974 ED 53 E4 09 
               D2 -  -  -  	ld	(Temp), de
@@ -234,15 +234,15 @@ Listing for file "example.ez80"
   149 D1:A9BC C9 -  -  -  	ret
   150 D1:A9BD -  -  -  -  
   151 D1:A9BD -  -  -  -  #include	"vxMain.ez80"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMain.ez80"
-    1 D1:A9BD -  -  -  -  #include	"IrisTimer.ez80"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\IrisTimer.ez80"
-    1 D1:A9BD -  -  -  -  #define	ITIMER_CTRL	$F20030
-    2 D1:A9BD -  -  -  -  #define	ITIMER_COUNT	$F20000
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMain.ez80"
+    1 D1:A9BD -  -  -  -  #include	"vxTimer.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxTimer.ez80"
+    1 D1:A9BD -  -  -  -  #define	VX_TIMER_CTRL	$F20030
+    2 D1:A9BD -  -  -  -  #define	VX_TIMER_COUNT	$F20000
     3 D1:A9BD -  -  -  -  
-    4 D1:A9BD -  -  -  -  ITimerStart:
+    4 D1:A9BD -  -  -  -  vxTimerStart:
     5 D1:A9BD -  -  -  -  ; now intialise and start the timer (1)
-    6 D1:A9BD 21 30 00 F2 	ld	hl, ITIMER_CTRL
+    6 D1:A9BD 21 30 00 F2 	ld	hl, VX_TIMER_CTRL
     7 D1:A9C1 7E -  -  -  	ld	a, (hl)
     8 D1:A9C2 -  -  -  -  ; CPU clock, not enable, count up
     9 D1:A9C2 E6 F8 -  -  	and	%11111000
@@ -251,7 +251,7 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\IrisTimer.ez8
    12 D1:A9C6 CB CE -  -  	set	1, (hl)
    13 D1:A9C8 -  -  -  -  ; reset the value
    14 D1:A9C8 AF -  -  -  	xor	a, a
-   15 D1:A9C9 21 00 00 F2 	ld	hl, ITIMER_COUNT
+   15 D1:A9C9 21 00 00 F2 	ld	hl, VX_TIMER_COUNT
    16 D1:A9CD 77 -  -  -  	ld	(hl), a
    17 D1:A9CE 2C -  -  -  	inc	l
    18 D1:A9CF 77 -  -  -  	ld	(hl), a
@@ -259,24 +259,24 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\IrisTimer.ez8
    20 D1:A9D1 77 -  -  -  	ld	(hl), a
    21 D1:A9D2 2C -  -  -  	inc	l
    22 D1:A9D3 77 -  -  -  	ld	(hl), a
-   23 D1:A9D4 21 30 00 F2 	ld	hl, ITIMER_CTRL
+   23 D1:A9D4 21 30 00 F2 	ld	hl, VX_TIMER_CTRL
    24 D1:A9D8 -  -  -  -  ; start timer
    25 D1:A9D8 CB C6 -  -  	set	0, (hl)
    26 D1:A9DA C9 -  -  -  	ret
-   27 D1:A9DB -  -  -  -  ITimerRead:
-   28 D1:A9DB 21 30 00 F2 	ld	hl, ITIMER_CTRL
+   27 D1:A9DB -  -  -  -  vxTimerRead:
+   28 D1:A9DB 21 30 00 F2 	ld	hl, VX_TIMER_CTRL
    29 D1:A9DF -  -  -  -  ; stop the timer
    30 D1:A9DF CB 86 -  -  	res	0, (hl)
    31 D1:A9E1 -  -  -  -  ; read 24 bits value in the counter register
-   32 D1:A9E1 21 00 00 F2 	ld	hl, ITIMER_COUNT
+   32 D1:A9E1 21 00 00 F2 	ld	hl, VX_TIMER_COUNT
    33 D1:A9E5 ED 17 -  -  	ld	de, (hl)
    34 D1:A9E7 23 23 23 -  	inc	hl \ inc hl \ inc hl
    35 D1:A9EA 7E -  -  -  	ld	a, (hl)
    36 D1:A9EB -  -  -  -  ; full 32bits value is now ade
    37 D1:A9EB C9 -  -  -  	ret
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMain.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMain.ez80"
     2 D1:A9EC -  -  -  -  #include	"vxRaster.ez80"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxRaster.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxRaster.ez80"
     1 D1:A9EC -  -  -  -  
     2 D1:A9EC -  -  -  -  
     3 D1:A9EC -  -  -  -  vxRasterPixel:
@@ -352,8 +352,8 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxRaster.ez80
    72 D1:AA45 67 -  -  -  	ld	h, a
    73 D1:AA46 29 29 29 29 
               29 29 29 29 	slhl
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxRaster.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxRaster.ez80"
    74 D1:AA4E ED 4C -  -  	mlt	bc
    75 D1:AA50 09 -  -  -  	add	hl, bc
    76 D1:AA51 EB -  -  -  	ex	de, hl
@@ -386,8 +386,8 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxRaster.ez80
   103 D1:AA74 67 -  -  -  	ld	h, a
   104 D1:AA75 29 29 29 29 
               29 29 29 29 	slhl
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxRaster.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxRaster.ez80"
   105 D1:AA7D ED 4C -  -  	mlt	bc
   106 D1:AA7F 09 -  -  -  	add	hl, bc
   107 D1:AA80 -  -  -  -  
@@ -692,9 +692,9 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxRaster.ez80
   401 D1:AC2D 3D -  -  -  	dec	a
   402 D1:AC2E 20 8C -  -  	jr	nz, IRasterTriangleInner
   403 D1:AC30 C9 -  -  -  	ret
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMain.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMain.ez80"
     3 D1:AC31 -  -  -  -  #include	"vxMatrix.ez80"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMatrix.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMatrix.ez80"
     1 D1:AC31 -  -  -  -  #define	VX_MATRIX_SIZE	18
     2 D1:AC31 -  -  -  -  
     3 D1:AC31 -  -  -  -  vxIdentityMatrix:
@@ -1003,8 +1003,8 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMatrix.ez80
               29 29 29 29 
               29 29 29 ED 
               4C 09 19 -  	madd
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMatrix.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMatrix.ez80"
   294 D1:AE09 DD 7E 01 -  	ld	a, (ix+1)
   295 D1:AE0C FD 07 02 -  	ld	bc, (iy+2)
   296 D1:AE0F EB 60 6F ED 
@@ -1015,8 +1015,8 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMatrix.ez80
               29 29 29 29 
               29 29 29 ED 
               4C 09 19 -  	madd
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMatrix.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMatrix.ez80"
   297 D1:AE2E DD 7E 02 -  	ld	a, (ix+2)
   298 D1:AE31 FD 07 04 -  	ld	bc, (iy+4)
   299 D1:AE34 51 5F ED 5C 
@@ -1027,8 +1027,8 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMatrix.ez80
               2F 8C 67 29 
               29 29 29 29 
               29 29 29 19 	madd.f
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMatrix.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMatrix.ez80"
   300 D1:AE54 22 06 34 D0 	ld	(vxPosition), hl
   301 D1:AE58 -  -  -  -  ; Y coordinate
   302 D1:AE58 DD 27 0C -  	ld	hl, (ix+12)
@@ -1041,8 +1041,8 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMatrix.ez80
               29 29 29 29 
               29 29 29 ED 
               4C 09 19 -  	madd
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMatrix.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMatrix.ez80"
   305 D1:AE7D DD 7E 04 -  	ld	a, (ix+4)
   306 D1:AE80 FD 07 02 -  	ld	bc, (iy+2)
   307 D1:AE83 EB 60 6F ED 
@@ -1053,8 +1053,8 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMatrix.ez80
               29 29 29 29 
               29 29 29 ED 
               4C 09 19 -  	madd
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMatrix.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMatrix.ez80"
   308 D1:AEA2 DD 7E 03 -  	ld	a, (ix+3)
   309 D1:AEA5 FD 07 00 -  	ld	bc, (iy+0)
   310 D1:AEA8 51 5F ED 5C 
@@ -1065,8 +1065,8 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMatrix.ez80
               2F 8C 67 29 
               29 29 29 29 
               29 29 29 19 	madd.f
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMatrix.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMatrix.ez80"
   311 D1:AEC8 22 09 34 D0 	ld	(vxPosition+3), hl
   312 D1:AECC -  -  -  -  ; Z coordinate
   313 D1:AECC DD 27 0F -  	ld	hl, (ix+15)
@@ -1079,8 +1079,8 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMatrix.ez80
               29 29 29 29 
               29 29 29 ED 
               4C 09 19 -  	madd
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMatrix.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMatrix.ez80"
   316 D1:AEF1 DD 7E 07 -  	ld	a, (ix+7)
   317 D1:AEF4 FD 07 02 -  	ld	bc, (iy+2)
   318 D1:AEF7 EB 60 6F ED 
@@ -1091,8 +1091,8 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMatrix.ez80
               29 29 29 29 
               29 29 29 ED 
               4C 09 19 -  	madd
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMatrix.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMatrix.ez80"
   319 D1:AF16 DD 7E 08 -  	ld	a, (ix+8)
   320 D1:AF19 FD 07 04 -  	ld	bc, (iy+4)
   321 D1:AF1C EB 60 6F ED 
@@ -1103,13 +1103,13 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMatrix.ez80
               29 29 29 29 
               29 29 29 ED 
               4C 09 19 -  	madd
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMatrix.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMatrix.ez80"
   322 D1:AF3B 22 0C 34 D0 	ld	(vxPosition+6), hl
   323 D1:AF3F C9 -  -  -  	ret
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMain.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMain.ez80"
     4 D1:AF40 -  -  -  -  #include	"vxQuaternion.ez80"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxQuaternion.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxQuaternion.ez80"
     1 D1:AF40 -  -  -  -  ; Quaternions utility functions
     2 D1:AF40 -  -  -  -  
     3 D1:AF40 -  -  -  -  #define VX_QUATERNION_SIZE    $0C
@@ -1520,8 +1520,8 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxQuaternion.
   408 D1:B200 ED 6C -  -  	mlt	hl
   409 D1:B202 29 29 29 29 
               29 29 29 29 	slhl
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxQuaternion.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxQuaternion.ez80"
   410 D1:B20A 7B -  -  -  	ld	a, e
   411 D1:B20B ED 5C -  -  	mlt	de
   412 D1:B20D 19 -  -  -  	add	hl, de
@@ -1550,8 +1550,8 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxQuaternion.
   435 D1:B229 ED 42 -  -  	sbc	hl, bc
   436 D1:B22B 29 29 29 29 
               29 29 29 29 	slhl
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxQuaternion.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxQuaternion.ez80"
   437 D1:B233 -  -  -  -  ; now need to do (CxD+BxE+ExC/256)
   438 D1:B233 79 -  -  -  	ld	a, c
   439 D1:B234 4B -  -  -  	ld	c, e
@@ -1569,9 +1569,9 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxQuaternion.
   451 D1:B244 09 -  -  -  	add	hl, bc
   452 D1:B245 C9 -  -  -  	ret
   453 D1:B246 -  -  -  -  
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMain.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMain.ez80"
     5 D1:B246 -  -  -  -  #include	"vxVector.ez80"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxVector.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxVector.ez80"
     1 D1:B246 -  -  -  -  ; code start - vector utility fonctions
     2 D1:B246 -  -  -  -  
     3 D1:B246 -  -  -  -  #define	xpd	call vxCrossProduct
@@ -1844,9 +1844,9 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxVector.ez80
   270 D1:B397 91 -  -  -  	sub	a, c
   271 D1:B398 12 -  -  -  	ld	(de), a
   272 D1:B399 C9 -  -  -  	ret
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMain.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMain.ez80"
     6 D1:B39A -  -  -  -  #include	"vxFramebuffer.ez80"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxFramebuffer.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxFramebuffer.ez80"
     1 D1:B39A -  -  -  -  ; code start - framebuffer functions
     2 D1:B39A -  -  -  -  
     3 D1:B39A -  -  -  -  #define VX_FRAMEBUFFER_AUX0 $D40000	; first VRAM buffer
@@ -2089,9 +2089,9 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxFramebuffer
   236 D1:B4BA B2 -  -  -  	or	d
   237 D1:B4BB E1 -  -  -  	pop	hl
   238 D1:B4BC C9 -  -  -  	ret
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMain.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMain.ez80"
     7 D1:B4BD -  -  -  -  #include	"vxClipping.ez80"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxClipping.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxClipping.ez80"
     1 D1:B4BD -  -  -  -  #define  vxPlaneBit0             %10000000
     2 D1:B4BD -  -  -  -  #define  vxPlaneBit1             %01000000
     3 D1:B4BD -  -  -  -  #define  vxPlaneBit2             %00100000
@@ -2534,8 +2534,8 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxClipping.ez
   355 D1:B85F -  -  -  -  
   356 D1:B85F 29 29 29 29 
               29 29 29 29 	slhl
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxClipping.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxClipping.ez80"
   357 D1:B867 -  -  -  -  
   358 D1:B867 DD 56 01 -  	ld	d, (ix+1)
   359 D1:B86A 58 -  -  -  	ld	e, b
@@ -2765,12 +2765,12 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxClipping.ez
   555 D1:BA25 C8 -  -  -  	ret	z
   556 D1:BA26 F6 08 -  -  	or	%00001000
   557 D1:BA28 C9 -  -  -  	ret
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMain.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMain.ez80"
     8 D1:BA29 -  -  -  -  #include	"vxPipeline.ez80"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPipeline.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxPipeline.ez80"
     1 D1:BA29 -  -  -  -  
     2 D1:BA29 -  -  -  -  #include	"vxVertexShader.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxVertexShader.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxVertexShader.inc"
     1 D1:BA29 -  -  -  -  ; cache data register (de) ;
     2 D1:BA29 -  -  -  -  
     3 D1:BA29 -  -  -  -  #define	VX_VERTEX_CODE		0
@@ -2851,7 +2851,7 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxVertexShade
    78 D1:BA29 -  -  -  -  ; relocate the shader to fast VRAM ($E30800)
    79 D1:BA29 -  -  -  -  
    80 D1:BA29 -  -  -  -  .relocate VX_VERTEX_SHADER_CODE
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxVertexShader.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxVertexShader.inc"
    81 E3:0800 -  -  -  -  
    82 E3:0800 -  -  -  -  vxModelView:
    83 E3:0800 00 00 00 -  	.db	0,0,0
@@ -3289,10 +3289,10 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxVertexShade
   495 E3:0AC3 -  -  -  -  
   496 E3:0AC3 -  -  -  -  .endrelocate
 Listing for file "include\\relocate.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxVertexShader.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPipeline.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxVertexShader.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxPipeline.ez80"
     3 D1:BCEC -  -  -  -  #include	"vxGeometryShader.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxGeometryShader.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxGeometryShader.inc"
     1 D1:BCEC -  -  -  -  #define	VX_INDEX0	0
     2 D1:BCEC -  -  -  -  #define	VX_INDEX1	3
     3 D1:BCEC -  -  -  -  #define	VX_INDEX2	6
@@ -3470,7 +3470,7 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxGeometrySha
   173 D1:BDA4             vxAvgDepthPositive:
   174 D1:BDA4             
   175 D1:BDA4             #endcomment
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPipeline.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxPipeline.ez80"
     4 D1:BDA4 -  -  -  -  
     5 D1:BDA4 -  -  -  -  
     6 D1:BDA4 -  -  -  -  #define	VX_GEOMETRY_N3TI9	%00010011	; 19
@@ -3541,7 +3541,7 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPipeline.ez
               00 00 00 00 
               00 00 00 00 
               00 00 00 -  .align 256
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPipeline.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxPipeline.ez80"
    64 D1:BE00 -  -  -  -  VX_BATCH_DATA:
    65 D1:BE00 00 00 00 00 
               00 00 00 00 
@@ -4613,8 +4613,8 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPipeline.ez
  1049 D1:C38C 67 -  -  -  	ld	h, a
  1050 D1:C38D 29 29 29 29 
               29 29 29 29 	slhl
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPipeline.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxPipeline.ez80"
  1051 D1:C395 ED 4C -  -  	mlt	bc
  1052 D1:C397 09 -  -  -  	add	hl, bc
  1053 D1:C398 -  -  -  -  RR:
@@ -4653,8 +4653,8 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPipeline.ez
  1086 D1:C3C2 67 -  -  -  	ld	h, a
  1087 D1:C3C3 29 29 29 29 
               29 29 29 29 	slhl
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPipeline.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxPipeline.ez80"
  1088 D1:C3CB ED 4C -  -  	mlt	bc
  1089 D1:C3CD 09 -  -  -  	add	hl, bc
  1090 D1:C3CE -  -  -  -  RR2:
@@ -4705,8 +4705,8 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPipeline.ez
  1135 D1:C401 67 -  -  -  	ld	h, a
  1136 D1:C402 29 29 29 29 
               29 29 29 29 	slhl
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPipeline.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxPipeline.ez80"
  1137 D1:C40A ED 4C -  -  	mlt	bc
  1138 D1:C40C 09 -  -  -  	add	hl, bc
  1139 D1:C40D -  -  -  -  
@@ -4744,8 +4744,8 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPipeline.ez
  1171 D1:C439 67 -  -  -  	ld	h, a
  1172 D1:C43A 29 29 29 29 
               29 29 29 29 	slhl
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vx3D.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPipeline.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vx3D.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxPipeline.ez80"
  1173 D1:C442 ED 4C -  -  	mlt	bc
  1174 D1:C444 09 -  -  -  	add	hl, bc
  1175 D1:C445 -  -  -  -  
@@ -4958,9 +4958,9 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPipeline.ez
  1382 D1:C44B             Monitor_Size_End:
  1383 D1:C44B             	.echo	Monitor_Size_End-Monitor_Size_Start
  1384 D1:C44B             #endcomment
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMain.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMain.ez80"
     9 D1:C44B -  -  -  -  #include	"vxMemory.ez80"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMemory.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMemory.ez80"
     1 D1:C44B -  -  -  -  #define	VX_RLE_COMPRESSED	%01000000
     2 D1:C44B -  -  -  -  #define	VX_ERROR_NOT_FOUND	$FF
     3 D1:C44B -  -  -  -  #define	VX_ERROR_RAM_FULL	$FE
@@ -5265,9 +5265,9 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMemory.ez80
   295 D1:C5C0 E1 -  -  -          pop     hl                      ; restore source address (compressed data)
   296 D1:C5C1 30 9D -  -          jr      nc, dzx7t_main_loop
   297 D1:C5C3 C9 -  -  -  	ret
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMain.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMain.ez80"
    10 D1:C5C4 -  -  -  -  #include	"vxPostProcessing.ez80"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPostProcessing.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxPostProcessing.ez80"
     1 D1:C5C4 -  -  -  -  #macro blend50()
     2 D1:C5C4             	ld	c, (hl)
     3 D1:C5C4             	push	af
@@ -5350,7 +5350,7 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPostProcess
               E6 D6 57 79 
               E6 D6 82 1F 
               83 77 F1 -  	blend50
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPostProcessing.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxPostProcessing.ez80"
    79 D1:C5F1 -  -  -  -  p1x:
    80 D1:C5F1 11 3F 01 00 	ld	de, 320-1
    81 D1:C5F5 19 -  -  -  	add	hl, de
@@ -5580,9 +5580,9 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPostProcess
   241 D1:C775             	ld	(hl), a
   242 D1:C775             
   243 D1:C775             #endcomment
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMain.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMain.ez80"
    11 D1:C775 -  -  -  -  #include	"vxImage.ez80"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxImage.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxImage.ez80"
     1 D1:C775 -  -  -  -  vxImageSubCopy:
     2 D1:C775 -  -  -  -  ; hl : org, bc : rect size, de : copy
     3 D1:C775 C5 -  -  -  	push	bc
@@ -5674,9 +5674,9 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxImage.ez80"
    85 D1:C7E2 -  -  -  -  ;   2x  2 : 7
    86 D1:C7E2 -  -  -  -  ;   1x  1 : 8
    87 D1:C7E2 C9 -  -  -  	ret
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMain.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMain.ez80"
    12 D1:C7E3 -  -  -  -  #include	"vxShaderInterpolation.ez80"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxShaderInterpolation.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxShaderInterpolation.ez80"
     1 D1:C7E3 -  -  -  -  ;; BUG :: inside du/dy and dv/dy compute
     2 D1:C7E3 -  -  -  -  
     3 D1:C7E3 -  -  -  -  #define	VX_REGISTER_Y0	-32+0
@@ -6487,7 +6487,7 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxShaderInter
    34 D1:D403 -  -  -  -  VX_SHADER_INTERPOLATION_COPY:
    35 D1:D403 -  -  -  -  
    36 D1:D403 -  -  -  -  .relocate VX_SHADER_INTERPOLATION_CODE
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxShaderInterpolation.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxShaderInterpolation.ez80"
    37 E3:0800 -  -  -  -  
    38 E3:0800 -  -  -  -  vxTextureTriangle:
    39 E3:0800 -  -  -  -  ; issue 1 : uniform value isn't interpolated through clipping
@@ -7062,10 +7062,10 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxShaderInter
   592 E3:0B60 -  -  -  -  
   593 E3:0B60 -  -  -  -  .endrelocate
 Listing for file "include\\relocate.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxShaderInterpolation.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxShaderInterpolation.ez80"
   594 D1:D763 -  -  -  -  
   595 D1:D763 -  -  -  -  #include "vxPixelShader.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPixelShader.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxPixelShader.inc"
     1 D1:D763 -  -  -  -  #define	VX_PIXEL_SHADER_CODE		$E10010
     2 D1:D763 -  -  -  -  #define	VX_PIXEL_SHADER_SIZE		64
     3 D1:D763 -  -  -  -  #define	VX_PIXEL_SHADER_CONSTANT	$D00000
@@ -7084,7 +7084,7 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPixelShader
    16 D1:D763 -  -  -  -  VX_PIXEL_SHADER_COPY:
    17 D1:D763 -  -  -  -  
    18 D1:D763 -  -  -  -  .relocate	VX_PIXEL_SHADER_CODE
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPixelShader.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxPixelShader.inc"
    19 E1:0010 -  -  -  -  
    20 E1:0010 -  -  -  -  vxPixelShader:
    21 E1:0010 7C -  -  -  	ld	a, h
@@ -7137,7 +7137,7 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPixelShader
    66 E1:0050 -  -  -  -  
    67 E1:0050 -  -  -  -  .endrelocate
 Listing for file "include\\relocate.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPixelShader.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxPixelShader.inc"
    68 D1:D7A3 -  -  -  -  
    69 D1:D7A3 -  -  -  -  #define	VX_CALL0_POS	(VX_PIXEL_SHADER_SUBSIZE*2-1+VX_PIXEL_SHADER_CODE)%256
    70 D1:D7A3 -  -  -  -  #define	VX_CALL1_POS	(VX_PIXEL_SHADER_SUBSIZE-1+VX_PIXEL_SHADER_CODE)%256
@@ -7860,7 +7860,7 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxPixelShader
   787 D1:DCA8             
   788 D1:DCA8             
   789 D1:DCA8             #endcomment
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxShaderInterpolation.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxShaderInterpolation.ez80"
   596 D1:DCA8 -  -  -  -  
   597 D1:DCA8 -  -  -  -  
   598 D1:DCA8 -  -  -  -  vxTexturePolygon:
@@ -8210,9 +8210,9 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxShaderInter
   942 D1:DF4D CD 00 -  -  .dw 205
   943 D1:DF4F CD 00 -  -  .dw 205
   944 D1:DF51 CC 00 -  -  .dw 204
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMain.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMain.ez80"
    13 D1:DF53 -  -  -  -  #include	"vxData.inc"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxData.inc"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxData.inc"
     1 D1:DF53 -  -  -  -  ; lightmap
     2 D1:DF53 -  -  -  -  #define	db	.db
     3 D1:DF53 -  -  -  -  VX_COLOR_LUT_DATA:
@@ -10396,7 +10396,7 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxData.inc"
               3F 3F 3F 3F .db 63,63,63,63,63,63,63,63
    72 D2:014B 3F 3F 3F 3F 
               3F 3F 3F 40 .db 63,63,63,63,63,63,63,64
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMain.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\vxMain.ez80"
    14 D2:0153 -  -  -  -  
    15 D2:0153 -  -  -  -  ; functions
    16 D2:0153 -  -  -  -  
@@ -10495,7 +10495,7 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\vxMain.ez80"
   106 D2:0214 C3 50 1A 02 	jp _DrawBatteryIndicator
 Listing for file "example.ez80"
   152 D2:0218 -  -  -  -  #include	"graphics_lib.asm"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\graphics_lib.asm"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\graphics_lib.asm"
     1 D2:0218 -  -  -  -  ; quickly hacked C routines to be able to display digits
     2 D2:0218 -  -  -  -  
     3 D2:0218 -  -  -  -  
@@ -11665,10 +11665,10 @@ Listing for file "example.ez80"
   348 D2:0BB5 C9 -  -  -  	ret
   349 D2:0BB6 -  -  -  -  
   350 D2:0BB6 -  -  -  -  
-  351 D2:0BB6 -  -  -  -  #include "file/XML.ez80"
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\file\XML.ez80"
+  351 D2:0BB6 -  -  -  -  #include "XML.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\XML.ez80"
     1 D2:0BB6 -  -  -  -  VERTEXDATA:
-    2 D2:0BB6 00 63 01 -  .dl 355*256
+    2 D2:0BB6 63 01 00 -  .dl 355
     3 D2:0BB9 00 80 -  -  .dw VX_ANIMATION_BONE
     4 D2:0BBB 13 -  -  -  .db 19
     5 D2:0BBC 3F 03 FD -  .db 63,3,-3
@@ -14190,11 +14190,11 @@ Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\file\XML.ez80
               91 00 -  -  .dw -10,18,145
  1882 D2:2911 18 E8 CB -  .db 24,-24,-53
  1883 D2:2914 -  -  -  -  TRIDATA:
- 1884 D2:2914 00 82 02 -  .dl 642*256
+ 1884 D2:2914 82 02 00 -  .dl 642
  1885 D2:2917 10 01 00 20 
               00 00 40 00 
               00 -  -  -  .f 17,2,4
-Listing for file "C:\Users\Zeromus\Documents\ez80project\vxLib-git\file\XML.ez80"
+Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\XML.ez80"
  1886 D2:2920 00 -  -  -  .db 0
  1887 D2:2921 D4 78 -  -  .db 212,120
  1888 D2:2923 EB 78 -  -  .db 235,120

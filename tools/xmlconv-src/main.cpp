@@ -369,7 +369,7 @@ int main()
     int j=0;
 
     out << "VERTEXDATA:\n";
-    out << ".dl " << vertex.size() << "\n";
+    out << ".dl " << vertex.size()*256 << "\n";
 
     for(i=0; i<vertex.size(); i++)
     {
@@ -422,7 +422,7 @@ int main()
     }
 
     out << "TRIDATA:\n";
-    out << ".dl " << triangle.size()/3 << "\n";
+    out << ".dl " << (triangle.size()/3)*256 << "\n";
     for(i=0; i<triangle.size()/3; i++)
 {
     out << ".f " << triangle[i*3].x << "," << triangle[i*3+1].x << "," << triangle[i*3+2].x << "\n";

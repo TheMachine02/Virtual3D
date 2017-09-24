@@ -348,4 +348,4 @@ _kskip7:
 	ret
 
 
-#include "file/XML.ez80"
+#include "XML.ez80"
