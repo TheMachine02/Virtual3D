@@ -1,0 +1,238 @@
+; code start - framebuffer functions
+
+#define VX_FRAMEBUFFER_AUX0 $D40000	; first VRAM buffer
+#define VX_FRAMEBUFFER_AUX1 $D52C00	; second VRAM buffer
+#define VX_FRAMEBUFFER_SIZE $12C00
+#define VX_VRAM             $E30800
+#define VX_BPP8             lcdBpp8   ; LCD 8 bpp mode bits
+#define VX_BPP16            lcdBpp16	; LCD 16 bpp mode bits
+#define VX_LCD_CTRL         mpLcdCtrl	; LCD control port
+#define VX_LCD_IMSC         $E3001C	; LCD Interrupt Mask Register
+#define VX_LCD_ICR          $E30028	; LCD Interrupt Clear/Set Register
+#define VX_LCD_ISR          $E30020	; LCD Interrupt Status Register
+#define VX_LCD_BUFFER       $E30010	; base adress of LCD
+#define VX_LCD_PALETTE      mpLcdPalette ; palette (r3g3b2)
+#define VX_LCD_TIMING2      $E30008
+
+#define VX_GREEN_BITS	      %00000111
+#define VX_RED_BITS         %11100000
+#define VX_BLUE_BITS        %00011000
+#define VX_COLOR_LOW_BIT    %00101001
+
+#define vxFramebuffer       $E30014
+
+vxResetPalette:
+; load palette :
+; color is 3-3-2 format, RGB
+; calculate 1555 format color
+	ld	hl,VX_LCD_PALETTE  ; palette mem
+	ld	b,0
+vxLoadPaletteLoop:      ; this loop is from wikiti
+	ld	d,b
+	ld	a,b
+	and	%11000000
+	srl	d
+	rra
+	ld	e,a
+	ld	a,%00011111
+	and	b
+	or	e
+	ld	(hl),a
+	inc	hl
+	ld	(hl),d
+	inc	hl
+	inc	b
+	jr nz,vxLoadPaletteLoop
+	ret
+vxSetPalette:
+; set the framebuffer palette
+; input : hl
+	ld	de, VX_LCD_PALETTE
+	ld	bc, 512
+	ldir
+	ret
+vxClearBuffer:
+; reset framebuffer with color
+; input : c
+; output : none
+; destroyed : all except ix,iy
+	ld	hl, (vxFramebuffer)
+	ld	(hl), c
+	ex	de, hl
+	or	a, a
+	sbc	hl, hl
+	add	hl, de
+	inc	de
+	ld	bc, 76799
+	ldir
+	ret
+vxFlushLCD:
+; swap the framebuffer and synchronize with LCD
+	ld	hl, (VX_LCD_BUFFER) 
+	ld	de, (vxFramebuffer)
+	ld	(vxFramebuffer), hl
+	ld	(VX_LCD_BUFFER), de
+vxWaitLCD:
+; wait until the LCD finish displaying the frame
+	ld	hl, VX_LCD_ICR
+	set	2, (hl)
+	ld	l, VX_LCD_ISR&$FF
+vxWaitLoop:
+	bit	2, (hl)
+	jr	z, vxWaitLoop
+	ret
+vxSwapLCD:
+; swap buffer without LCD acknowledge
+	ld	hl, (VX_LCD_BUFFER) 
+	ld	de, (vxFramebuffer)
+	ld	(vxFramebuffer), hl
+	ld	(VX_LCD_BUFFER), de
+	ret
+vxBlendRBG:
+; blend color c and a
+; destroy d and e
+	ld	d, a
+	and	c
+	and	VX_COLOR_LOW_BIT
+	ld	e, a
+	ld	a, d
+	and	~VX_COLOR_LOW_BIT
+	ld	d, a
+	ld	a, c
+	and	~VX_COLOR_LOW_BIT
+	add	a, d
+	rra
+	add	a, e
+	ret
+vxLitRBG:
+; lit a color (c) by factor (a) (0-63::255)
+; destroy bc, hl
+	ld	b, a
+	ld	a, c
+	and	VX_GREEN_BITS
+	ld	l, a
+	ld	h, b
+	mlt	hl
+	add	hl, hl
+	add	hl, hl
+	ld	a, h
+	tst	a, %11111000
+	jr	z, $+4
+	ld	h, VX_GREEN_BITS
+	ld	a, c
+	and	VX_BLUE_BITS
+	ld	l, a
+	ld	a, h
+	ld	h, b
+	mlt	hl
+	add	hl, hl
+	add	hl, hl
+	ld	l, a
+	ld	a, h
+	tst	a, %11100000
+	jr	z, $+4
+	ld	a, VX_BLUE_BITS
+	and	VX_BLUE_BITS
+	or	l
+	ld	h, b
+	ld	b, a
+	ld	a, c
+	and	VX_RED_BITS
+	ld	l, a
+	mlt	hl
+	ld	a, h
+	tst	a, %11000000
+	jr	z, $+4
+	ld	h, VX_RED_BITS>>2
+	add	hl, hl
+	add	hl, hl
+	ld	a, h
+	and	VX_RED_BITS
+	or	b
+	ret
+vxLerpRBG:
+; 452 TStates
+	push	hl
+	ld	b, (hl)
+; b,c,e
+	ld	e, a
+	ld	a, b
+	and	VX_GREEN_BITS	
+	ld	h, a
+	ld	a, c
+	and	VX_GREEN_BITS
+	sub	h
+	jr	nc, $+4
+	cpl
+	inc	a
+	ld	h, a
+	ld	l, e
+; convert flag
+	sbc	a, a
+	or	a, a
+; c=nz, nc=z
+	mlt	hl
+	add	hl, hl
+	add	hl, hl
+	ld	a, h
+	jr	z, $+4
+	neg	
+	ld	h, a
+	ld	a, b
+	and	VX_GREEN_BITS
+	add	a, h
+	ld	d, a
+; 138
+	ld	a, b
+	and	VX_BLUE_BITS
+	ld	h, a
+	ld	a, c
+	and	VX_BLUE_BITS
+	sub	h
+	jr	nc, $+4
+	cpl
+	inc	a
+	ld	h, a
+	ld	l, e
+	mlt	hl
+	rl	h	; push down carry flag	
+	add	hl, hl
+	ld	a, h
+	and	VX_BLUE_BITS
+	bit	1, h
+	jr	z, $+4
+	neg
+	ld	h, a
+	ld	a, b
+	and	VX_BLUE_BITS
+	add	a, h
+	or	d
+	ld	d, a
+; 280
+	ld	a, b
+	and	VX_RED_BITS
+	ld	h, a
+	ld	a, c
+	and	VX_RED_BITS
+	sub	h
+	jr	nc, $+4
+	cpl
+	inc	a ; neg, put different flag output
+	ld	h, a
+	ld	l, e
+	mlt	hl
+	rl	h ; push down carry flag
+	ld	a, h
+	and	VX_RED_BITS>>1
+	bit	0, h
+	jr	z, $+4
+	neg
+	ld	h, a
+	ld	a, b
+	rra
+	and	VX_RED_BITS>>1
+	add	a, h
+	sla	a
+	or	d
+	pop	hl
+	ret

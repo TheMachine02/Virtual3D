@@ -1,0 +1,1384 @@
+
+#include	"vxVertexShader.inc"
+#include	"vxGeometryShader.inc"
+
+
+#define	VX_GEOMETRY_N3TI9	%00010011	; 19
+#define	VX_GEOMETRY_TI9		%00010000	; 16
+#define	VX_GEOMETRY_N3CI9	%00001101	; 13	; in theory not needed anymore
+#define	VX_GEOMETRY_CI9		%00001010	; 10
+
+#define	VX_GEOMETRY_COLOR	%00001010
+#define	VX_GEOMETRY_TEXTURE	%00010000
+
+#define	VX_ANIMATION_MATRIX_SIZE	15
+#define	VX_ANIMATION_BONE	32768
+
+#define	VX_GEOMETRY_QUEUE	$D10000	; 4*4096 (16K)
+#define	VX_VERTEX_BUFFER		$D08000	; 16*2048 (32K)
+#define	VX_MAX_TRIANGLE		4096
+#define	VX_MAX_VERTEX		2048
+#define	VX_MAX_BATCH		64
+
+#define	VX_VERTEX_BOX		8
+
+#define	vxPosition			$D03406
+#define	VX_DEPTH_BUCKET		$D03200
+#define	vxDepthSortTemp		$E30014
+
+; TODO : create geometry shader in submission
+; Better vertex shader with decoupled projection
+; Put all the code in fast ram, use sha256
+
+vxSubmissionQueue:
+	.dl	0
+vxGeometrySize:
+	.dl	0
+vxBatchData:
+	.dl	0
+vxVertexCacheFill:
+	.dl	0
+vxModelViewCache:
+	.db	0,0,0
+	.db	0,0,0
+	.db	0,0,0
+	.dl	0,0,0
+vxModelWorld:
+	.db	0,0,0
+	.db	0,0,0
+	.db	0,0,0
+	.dl	0,0,0
+vxTModelWorld:
+	.db	0,0,0
+	.db	0,0,0
+	.db	0,0,0
+	.dl	0,0,0
+vxLight0Cache:
+	.db	0,0,0
+	.db	0
+	.dw	0,0,0
+vxKeyAnimation:
+	.db	0
+
+.align 256
+VX_BATCH_DATA:
+.fill 256
+
+vxCmdExecute:
+	ld	iy, VX_GEOMETRY_QUEUE
+	ld	(vxSubmissionQueue), iy
+	ld	hl, VX_BATCH_DATA
+	ld	(vxBatchData), hl
+; various reset blahblah
+
+	ld	hl, VX_SHADER_INTERPOLATION_COPY
+	ld	de, VX_SHADER_INTERPOLATION_CODE
+	ld	bc, 1024
+	ldir
+	ld	hl, VX_PIXEL_SHADER_COPY
+	ld	de, VX_PIXEL_SHADER_CODE
+	ld	bc, 64
+	ldir
+
+	ld	bc, (vxGeometrySize)
+	ld	hl, 0
+	ld	(vxGeometrySize), hl
+	ld	a, b
+	or	c
+;	jp	z, vxResetCache
+	ret	z
+	ld	a, c
+	dec	bc
+	inc	b
+	ld	c, b
+	ld	b, a
+vxCmdExeLoop:
+	push	bc
+
+	ld	hl, VX_BATCH_DATA
+	ld	l, (iy+0)
+	ld	a, (hl)	; format
+	inc	hl
+	ld	bc, (hl)	; subcache
+	pea	iy+4
+	ld	iy, (iy+1)	; read triangle data
+; switch(format)
+	cp	VX_GEOMETRY_TI9
+	jr	nc, vxCmdFormatTex
+vxCmdFormatCol:
+	ld	a, (iy+9)	; color
+	ld	hl, (iy+0)
+	add	hl, bc
+	ex	de, hl
+	ld	hl, (iy+3)
+	add	hl, bc
+	ld	ix, (iy+6)
+	add	ix, bc
+	lea	bc, ix+0
+	call	vxFlatTriangle
+	pop	iy
+	pop	bc
+	djnz	vxCmdExeLoop
+	dec	c
+	jp	nz, vxCmdExeLoop
+	ret
+vxCmdFormatTex:
+
+;;	push	bc
+;;;	;ld	ix, vxWorldView+6
+;;	ld	ix, LIGHT
+
+#comment
+	call	vxDotProduct
+	or	a, a
+	ex	de, hl
+	sbc	hl, hl
+	sbc	hl, de
+	bit	7, h
+	jr	z, _InRange
+	ld	hl, 0
+_InRange:
+	add	hl, hl
+	ld	a, 12
+	add	a, h
+	cp	32
+	jr	c, $+4
+	ld	a, 31
+	ld	(INCREMENT), a
+#endcomment
+#comment
+	xor	a, a
+	ld	c, (iy+16)
+	ld	b, (ix+0)
+	bit	7, c \ jr z, $+3 \ sub a,b
+	bit	7, b \ jr z, $+3 \ sub a,c
+	mlt	bc
+	add	a, b
+	ld	c, (iy+17)
+	ld	b, (ix+1)
+	bit	7, c \ jr z, $+3 \ sub a,b
+	bit	7, b \ jr z, $+3 \ sub a,c
+	mlt	bc
+	add	a, b
+	ld	c, (iy+18)
+	ld	b, (ix+2)
+	bit	7, c \ jr z, $+3 \ sub a,b
+	bit	7, b \ jr z, $+3 \ sub a,c
+	mlt	bc
+	add	a, b
+; max(a,0)
+	jp	p, $+4+1
+	xor	a, a
+; lightning model is here, infinite directionnal light, no pow=1
+; ambiant lightning=12
+;;	add	a, 8
+	add	a, 12
+; min(a,31)
+	cp	32
+	jr	c, $+4
+	ld	a, 31
+	ld	(INCREMENT), a
+	pop	bc
+
+	ld	de, (iy+12)
+	ld	ix, (iy+3)
+	add	ix, bc
+	ld	(ix+5), e
+	ld	(ix+6), d
+	lea	de, ix+0
+
+	ld	hl, (iy+10)
+	ld	ix, (iy+0)
+	add	ix, bc
+	ld	(ix+5), l
+	ld	(ix+6), h
+;;	lea	hl, ix+0
+
+	ld	hl, (iy+14)
+	ld	iy, (iy+6)
+	add	iy, bc
+	ld	(iy+5), l
+	ld	(iy+6), h
+	lea	bc, iy+0
+
+	lea	hl, ix+0
+
+	ld	ix, (iy+3)
+	add	ix, bc
+	ld	a, (ix+5)
+	lea de, ix+0
+
+	ld	ix, (iy+0)
+	add	ix, bc
+	add	a, (ix+5)
+	lea	hl, ix+0
+
+	ld	ix, (iy+6)
+	add	ix, bc
+	add	a, (ix+5)
+	lea	bc, ix+0
+
+	lea	ix, iy+10
+#endcomment
+
+	ld	ix, (iy+0)
+	add	ix, bc
+	ld	de, (iy+10)
+	ld	(ix+VX_VERTEX_GPR0), e
+	ld	(ix+VX_VERTEX_GPR1), d
+	ld	a, (ix+VX_VERTEX_UNIFORM)
+	lea	de, ix+0
+
+	ld	ix, (iy+3)
+	add	ix, bc
+	ld	hl, (iy+12)
+	ld	(ix+VX_VERTEX_GPR0), l
+	ld	(ix+VX_VERTEX_GPR1), h
+	add	a, (ix+VX_VERTEX_UNIFORM)
+	lea	hl, ix+0
+
+	ld	ix, (iy+6)
+	add	ix, bc
+	ld	bc, (iy+14)
+	ld	(ix+VX_VERTEX_GPR0), c
+	ld	(ix+VX_VERTEX_GPR1), b
+	add	a, (ix+VX_VERTEX_UNIFORM)
+; compute uniform value
+	ld	b, a
+	ld	c, 83
+	mlt	bc
+	ld	a, b
+	ld	(vxShaderUniform0+1), a
+	lea	bc, ix+0
+
+	call	vxTextureTriangle
+	pop	iy
+	pop	bc
+	dec	b
+	jp	nz, vxCmdExeLoop
+	dec	c
+	jp	nz, vxCmdExeLoop
+	ret
+;;	jp	vxResetCache
+
+vxCmdDraw:
+; hl - vertex source bc - cache area : de - triangle source : ix - matrix world matrix followed with iy  model matrix
+; format : a
+; now write batch id, batch data (format, cache)
+	push	hl
+	ld	hl, (vxBatchData)
+	ld	(hl), a	; format
+	ld	(vxFormatOffset0), a
+	ld	a, l
+	inc	hl
+	ld	(hl), bc
+	inc hl \ inc hl \ inc hl
+	ld	(vxBatchData), hl
+	ld	(vxBatchOffset0), a
+	pop	hl
+
+	push	bc
+	push	de
+	call	vxCmdStream	; stream vertex data to cache
+	pop	iy			; polygon list
+	pop	de
+	ret	c
+	ld	bc, (iy+1)
+	ld	a, c
+	dec	bc
+	inc	b
+	ld	c, b
+	ld	b, a
+	lea iy, iy+3
+	ld	ix, (vxSubmissionQueue)
+
+#comment
+vxSubmission0:
+	ld	hl, (iy+0)
+	add	hl, de
+	ld	a, (hl)
+	ld	hl, (iy+3)
+	add	hl, de
+	and	(hl)
+	ld	hl, (iy+6)
+	add	hl, de
+	and	(hl)
+	jr	nz, vxDiscard1
+
+	ld	hl, (iy+0)
+	add	hl, de
+	ld	a, (hl)
+	ld	hl, (iy+3)
+	add	hl, de
+	or	(hl)
+	ld	hl, (iy+6)
+	add	hl, de
+	or	(hl)
+	jr	nz, +_
+; try for bfc
+	push	bc
+
+	call	vxCmdBFC
+
+	pop	bc
+	jp	p, vxDiscard1
+_:
+; compute depth and submit polygon to list (ix)
+vxBatchOffset0=$+1
+	ld	a, $00
+	ld	(ix+0), a
+	ld	(ix+1), iy
+	lea	ix, ix+4
+vxDiscard1:
+vxFormatOffset0=$+2
+	lea	iy, iy+16
+	djnz	vxSubmission0
+	dec	c
+	jr	nz, vxSubmission0
+#endcomment
+
+vxSubmission0:
+	push	de
+	push	bc
+
+	ld	hl, (iy+6)
+	add	hl, de
+	push	hl
+	ld	hl, (iy+3)
+	add	hl, de
+	ex	de, hl
+	ld	bc, (iy+0)
+	add	hl, bc
+	pop	bc
+; bc = 2 , de = 1, hl =0
+
+	ld	a, (bc)
+	and	(hl)
+	ex	de, hl
+	and	(hl)
+	jr	nz, vxDiscard
+	ld	a, (bc)
+	or	(hl)
+	ex	de, hl
+	or	(hl)
+	jr	nz, vxPass
+; try for bfc
+;;	call	HELLO
+	call	vxNClip
+;;	jp	p, vxDiscard
+	jr	c, vxDiscard
+vxPass:
+; compute depth and submit polygon to list (ix)
+vxBatchOffset0=$+1
+	ld	a, $00
+	ld	(ix+0), a
+	ld	(ix+1), iy
+	lea	ix, ix+4
+vxDiscard:
+vxFormatOffset0=$+2
+	lea	iy, iy+16
+
+	pop	bc
+	pop	de
+	djnz	vxSubmission0
+	dec	c
+	jr	nz, vxSubmission0
+
+; need to update count & queue position
+; simple : new-previous / 4
+	ld	de, (vxSubmissionQueue)
+	lea	hl, ix+0
+	ld	(vxSubmissionQueue), hl
+	or	a, a
+	sbc	hl, de
+	sra h \ rr l
+	sra h \ rr l
+	ld	bc, (vxGeometrySize)
+	add	hl, bc
+	ld	(vxGeometrySize), hl
+
+	ret
+
+;vxResetCache:
+;	ld	hl, VX_VERTEX_BUFFER
+;	ld	de, 16
+;	ld	b, 0
+;	ld	a, $FF
+;vxResetCacheLoop:
+;	ld	(hl), a
+;	add	hl, de
+;	ld	(hl), a
+;	add	hl, de
+;	ld	(hl), a
+;	add	hl, de
+;	ld	(hl), a
+;	add	hl, de
+;	ld	(hl), a
+;	add	hl, de
+;	ld	(hl), a
+;	add	hl, de
+;	ld	(hl), a
+;	add	hl, de
+;	ld	(hl), a
+;	add	hl, de
+;	djnz	vxResetCacheLoop
+;	ret
+
+vxCmdStream:
+; hl - vertex source, bc - vertex cache, ix worldview matrix, iy modelworld matrix (should be an model matrix)
+; vertex source have size at the begining
+; support animation
+	push	bc
+	push	hl
+; load shader first
+	ld	hl, VX_VERTEX_SHADER_COPY
+	ld	de, VX_VRAM
+	ld	bc, VX_VERTEX_SHADER_SIZE
+	ldir
+; transform the worldview with the modelworld matrix to have the global modelview matrix
+; modelviewcache = modelworld * worldview
+	ld	hl, vxModelViewCache
+	call	vxMatrixTransform		; (hl) = (iy)*(ix)
+; modelview=modelviewcache
+	ld	de, vxModelView
+	ld	bc, VX_MATRIX_SIZE
+	ldir
+; modelworld=modelworld
+; tmodelworld=transpose(modelworld)
+	lea	hl, iy+0
+	ld	de, vxModelWorld
+	ld	bc, VX_MATRIX_SIZE
+	ldir
+	lea	hl, iy+0
+	ld	bc, VX_MATRIX_SIZE
+	ldir
+	ld	ix, vxTModelWorld
+	call	vxMatrixTranspose
+; light0cache=light0
+; light0=light0*transpose(modelworld)
+	ld	hl, vxLight0
+	ld	de, vxLight0Cache
+	ld	bc, VX_LIGHT_SIZE
+	ldir
+; do light*matrix (hl) = (iy)*(ix)
+	ld	hl, vxLight0
+	ld	iy, vxLight0Cache
+	call	vxMatrixLightning
+; load up shader data
+	ld	ix, VX_VERTEX_SHADER_DATA
+	pop	iy
+; iy = source, ix = matrix
+	ld	a, (iy+0)
+	ld	bc, (iy+1)
+	lea	iy, iy+3
+	and	VX_VERTEX_BOX
+	call	nz, vxVertexStreamBox
+	pop	de
+	ret	c
+; iy+0 are options, so check those. Here, only bounding box is interesting.
+	ld	a, c
+	dec	bc
+	inc	b
+	ld	c, b
+	ld	b, a
+; de = cache, iy = source, ix = matrix, bc = size
+vxCmdStreamLoop:
+	push	bc
+; read first source value, if value=32768, then compute bone
+	ld	bc, (iy+0)
+	ld	a, b
+	xor	VX_ANIMATION_BONE/256
+	or	a, c
+	jr	z, vxCmdComputeBone
+; wasn't a bone in source, so read vertex
+; call vertex shader
+	call	vxVertexShader
+vxCmdStreamLoopBack:
+	pop	bc
+	djnz	vxCmdStreamLoop
+	dec	c
+	jr	nz, vxCmdStreamLoop
+	or	a, a
+	ret
+vxCmdComputeBone:
+; more complex stuff here. Need to restore initial matrix & do a multiplication with the correct bone key matrix
+; once done, only advance in the source, not the cache
+	push	de
+	lea	iy, iy+3
+	push	iy
+	ld	a, (vxKeyAnimation)
+	ld	e, a
+	ld	d, VX_ANIMATION_MATRIX_SIZE
+	mlt	de
+	add	iy, de	; correct animation matrix
+; modelview = bonemodel*modelview
+	ld	hl, vxModelView
+	ld	ix, vxModelViewCache
+	call	vxMatrixTransform	; (hl)=(iy)*(ix)
+; I have the correct modelview matrix in shader cache area
+; next one is reduced matrix without translation, since it will only be a direction vector mlt. However, the light vector position also need to be transformed by the transposed matrix
+; light0 = light0cache*transpose(bonemodel*modelworld)
+	ld	ix, vxModelWorld
+	lea	hl, ix+VX_MATRIX_SIZE
+	call	vxMatrixMlt
+	lea	ix, ix+VX_MATRIX_SIZE
+	call	vxMatrixTranspose
+	ld	hl, vxLight0
+	ld	iy, vxLight0Cache
+	call	vxMatrixLightning
+	pop	iy
+	ld	a, (iy-1)
+	ld	e, a
+	ld	d, VX_ANIMATION_MATRIX_SIZE
+	mlt	de
+	add	iy, de
+	pop	de
+	pop	bc
+	ld	ix, VX_VERTEX_SHADER_DATA
+	jr	vxCmdStreamLoop
+vxVertexBoxCode:
+	.db	0
+vxVertexStreamBox:
+	push	bc
+; check the bounding box
+	ld	de, VX_VERTEX_POOL
+	ld	a, $FF
+	ld	(vxVertexBoxCode), a
+	ld	b, 8
+vxVertexBoxLoop:
+	push	bc
+	ld	bc, (iy+0)
+	call	vxVertexShader
+	lea	iy, iy-3
+	ld	hl, -16
+	add	hl, de
+	ld	a, (vxVertexBoxCode)
+	and	a, (hl)
+	ld	(vxVertexBoxCode), a
+	pop	bc
+	djnz	vxVertexBoxLoop
+	pop	bc
+	or	a, a	
+	ret	z
+	scf
+	ret
+
+#comment
+vxCmdStream:
+; hl - vertex source, de - vertex cache, ix matrix, support  animation, if animation : use vxKeyAnimation
+; vertex source have size at the begining
+; copy matrix into vxWorldView matrix & ModelView matrix
+	push	de
+	push	hl
+
+; load shader first
+
+	ld	hl, VX_GLOBAL_SHADER_COPY
+	ld	de, VX_VRAM
+	ld	bc, VX_GLOBAL_SHADER_SIZE
+	ldir
+
+	lea	hl, ix+0
+	ld	de, vxWorldView
+	ld	bc, VX_MATRIX_SIZE
+	ldir
+
+	lea	hl, ix+0
+	ld	de, vxModelView
+	ld	bc, VX_MATRIX_SIZE
+	ldir
+;;	ld	ix, vxModelView
+;
+	ld	ix, VX_GLOBAL_SHADER_DATA
+; compute transpose
+
+	pop	hl
+	pop	de
+
+	ld	bc, (hl)
+	inc hl \ inc hl \ inc hl
+	push	hl
+	pop	iy
+	ld	a, c
+	dec	bc
+	inc	b
+	ld	c, b
+	ld	b, a
+
+; de = cache, iy = source, ix = matrix, bc = size
+vxCmdStreamLoop0:
+	push	bc
+; read first source value, if value=32768, then compute bone
+	ld	bc, (iy+0)
+;;	ld	hl, VX_ANIMATION_BONE
+;;	or	a, a
+;;	sbc.s	hl, bc
+
+	ld	a, b
+	xor	VX_ANIMATION_BONE/256
+	or	a, c
+
+	jr	z, vxCmdStreamBone
+; wasn't a bone in source, so read vertex
+; transform vertex ! Take source iy*ix then copy value to cache
+	call	vxVertexShader
+vxCmdStreamLoopBack:
+	pop	bc
+	djnz	vxCmdStreamLoop0
+	dec	c
+	jr	nz, vxCmdStreamLoop0
+	ret
+vxCmdStreamBone:
+; more complex stuff here. Need to restore initial matrix & do a multiplication with the correct bone key matrix
+; once done, only advance in the source, not the cache
+	push	de
+; matrix:
+	lea	ix, iy+3
+	ld	a, (vxKeyAnimation)
+	ld	e, a
+	ld	d, VX_ANIMATION_MATRIX_SIZE
+	mlt	de
+	add	ix, de	; correct animation matrix
+; todo : do current matrix * this matrix
+	push	iy
+; first transform the translation by the world matrix
+	push	ix
+	lea	iy, ix+9	; load translation part
+	ld	ix, vxWorldView
+	call	vxCmdTransform
+; copy back data
+	ld	hl, vxPosition
+	ld	de, vxModelView+9
+	ld	bc, 9
+	ldir
+	pop	iy
+	ld	ix, vxWorldView
+	ld	hl, vxModelView
+; hl=iy*ix
+	call	IMatrixMlt
+
+	ld	ix, vxModelView	; concatenation of modelWorld and WorldView
+
+	pop	iy
+	ld	a, (iy+2)	; number of matrix, advance
+	ld	e, a
+	ld	d, VX_ANIMATION_MATRIX_SIZE
+	mlt	de
+	add	iy, de
+	lea	iy, iy+3
+	pop	de
+	pop	bc
+	jp	vxCmdStreamLoop0
+#endcomment
+
+vxCmdDepthSort:
+	push	bc
+	ld	bc, 511
+	ld	hl, VX_DEPTH_BUCKET+511
+	ld	de, VX_DEPTH_BUCKET+510
+	ld	(hl), $00
+	lddr
+	pop	bc
+; sort the current submission queue
+	ld	bc, (vxGeometrySize)
+	ld	a, b
+	or	c
+	ret	z
+	ld	iy, VX_GEOMETRY_QUEUE
+	ld	ix, (vxDepthSortTemp)
+
+	ld	a, c
+	dec	bc
+	inc	b
+	ld	c, b
+	ld	b, a
+vxCmdDepthCompute:
+	push	bc
+	push	iy
+	ld	hl, VX_BATCH_DATA
+	ld	l, (iy+0)
+	ld	a, l		; batch index
+	inc	hl
+	ld	bc, (hl)	; grab cache, important
+	ld	iy, (iy+1)	; this is adress of vertex index
+
+	push	ix
+	ld	ix, (iy+0)
+	add	ix, bc
+	ld	hl, (ix+13)
+	ld	ix, (iy+3)
+	add	ix, bc	; add cache adress of batch
+	ld	de, (ix+13)
+	add	hl, de	; add up Z coordinate
+	ld	ix, (iy+6)
+	add	ix, bc
+	ld	de, (ix+13)
+	or	a, a
+	adc	hl, de	; et voilà !
+; check for <0
+	jp	p, vxCmdDepthPositive
+	or	a, a
+	sbc	hl, hl
+vxCmdDepthPositive:
+	pop	ix
+
+; write everything to tmp buffer
+	ld	(ix+0), hl	; depth
+	ld	(ix+3), iy	; adress
+	ld	(ix+6), a	; batch id
+	lea	ix, ix+7
+; fill depth bucket
+	ld	a, l
+	ld	hl, VX_DEPTH_BUCKET
+	ld	l, a
+;	inc	(hl)
+	ld	a, 7
+	add	a, (hl)
+	ld	(hl), a
+; nz
+	jr	nc, vxHSBDepthSkip
+	inc	h
+	inc	(hl)
+vxHSBDepthSkip:
+
+	pop	iy
+	lea	iy, iy+4
+	pop	bc
+	djnz	vxCmdDepthCompute
+	dec	c
+	jr	nz, vxCmdDepthCompute
+; and now the sorting : apply a radix sort on the data (huge & complicate, constant speed per triangle of about 1300TStates)
+
+	ld	hl, (vxDepthSortTemp)
+	ld	(vxCmdReadBuffer0), hl
+	ld	(vxCmdWriteBuffer0), hl
+	ld	de, VX_MAX_TRIANGLE*7
+	add	hl, de
+	ld	(vxCmdReadBuffer1), hl
+	ld	(vxCmdWriteBuffer1), hl
+
+; restore index position in array
+	ld	hl, VX_DEPTH_BUCKET+511
+	ld	d, (hl)
+	dec	h
+	ld	e, (hl)
+	dec	l
+vxCmdRestoreBucketLoop0:
+	ld	c, (hl)
+	inc	h
+	ld	b, (hl)
+	ex	de, hl
+	add	hl, bc
+	ex	de, hl
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
+	dec	l
+	jr	nz, vxCmdRestoreBucketLoop0
+	ld	c, (hl)
+	inc	h
+	ld	b, (hl)
+	ex	de, hl
+	add	hl, bc
+	ex	de, hl
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
+; and copy to the correct position
+	lea	ix, ix-7
+; reset bcu
+	inc.sil	bc
+	ld	b, d
+	ld	c, e
+
+	ld	bc, (vxGeometrySize)
+
+	ld	a, c
+	dec	bc
+	inc	b
+	ld	c, a
+
+	push	bc
+	push	bc
+	push	bc
+	push	bc
+
+	ld	a, c
+vxCmdFillBucketOuter0:
+	push	bc
+	ld	b, 0
+vxCmdFillBucketInner0:
+	ld	hl, VX_DEPTH_BUCKET+7
+	ld	c, l
+	ld	l, (ix+0)
+	ld	e, (hl)
+	inc	h
+	ld	d, (hl)
+;	dec	de
+	ex	de, hl
+	sbc.s	hl, bc
+	ex	de, hl
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
+; de*7+write_buffer
+;	ld	h, c
+;	ld	l, d
+;	ld	d, c
+;	mlt	hl
+;	mlt	de
+;	ld	h, l
+;	ld	l, b
+;	add	hl, de
+vxCmdWriteBuffer1=$+1
+	ld	hl, $0
+	add	hl, de
+	ex	de, hl
+	lea	hl, ix+0
+	ldir
+	lea	ix, ix-7
+	dec	a
+	jr	nz, vxCmdFillBucketInner0
+	pop	bc
+	djnz	vxCmdFillBucketOuter0
+
+vxCmdReadBuffer1=$+2
+	ld	ix, $0
+
+	ld	bc, 511
+	ld	hl, VX_DEPTH_BUCKET+511
+	ld	de, VX_DEPTH_BUCKET+510
+	ld	(hl), $00
+	lddr
+; restore size
+	pop	bc
+	ld	a, c
+	ld	c, b
+	ld	b, a
+	ld	e, 7
+	ld	l, (ix+1)
+	ld	a, e
+	add	a, (hl)
+	ld	(hl), a
+	jr	nc, $+5
+	inc	h
+	inc	(hl)
+	dec	h
+	lea	ix, ix+7
+	djnz	$-14
+	dec	c
+	jr	nz, $-17
+	ld	l, 255
+	ld	e, (hl)
+	inc	h
+	ld	d, (hl)
+	dec	h
+	dec	l
+vxCmdRestoreBucket1:
+	ld	c, (hl)
+	inc	h
+	ld	b, (hl)
+	ex	de, hl
+	add	hl, bc
+	ex	de, hl
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
+	dec	l
+	jr	nz, vxCmdRestoreBucket1
+	ld	c, (hl)
+	inc	h
+	ld	b, (hl)
+	ex	de, hl
+	add	hl, bc
+	ex	de, hl
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
+	lea	ix, ix-7
+
+	pop	bc
+	ld	a, c
+vxCmdFillBucketOuter1:
+	push	bc
+	ld	b, 0
+vxCmdFillBucketInner1:
+	ld	hl, VX_DEPTH_BUCKET+7
+	ld	c, l
+	ld	l, (ix+1)
+	ld	e, (hl)
+	inc	h
+	ld	d, (hl)
+	ex	de, hl
+	sbc.sil	hl, bc
+	ex	de, hl
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
+vxCmdWriteBuffer0=$+1
+	ld	hl, $0
+	add	hl, de
+	ex	de, hl
+	lea	hl, ix+0
+	ldir
+	lea	ix, ix-7
+	dec	a
+	jr	nz, vxCmdFillBucketInner1
+	pop	bc
+	djnz	vxCmdFillBucketOuter1
+
+vxCmdReadBuffer0=$+2
+	ld	ix, $0
+
+	ld	bc, 511
+	ld	hl, VX_DEPTH_BUCKET+511
+	ld	de, VX_DEPTH_BUCKET+510
+	ld	(hl), $00
+	lddr
+
+	pop	bc
+	ld	a, c
+	ld	c, b
+	ld	b, a
+	ld	e, 4		; size of final batch
+	ld	l, (ix+2)
+	ld	a, e
+	add	a, (hl)
+	ld	(hl), a
+	jr	nc, $+5
+	inc	h
+	inc	(hl)
+	dec	h
+	lea	ix, ix+7
+	djnz	$-14
+	dec	c
+	jr	nz, $-17
+	ld	l, 255
+	ld	e, (hl)
+	inc	h
+	ld	d, (hl)
+	dec	h
+	dec	l
+vxCmdRestoreBucket2:
+	ld	c, (hl)
+	inc	h
+	ld	b, (hl)
+	ex	de, hl
+	add	hl, bc
+	ex	de, hl
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
+	dec	l
+	jr	nz, vxCmdRestoreBucket2
+	ld	c, (hl)
+	inc	h
+	ld	b, (hl)
+	ex	de, hl
+	add	hl, bc
+	ex	de, hl
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
+	lea	ix, ix-7
+
+	pop	bc
+	ld	a, c
+	inc	l
+vxCmdFillBucket2:
+	ld	l, (ix+2)
+	ld	e, (hl)
+	inc	h
+	ld	d, (hl)
+	dec.sil	de
+	dec	de
+	dec	de
+	dec	de
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
+	ld	iy, VX_GEOMETRY_QUEUE
+	add	iy, de
+; copy only the triangle adress
+	ld	de, (ix+3)
+	ld	(iy+1), de
+	ld	l, (ix+6)
+	ld	(iy+0), l
+
+	lea	ix, ix-7
+	dec	a
+	jr	nz, vxCmdFillBucket2
+	djnz	vxCmdFillBucket2
+
+	ret
+
+
+vxCmdBackfaceCull:
+	inc	de
+	inc	de
+
+	ld	hl, (iy+0)
+	add	hl, de
+	ld	bc, (hl)
+	dec	hl
+	ld	a, (hl)
+	ld	hl, (iy+6)
+	add	hl, de
+	ld	hl, (hl)
+	or	a, a
+	sbc	hl, bc
+	ld	b, h
+	ld	c, l
+	ld	hl, (iy+3)
+	add	hl, de
+	dec	hl
+	sub	(hl)
+
+	ld	h, b
+	ld	l, a
+	mlt	hl
+;;	jr	z, RR
+	jr	nc, $+5
+	or	a, a
+	sbc	hl, bc
+	bit	7, b
+	ld	b, a
+	jr	z, $+5
+	ld	a, h
+	sub	a, b
+	ld	h, a
+	slhl
+	mlt	bc
+	add	hl, bc
+RR:
+	push	hl
+
+	ld	hl, (iy+0)
+	add	hl, de
+	ld	bc, (hl)
+	dec	hl
+	ld	a, (hl)
+	ld	hl, (iy+3)
+	add	hl, de
+	ld	hl, (hl)
+	or	a, a
+	sbc	hl, bc
+	ld	b, h
+	ld	c, l
+
+	dec	de
+	ld	hl, (iy+6)
+	add	hl, de
+	sub	(hl)
+
+	ld	h, b
+	ld	l, a
+	mlt	hl
+;;	jr	z, RR2
+	jr	nc, $+5
+	or	a, a
+	sbc	hl, bc
+	bit	7, b
+	ld	b, a
+	jr	z, $+5
+	ld	a, h
+	sub	a, b
+	ld	h, a
+	slhl
+	mlt	bc
+	add	hl, bc
+RR2:
+	pop	bc
+
+	scf
+	sbc	hl, bc
+
+	dec	de
+	ret
+
+
+
+vxCmdBackfaceCull2:
+; (x2-x0)*(y1-y0) - (x1-x0)*(y2-y0)
+	push	de
+	inc	de
+
+	ld	hl, (iy+3)
+	add	hl, de
+	ld	a, (hl)
+	ld	hl, (iy+0)
+	add	hl, de
+	sub	(hl)
+	push	af
+	inc	hl
+	ld	bc, (hl)
+	ld	hl, (iy+6)
+	add	hl, de
+	inc	hl
+	ld	hl, (hl)
+	or	a, a
+	sbc	hl, bc
+	ld	b, h
+	ld	c, l
+	pop	af
+	ld	h, b
+	ld	l, a
+	mlt	hl
+	jr	nc, $+5
+	or	a, a
+	sbc	hl, bc
+	bit	7, b
+	ld	b, a
+	jr	z, $+5
+	ld	a, h
+	sub	a, b
+	ld	h, a
+	slhl
+	mlt	bc
+	add	hl, bc
+
+	push	hl
+
+	ld	hl, (iy+6)
+	add	hl, de
+	ld	a, (hl)
+	ld	hl, (iy+0)
+	add	hl, de
+	sub	(hl)
+	push	af
+	inc	hl
+	ld	bc, (hl)
+	ld	hl, (iy+3)
+	add	hl, de
+	inc	hl
+	ld	hl, (hl)
+	or	a, a
+	sbc	hl, bc
+	ld	b, h
+	ld	c, l
+	pop	af
+	ld	h, b
+	ld	l, a
+	mlt	hl
+	jr	nc, $+5
+	or	a, a
+	sbc	hl, bc
+	bit	7, b
+	ld	b, a
+	jr	z, $+5
+	ld	a, h
+	sub	a, b
+	ld	h, a
+	slhl
+	mlt	bc
+	add	hl, bc
+
+	pop	de
+	or	a, a
+	sbc	hl, de
+	pop	de
+	ret
+
+#comment
+Monitor_Size_Start:
+
+vxVertexShader:
+#define	CC 0
+#define	SY 1
+#define	SX 2
+#define	VX 7
+#define	VY 10
+#define	VZ 13
+#define	VX_GLOBAL_VCACHE_SIZE 16
+#define	VX_GLOBAL_VERTEX_SIZE 6
+; ix = global data register [LV[0-2],LA,LE, MC[0-8],MTX,MTY,MTZ]
+; iy = vertex data register [VX,VY,VZ,VN[0-2]]
+; de = output data register [RC,SY,SX,RI[0-1],RX,RY,RZ]
+; bc = x vertex coordinate [16bits]
+; OUT register
+; de = de + VX_GLOBAL_VCACHE_SIZE
+; iy = iy + VX_GLOBAL_VERTEX_SIZE
+; data copied to memory
+	pea	iy+VX_GLOBAL_VERTEX_SIZE
+	push	de
+; X coordinate
+;	ld	bc, (iy+0)
+	ld	hl, (ix+9)
+	ld	a, (ix+0)
+	madd
+	ld	a, (ix+1)
+	or	a, a
+	jr	z, vxVertexSkip0
+	ld	bc, (iy+2)
+	madd
+vxVertexSkip0:
+	ld	a, (ix+2)
+	ld	bc, (iy+4)
+	madd.f
+	push	hl
+; Z coordinate
+	ld	hl, (ix+15)
+	ld	a, (ix+8)
+	madd
+	ld	a, (ix+7)
+	ld	bc, (iy+2)
+	madd
+	ld	a, (ix+6)
+	ld	bc, (iy+0)
+	madd.f
+	push	hl
+; Y coordinate
+	ld	hl, (ix+12)
+	ld	a, (ix+3)
+	madd
+	ld	a, (ix+4)
+	ld	bc, (iy+2)
+	madd
+	ld	a, (ix+5)
+	ld	bc, (iy+4)
+	madd
+	pop	bc
+	pop	de
+	pop	iy
+
+	ld	(iy+VX), de
+	ld	(iy+VY), hl
+	ld	(iy+VZ), bc
+; 1740
+	call	vxPerspectiveDivide
+	ld	(iy+CC), a
+	ld	(iy+SY), b
+	ld	(iy+SX), hl
+
+;	call	vxDotProduct
+;	jp	p, $+4+3
+;	or	a, a
+;	sbc	hl, hl
+;	ld	a, (ix+VX_LIGHT0_AMBIANT)
+;	add	a, l
+;	cp	32
+;	jr	nc, $+4
+;	ld	a, 32
+;	ld	(iy+VX_VERTEX_I0), a
+
+
+	lea	de, iy+VX_GLOBAL_VCACHE_SIZE
+	pop	iy
+	ret
+
+
+vxProjectClipY:
+   rrca
+   ccf
+   rra
+; a = y plane code
+; continue on x code
+   ld hl, (iy+7)
+   bit 7,(iy+2+7)
+   jr z, vxProjectClipXAbs
+   ex de, hl
+   sbc   hl, hl
+   sbc   hl, de
+vxProjectClipXAbs:
+   rra
+   sbc   hl, bc
+   jr   c, vxProjectClipXIn
+   rlca
+   rrca
+   ccf
+   rra
+  bit 7,(iy+8+7)
+  ret z
+   or  %00001000
+   ret
+vxProjectClipXIn:
+   rra
+   and   %00110000
+  bit 7,(iy+8+7)
+  ret z
+   or  %00001000
+   ret
+; plane x right : plane x left : plane y up : plane y down : 0 : 0 : 0 : 0
+vxProject:
+   ld   hl, (iy+10)
+   ld   bc, (iy+13)
+vxPerspectiveDivide:
+   xor a, a
+   bit 7,(iy+5+7)
+   jr   z, vxProjectYAbs
+   ex   de, hl
+   sbc   hl, hl
+   sbc   hl, de
+vxProjectYAbs:
+   rla
+   sbc   hl, bc
+   jr nc, vxProjectClipY
+
+   add   hl, bc
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ adc a,a
+   cpl
+   add   a, a
+   ld   l, VX_SCREEN_HEIGHT/2+1 ;precision stuffs
+   ld   h, a
+   mlt   hl
+   ld   a, h
+
+   jr   nc, vxProjectYCorrect
+   neg
+vxProjectYCorrect:
+   add   a, VX_SCREEN_HCENTER
+   push  af
+; project x coordinate
+   ld   hl, (iy+7)
+   xor   a, a
+   bit   7, (iy+2+7)
+   jr   z, vxProjectXAbs
+   ex   de, hl
+   sbc   hl, hl
+   sbc   hl, de
+vxProjectXAbs:
+   rla
+  sbc   hl, bc
+   jr nc, vxProjectClipX
+   add   hl, bc
+
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ adc a,a
+   cpl
+   ld   c, a
+   ld   b, VX_SCREEN_WIDTH/2+1
+   mlt   bc
+   ld    a, b
+   sbc   hl, hl
+   jr   nc, $+3
+   cpl
+   ld   l, a
+   ld   bc, VX_SCREEN_WCENTER
+   adc   hl, bc
+   pop   bc ; grab y in b
+   xor   a,a
+   ret
+vxProjectClipX:
+   pop   bc
+   rrca
+   ccf
+   rra
+  bit 7,(iy+8+7)
+  ret z
+   or  %00001000
+   ret
+Monitor_Size_End:
+	.echo	Monitor_Size_End-Monitor_Size_Start
+#endcomment

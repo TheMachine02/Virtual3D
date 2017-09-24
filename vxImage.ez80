@@ -1,0 +1,87 @@
+vxImageSubCopy:
+; hl : org, bc : rect size, de : copy
+	push	bc
+	ld	bc, $D30000
+	add	hl, bc
+	ex	de, hl
+	add	hl, bc
+	ex	de, hl
+	pop	bc
+	ld	a, b
+	ld	b, 0
+; ready to copy
+vxCopyLoop:
+	push	bc
+	push	de
+	push	hl
+	ldir
+	pop	hl
+	pop	de
+	pop	bc
+	inc	h
+	inc	d
+	dec	a
+	jr	nz, vxCopyLoop
+	ret
+vxTestAABB:
+
+	ret
+vxMipmapLOD:
+;    vec2  dx_vtc        = dFdx;
+;    vec2  dy_vtc        = dFdy;
+;    float delta_max_sqr = max(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
+;    return 0.5 * log2(delta_max_sqr)
+	ld	a, (VX_FDUDX+1) ;dudx+1
+	bit	7, a \ jr z, $+4 \ neg
+	ld	l, a
+	ld	h, a
+	mlt	hl
+	ld	a, (VX_FDVDX+1) ;dvdx+1
+	bit	7, a \ jr z, $+4 \ neg
+	ld	d, a
+	ld	e, a
+	mlt	de
+	add	hl, de
+	push	hl
+	ld	a, (VX_FDUDY+1) ;dudy+1
+	bit	7, a \ jr z, $+4 \ neg
+	ld	l, a
+	ld	h, a
+	mlt	hl
+	ld	a, (VX_FDVDY+1) ;dvdy+1
+	bit	7, a \ jr z, $+4 \ neg
+	ld	d, a
+	ld	e, a
+	mlt	de
+	add	hl, de
+	pop	de
+; max(hl,de)
+	or	a, a
+	sbc	hl, de
+	add	hl, de
+	jr	nc, $+3
+	ex	de, hl
+	jr	nz, $+3
+	inc	hl
+; compute log2
+	ld	a,16
+	scf
+__LogLoop:
+	adc.s	hl,hl
+	dec	a
+	jr	nc,__LogLoop
+; result is between [-1;15]
+; 256x256 texture have 9 mipmap levels.
+	srl	a	; remap to [0-8]
+; clamp the result to [0-8]
+; correspondance :
+; 256x256 : 0
+; 128x128 : 1
+;  64x 64 : 2
+;  32x 32 : 3
+;  16x 16 : 4
+;   8x  8 : 5
+;   4x  4 : 6
+;   2x  2 : 7
+;   1x  1 : 8
+	ret
