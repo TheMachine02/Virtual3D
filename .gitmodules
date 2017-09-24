@@ -1,7 +1,0 @@
-[submodule "glm0"]
-	path = tools/mdlconv-src/glm
-	url = https://github.com/g-truc/glm/tree/master/glm
-
-[submodule "glm1"]
-	path = tools/xmlconv-src/glm
-	url = https://github.com/g-truc/glm/tree/master/glm
