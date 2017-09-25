@@ -16,7 +16,7 @@
 # Planned feature
 1. Mipmap
 
-![Tombraider](https://imgur.com/7R0LIS2)
+![Tombraider](https://i.imgur.com/7R0LIS2.gif)
 
 # Converters
 
