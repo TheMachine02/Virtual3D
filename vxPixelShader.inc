@@ -60,7 +60,6 @@ vxShaderGeneralInterpolation:
 	exx
 	lea	iy, iy+VX_REGISTER_SIZE
 	jp	(ix)
-.align $E1004C
 	jp	vxPixelShaderExit
 ; exactly 64 bytes
 
@@ -71,7 +70,7 @@ vxShaderGeneralInterpolation:
 #define	VX_CALL_NULL	((VX_PIXEL_SHADER_SUBSIZE+1)*2+VX_PIXEL_SHADER_CODE)%256
 #define	VX_CALL1_NEG	(VX_PIXEL_SHADER_SUBSIZE+VX_PIXEL_SHADER_CODE)%256
 #define	VX_CALL0_NEG	(VX_PIXEL_SHADER_CODE)%256
-#define	VX_CALL_EXIT	(VX_PIXEL_SHADER_CODE+60)%256
+#define	VX_CALL_EXIT	(VX_PIXEL_SHADER_SUBSIZE*2+28+VX_PIXEL_SHADER_CODE)%256
 
 ; pad to two bytes
    .align  2
