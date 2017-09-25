@@ -11668,7 +11668,7 @@ Listing for file "example.ez80"
   351 D2:0BB6 -  -  -  -  #include "XML.ez80"
 Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\XML.ez80"
     1 D2:0BB6 -  -  -  -  VERTEXDATA:
-    2 D2:0BB6 63 01 00 -  .dl 355
+    2 D2:0BB6 00 63 01 -  .dl 90880
     3 D2:0BB9 00 80 -  -  .dw VX_ANIMATION_BONE
     4 D2:0BBB 13 -  -  -  .db 19
     5 D2:0BBC 3F 03 FD -  .db 63,3,-3
@@ -14190,7 +14190,7 @@ Listing for file "C:\Users\Zeromus\Documents\GitHub\Virtual3D\XML.ez80"
               91 00 -  -  .dw -10,18,145
  1882 D2:2911 18 E8 CB -  .db 24,-24,-53
  1883 D2:2914 -  -  -  -  TRIDATA:
- 1884 D2:2914 82 02 00 -  .dl 642
+ 1884 D2:2914 00 82 02 -  .dl 164352
  1885 D2:2917 10 01 00 20 
               00 00 40 00 
               00 -  -  -  .f 17,2,4

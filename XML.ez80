@@ -1,5 +1,5 @@
 VERTEXDATA:
-.dl 355
+.dl 90880
 .dw VX_ANIMATION_BONE
 .db 19
 .db 63,3,-3
@@ -1881,7 +1881,7 @@ VERTEXDATA:
 .dw -10,18,145
 .db 24,-24,-53
 TRIDATA:
-.dl 642
+.dl 164352
 .f 17,2,4
 .db 0
 .db 212,120

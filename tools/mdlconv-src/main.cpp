@@ -8,7 +8,6 @@
 
 #include <vector>
 #include "glm/glm.hpp"
-//#include "bmp/EasyBMP.cpp"
 
 #define TEXTURE 1
 #define NORMAL  2
@@ -27,6 +26,7 @@ ivec2 mapUV256(vec2 textcoord);
 unsigned int convColor(float r, float g,float b);
 //unsigned short rgb8to256(float r,float g, float b);
 vector <vec3> getBoundingBox(vector <vec3> stream);
+vector <string> processFace(string s);
 
 struct material
 {
@@ -128,7 +128,7 @@ bool loadOBJ(const char * path, unsigned short option)
     vec3 vertex;
     vec2 textCoord;
     vec3 normal;
-    unsigned int index[9];
+  //  unsigned int index[9];
     char materialFile[256];
     char materialName[256];
     unsigned int indexMaterial=0;
@@ -163,10 +163,27 @@ bool loadOBJ(const char * path, unsigned short option)
         {
             int i;
             //this is a face line, read index, we will write them later.
-            sscanf(line.c_str(),"f %d/%d/%d %d/%d/%d %d/%d/%d",&index[0],&index[1],&index[2],&index[3],&index[4],&index[5],&index[6],&index[7],&index[8]);
+            //sscanf(line.c_str(),"f %d/%d/%d %d/%d/%d %d/%d/%d",&index[0],&index[1],&index[2],&index[3],&index[4],&index[5],&index[6],&index[7],&index[8]);
+
+            vector<string> data=processFace(line);
+            int datasize=(int)data.size()/3;
+            if(datasize>3)
+            {
+                printf("Model contains quads, please triangulate before using mdlconv");
+                exit(EXIT_FAILURE);
+            }
+
             indexTable.push_back(indexMaterial);
-            for(i=0; i<9; i++)
-                indexTable.push_back(index[i]-1);
+            for(i=0;i<3;i++)
+            {
+                indexTable.push_back(strtol(data[i*3].c_str(),NULL,10)-1);
+                indexTable.push_back(strtol(data[i*3+1].c_str(),NULL,10)-1);
+                indexTable.push_back(strtol(data[i*3+2].c_str(),NULL,10)-1);
+            }
+
+
+            /*for(i=0; i<9; i++)
+                indexTable.push_back(index[i]-1);*/
         }
         else if(strstr(line.c_str(),"mtllib")!=NULL)
         {
@@ -510,4 +527,47 @@ vector <vec3> getBoundingBox(vector <vec3> stream)
     box.push_back(tmp);
 
     return box;
+}
+
+vector <string> processFace(string s)
+{
+    //Remplace "//" par "/1/".
+    string s1="";
+    for(unsigned int i=0;i<s.size();i++)
+    {
+        if(i<s.size()-1&&s[i]=='/'&&s[i+1]=='/')
+        {
+            s1+="/1/";
+            i++;
+        }
+        else
+            s1+=s[i];
+    }
+    //Remplace les '/' par des espaces.
+    string ret="";
+    for(unsigned int i=0;i<s1.size();i++)
+    {
+        if(s1[i]=='/')
+            ret+=' ';
+        else
+            ret+=s1[i];
+    }
+
+    vector<string> ret0;
+    s1="";
+    ret=ret.substr(2);
+    for(unsigned int i=0;i<ret.size();i++)
+    {
+        if(ret[i]==' '||i==ret.size()-1)
+        {
+            if(i==ret.size()-1)
+                s1+=ret[i];
+            ret0.push_back(s1);
+            s1="";
+        }
+        else
+            s1+=ret[i];
+    }
+
+    return ret0;
 }
