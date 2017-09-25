@@ -10,7 +10,7 @@
 #define	VX_REGISTER3			9
 
 ; locate write area as vxPixelShader + SUB_SIZE - 1, 1 byte to write
-; for killing pixel, do a jr cc,$+3 for ld, jr cc, $+5 for other
+; for killing pixel, do a jr cc,$+3 right before ldi
 
 
 VX_PIXEL_SHADER_COPY:
@@ -719,71 +719,3 @@ vxPixelShaderLengthLUT:
    .db VX_CALL1_POS, 160
 vxPixelShaderExitLUT:
    .db VX_CALL_EXIT, 0
-#comment
-
-lut table :
-; aligned to 2 boundary
-; call is within vxPixelShader and vxPixelShader+VX_PIXEL_SHADER_SUBSIZE
-; for length = 0 jump to vxPixelShader+VX_PIXEL_SHADER_SUBSIZE*2+2
-; for length < 0 jump to vxPixelShader+VX_PIXEL_SHADER_SUBSIZE-1 and VX_PIXEL_SHADER_SUBSIZE*2+vxPixelShader-1
-
-
-
-define	ld (de+)	ld (de),a \ inc de
-#define	or (de+)	ex de,hl \ or (hl) \ ex de,hl \ inc de
-#define	and (de+)	ex de,hl \ and (hl) \ ex de,hl \ inc de
-#define	xor (de+)	ex de,hl \ xor (hl) \ ex de,hl \ inc de
-
-; lightning : 11 bytes, 32 cycles/pixel
-    ld  a, h    ; get v to pass to next part
-    add hl, sp  ; v=v+dv (du on high)
-    exx		; swap
-    ld  h, a    ; paste v on high byte
-    ld  c, (hl) ; fetch texture, and get index to color table in same time
-    adc hl, de  ; u=u+du (on low)
-    ld  a, (bc) ; fetch lighted color
-    exx		; swap
-    ldpx		; write pixel and next
-
-
-vxRegister0Interpolation:
-; bc = y-size, ix = adress
-; de= error , iy = position
-; sp= 320, sps = stack
-	ld	a, c
-; compute error
-	scf
-	sbc	hl, hl
-	ld	l, a
-	sbc	hl, de
-	sra	h
-	rr	l
-	neg
-vxRegister0Loop:
-	add	hl, de
-	jr	nc, vxRegister0Next
-vxRegister0Restore:
-	.db	$DD
-vxRegister0Increment=$
-	nop
-	add	hl, bc
-	jr	c, vxRegister0Restore
-vxRegister0Next:
-	ld	(iy+VX_REGISTER0), ix		; this is framebuffer adress
-	add	ix, sp
-	lea	iy, iy+12
-	dec	a
-	jr	nz, vxRegister0Loop
-; magic end bytes
-	ld	bc, vxPixelShaderExitLUT/2+1
-	ld	(iy+VX_REGISTER1), bc
-	ld	bc, -1
-	ld	(iy+VX_REGISTER0), bc
-
-;; lutadress = (-fb_reg1+LUTbase/2+fb_reg0)*2 = (fb_reg0-fb_reg1)*2+LUTbase
-
-; do calculation for longest-smallest
-; if length > 0, longest is at right, so draw right to left
-
-
-#endcomment
