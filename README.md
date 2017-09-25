@@ -1,6 +1,6 @@
 # Virtual3D - an ez80 assembly 3D engine
 
-![Suzanne](http://i.imgur.com/bBK9ym2.gif)
+![Suzanne](https://i.imgur.com/xvMlnSp.gif)
 
 # Features
 
@@ -11,9 +11,12 @@
 5. Double buffered framebuffer
 5. Cliping
 6. Animation
+7. Automatic bounding box
 
 # Planned feature
 1. Mipmap
+
+![Tombraider](https://i.imgur.com/7R0LIS2.gif)
 
 # Converters
 
