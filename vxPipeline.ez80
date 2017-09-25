@@ -106,14 +106,25 @@ vxCmdExeLoop:
 	cp	VX_GEOMETRY_TI9
 	jr	nc, vxCmdFormatTex
 vxCmdFormatCol:
-	ld	a, (iy+9)	; color
-	ld	hl, (iy+0)
-	add	hl, bc
-	ex	de, hl
-	ld	hl, (iy+3)
-	add	hl, bc
+	ld	ix, (iy+0)
+	add	ix, bc
+	ld	a, (ix+VX_VERTEX_UNIFORM)
+	lea	hl, ix+0
+	ld	ix, (iy+3)
+	add	ix, bc
+	add	a, (ix+VX_VERTEX_UNIFORM)
+	lea	de, ix+0
 	ld	ix, (iy+6)
 	add	ix, bc
+	add	a, (ix+VX_VERTEX_UNIFORM)
+	ld	b, a
+	ld	c, 83
+	mlt	bc
+	ld	a, b
+	ld	bc, $D00000
+	ld	c, (iy+9)
+	ld	b, a
+	ld	a, (bc)
 	lea	bc, ix+0
 	call	vxFlatTriangle
 	pop	iy
@@ -223,19 +234,19 @@ _InRange:
 
 	ld	ix, (iy+0)
 	add	ix, bc
-	ld	de, (iy+10)
-	ld	(ix+VX_VERTEX_GPR0), e
-	ld	(ix+VX_VERTEX_GPR1), d
+	ld	hl, (iy+10)
+	ld	(ix+VX_VERTEX_GPR0), l
+	ld	(ix+VX_VERTEX_GPR1), h
 	ld	a, (ix+VX_VERTEX_UNIFORM)
-	lea	de, ix+0
+	lea	hl, ix+0
 
 	ld	ix, (iy+3)
 	add	ix, bc
-	ld	hl, (iy+12)
-	ld	(ix+VX_VERTEX_GPR0), l
-	ld	(ix+VX_VERTEX_GPR1), h
+	ld	de, (iy+12)
+	ld	(ix+VX_VERTEX_GPR0), e
+	ld	(ix+VX_VERTEX_GPR1), d
 	add	a, (ix+VX_VERTEX_UNIFORM)
-	lea	hl, ix+0
+	lea	de, ix+0
 
 	ld	ix, (iy+6)
 	add	ix, bc

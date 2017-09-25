@@ -85,7 +85,7 @@ vxModelView:
 	.db	0,0,0
 	.dl	0,0,0
 vxLight0:
-	.db	0,0,64
+	.db	0,0,-64
 	.db	0
 	.dw	0,0,0
 

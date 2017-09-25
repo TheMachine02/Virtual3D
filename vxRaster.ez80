@@ -19,101 +19,23 @@ vxRasterPixelEntry:
 	ret			; [x]
 
 vxFlatPolygon:
-	sub	a, 3
-	ret	c
-	inc	a
+	sub	a, 2
 	ld	b, a
 	ld	hl, (iy+0)
 vxFlatCyclicLoop:
 	push	bc
-	ld	bc, (iy+3)
-	ld	de, (iy+6)
+	ld	de, (iy+3)
+	ld	bc, (iy+6)
 	push	hl
 	push	iy
-	ld	a, (bc)
-	or	(hl)
-	ex	de, hl
-	or	(hl)
-	jr	nz, vxFlatDiscard
-
 	push	hl
-	push	de
 	push	bc
-	inc	hl \ inc de \ inc bc
 	push	de
-	pop	ix
-	push	bc
-	pop	iy
-	push	hl
-	inc	hl
-	ld	de, (hl)
-	ld	hl, (iy+1)
-	or	a, a
-	sbc	hl, de
-	ld	b, h
-	ld	c, l
-
-	pop	hl
-	ld	a, (ix)
-	sub	(hl)
-	push	hl
-
-	ld	h, b
-	ld	l, a
-	mlt	hl
-	jr	nc, $+5
-	or	a, a
-	sbc	hl, bc
-	bit	7, b
-	ld	b, a
-	jr	z, $+5
-	ld	a, h
-	sub	a, b
-	ld	h, a
-	slhl
-	mlt	bc
-	add	hl, bc
-	ex	de, hl
-	pop	hl
-
-	push	hl
-	inc	hl
-	ld	bc, (hl)
-	ld	hl, (ix+1)
-	or	a, a
-	sbc	hl, bc
-	ld	b, h
-	ld	c, l
-
-	pop	hl
-	ld	a, (iy)
-	sub	(hl)
-
-	ld	h, b
-	ld	l, a
-	mlt	hl
-	jr	nc, $+5
-	or	a, a
-	sbc	hl, bc
-	bit	7, b
-	ld	b, a
-	jr	z, $+5
-	ld	a, h
-	sub	a, b
-	ld	h, a
-	slhl
-	mlt	bc
-	add	hl, bc
-
-	or	a, a
-	sbc	hl, de
-
-	pop	bc
+	call	vxNClip
 	pop	de
+	pop	bc
 	pop	hl
-
-	call	p, vxFlatTrianglePC
-vxFlatDiscard:
+	call	c,vxFlatTriangleNoClip
 	pop	iy
 	lea	iy, iy+3
 	pop	hl
@@ -121,7 +43,6 @@ vxFlatDiscard:
 	dec	b
 	jp	nz, vxFlatCyclicLoop
 	ret
-
 
 vxFlatTriangle:
     ld	(IRasterRBG8), a
@@ -132,7 +53,7 @@ vxFlatTriangle:
 	or	(hl)
 	ld	iy, vxFlatPolygon
 	jp	nz, vxClipTriangle
-vxFlatTrianglePC:
+vxFlatTriangleNoClip:
 	inc	hl \ inc de \ inc bc
 	
     ld	a, (de)

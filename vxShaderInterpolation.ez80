@@ -601,8 +601,8 @@ vxTexturePolygon:
 	ld	hl, (iy+0)
 vxTextureCyclicLoop:
 	push	bc
-	ld	bc, (iy+3)
-	ld	de, (iy+6)
+	ld	de, (iy+3)
+	ld	bc, (iy+6)
 	push	hl
 	push	iy
 	push	hl
