@@ -237,7 +237,7 @@ vxCmdFormatTex:
 	jp	nz, vxCmdExeLoop
 	ret
 
-vxCmdDraw:
+vxGeometryStream:
 ; hl : vertex source
 ; bc : cache area (where does the output vertex should go ?)
 ; de : triangle source
@@ -263,7 +263,7 @@ vxCmdDraw:
 	pop	hl
 
 	push	de
-	call	vxCmdStream	; stream vertex data to cache
+	call	vxVertexStream	; stream vertex data to cache
 	pop	iy			; polygon list
 	ret	c			; quit the stream if carry set (bounding box test failed)
 	ld	bc, (iy+1)
@@ -292,7 +292,7 @@ vxCmdDraw:
 	ld	(vxGeometrySize), hl
 	ret
 
-vxCmdStream:
+vxVertexStream:
 ; hl - vertex source, bc - vertex cache, ix worldview matrix, iy modelworld matrix (should be an model matrix)
 ; vertex source have size at the begining
 ; support animation
@@ -350,7 +350,7 @@ vxCmdStream:
 	ld	c, b
 	ld	b, a
 ; de = cache, iy = source, ix = matrix, bc = size
-vxCmdStreamLoop:
+vxVertexStreamLoop:
 	push	bc
 ; read first source value, if value=32768, then compute bone
 	ld	bc, (iy+0)
@@ -361,11 +361,11 @@ vxCmdStreamLoop:
 ; wasn't a bone in source, so read vertex
 ; call vertex shader
 	call	vxVertexShader
-vxCmdStreamLoopBack:
+vxVertexStreamLoopBack:
 	pop	bc
-	djnz	vxCmdStreamLoop
+	djnz	vxVertexStreamLoop
 	dec	c
-	jr	nz, vxCmdStreamLoop
+	jr	nz, vxVertexStreamLoop
 	or	a, a
 	ret
 vxCmdComputeBone:
@@ -403,7 +403,7 @@ vxCmdComputeBone:
 	pop	de
 	pop	bc
 	ld	ix, VX_VERTEX_SHADER_DATA
-	jr	vxCmdStreamLoop
+	jr	vxVertexStreamLoop
 vxVertexBoxCode:
 	.db	0
 vxVertexStreamBox:

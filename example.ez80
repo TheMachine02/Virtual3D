@@ -82,7 +82,7 @@ MainLoop:
 	ld	bc, VX_VERTEX_BUFFER
 	ld	hl, (Vertex)
 	ld	de, (Triangle)
-	call	vxCmdDraw
+	call	vxGeometryStream
 
 	ld	a, VX_GEOMETRY_TI9
 	ld	ix, WorldMatrix
@@ -90,7 +90,7 @@ MainLoop:
 	ld	bc, VX_VERTEX_BUFFER+(1024*16)
 	ld	hl, VERTEXDATA
 	ld	de, TRIDATA
-	call	vxCmdDraw
+	call	vxGeometryStream
 
 
 	ld	hl, (vxGeometrySize)

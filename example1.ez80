@@ -53,7 +53,7 @@ MainLoop:
 	ld	bc, VX_VERTEX_BUFFER
 	ld	hl, (Vertex)
 	ld	de, (Triangle)
-	call	vxCmdDraw
+	call	vxGeometryStream
 
 	ld	hl, (vxGeometrySize)
 	ld	(triangle_count), hl

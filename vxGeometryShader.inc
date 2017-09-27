@@ -11,6 +11,8 @@
 #define	VX_GEOMETRY_SHADER_CODE		$E30800
 
 vxGeometryShader:
+
+vxGeometryLoop:
 	push	bc
 vxBufferOffset=$+1
 	ld	de, $000000
@@ -83,26 +85,7 @@ vxGeometryDiscard:
 vxFormatOffset=$+2
 	lea	iy, iy+16
 	pop	bc
-	djnz	vxGeometryShader
+	djnz	vxGeometryLoop
 	dec	c
-	jr	nz, vxGeometryShader
+	jr	nz, vxGeometryLoop
 	ret
-
-#comment
-	ld	ix, (iy+VX_INDEX0)
-	add	ix, bc
-	ld	hl, (ix+VX_VERTEX_RZ)
-	ld	ix, (iy+VX_INDEX1)
-	add	ix, bc
-	ld	de, (ix+VX_VERTEX_RZ)
-	add	hl, de
-	ld	ix, (iy+VX_INDEX2)
-	add	ix, bc	; shouldn't carry
-	ld	de, (ix+VX_VERTEX_RZ)
-	adc	hl, de
-	jp	p, vxAvgDepthPositive
-	or	a, a
-	sbc	hl, hl
-vxAvgDepthPositive:
-
-#endcomment
