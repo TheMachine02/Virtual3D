@@ -1,5 +1,3 @@
-;; BUG :: inside du/dy and dv/dy compute
-
 #define	VX_REGISTER_Y0	-32+0
 #define	VX_REGISTER_X0	-32+1
 #define	VX_REGISTER_U0	-32+3
@@ -36,15 +34,6 @@ VX_SHADER_INTERPOLATION_COPY:
 .relocate VX_SHADER_INTERPOLATION_CODE
 
 vxTextureTriangle:
-; issue 1 : uniform value isn't interpolated through clipping
-; clipping doesn't have the correct position of uv
-
-; compute average of the vertex GPI
-;	ld	h, a
-;	ld	l, 83
-;	mlt	hl
-;	ld	a, h
-;	ld	(vxPixelShaderUniform1), a
 	ld	a, (bc)
 	or	(hl)
 	ex	de, hl
