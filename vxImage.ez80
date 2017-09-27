@@ -1,7 +1,7 @@
 vxImageSubCopy:
 ; hl : org, bc : rect size, de : copy
 	push	bc
-	ld	bc, $D30000
+	ld	bc, (vxShaderTexturePage)
 	add	hl, bc
 	ex	de, hl
 	add	hl, bc
@@ -23,10 +23,8 @@ vxCopyLoop:
 	dec	a
 	jr	nz, vxCopyLoop
 	ret
-vxTestAABB:
-
-	ret
 vxMipmapLOD:
+; THIS IS HALF BROKEN AND CANT BE USED RIGHT NOW
 ;    vec2  dx_vtc        = dFdx;
 ;    vec2  dy_vtc        = dFdy;
 ;    float delta_max_sqr = max(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));

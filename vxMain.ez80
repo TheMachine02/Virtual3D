@@ -33,9 +33,13 @@ vxEngineInit:
 	ld	hl, VX_FRAMEBUFFER_AUX1
 	ld	(vxFramebuffer), hl
 
-
-	ld	iy, VX_GEOMETRY_QUEUE
-	ld	(vxSubmissionQueue), iy
+	ld	hl, VX_DEPTH_BUCKET
+	ld	de, VX_DEPTH_BUCKET+1
+	ld	bc, 511
+	ld	(hl), $00
+	ldir
+	ld	hl, VX_FRAMEBUFFER_AUX1
+	ld	(vxSubmissionQueue), hl
 	ld	hl, VX_BATCH_DATA
 	ld	(vxBatchData), hl
 	or	a, a

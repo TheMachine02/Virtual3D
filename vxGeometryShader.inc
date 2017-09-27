@@ -2,9 +2,10 @@
 #define	VX_INDEX1	3
 #define	VX_INDEX2	6
 
-#define	VX_GEOMETRY_DEPTH	0
-#define	VX_GEOMETRY_INDEX	3
-#define	VX_GEOMETRY_ID		6
+#define	VX_GEOMETRY_DEPTH	4
+#define	VX_GEOMETRY_INDEX	1
+#define	VX_GEOMETRY_ID		0
+#define	VX_GEOMETRY_SIZE		8
 
 #define	VX_GEOMETRY_SHADER_DATA		$E30800
 #define	VX_GEOMETRY_SHADER_CODE		$E30800
@@ -38,7 +39,7 @@ vxBufferOffset=$+1
 	jr	c, vxGeometryDiscard
 vxGeometryPass:
 ; compute depth and submit polygon to list (ix)
-vxBufferOffsetAddRZ:
+vxBufferOffsetAddRZ=$+1
 	ld	bc, $000000
 ; index 0 - rz
 	ld	hl, (iy+VX_INDEX0)
@@ -64,7 +65,7 @@ vxGeometryDepthClamp:
 	ld	(ix+VX_GEOMETRY_DEPTH), hl
 ; fill depth bucket
 	ex	de, hl
-	ld	hl, VX_DEPTH_BUCKET+7
+	ld	hl, VX_DEPTH_BUCKET+8
 	ld	a, l
 	ld	l, e
 	add	a, (hl)
@@ -77,6 +78,7 @@ vxGeometryBucket:
 vxBatchOffset=$+1
 	ld	a, $00
 	ld	(ix+VX_GEOMETRY_ID), a
+	lea	ix, ix+VX_GEOMETRY_SIZE
 vxGeometryDiscard:
 vxFormatOffset=$+2
 	lea	iy, iy+16
@@ -85,75 +87,6 @@ vxFormatOffset=$+2
 	dec	c
 	jr	nz, vxGeometryShader
 	ret
-
-
-vxNClip:
-; vec e0 = v1 - v0;
-; vec e1 = v2 - v0;
-; return e0.x * e1.y - e0.y * e1.x > 0 ? 1 : 0;
-;
-;	(x1-x0)*(y2-y1) - (y1-y0)*(x2-x1)
-;
-; we'll compute (y1-y0)*(x2-x1)+(y2-y1)*(x0-x1)
-	inc	hl \ inc bc \ inc de
-
-	push	hl
-	push	bc
-
-	ld	a, (bc)
-	inc	hl
-	ld	hl, (hl)
-	ex	de, hl
-	inc	hl
-	ld	bc, (hl)
-	ex	de, hl
-; hl-bc is x0-x1
-	or	a, a
-	sbc	hl, bc
-	sra	h \ rr l
-	ld	c, h
-	ex	de, hl
-	dec	hl
-	sub	a, (hl)
-	ld	d, a
-	ld	a, 0
-	jr	nc, $+3 \ sub a, e
-	bit 7, c \ jr z, $+3 \ sub a, d
-	mlt	de
-	add	a, d
-	ld	d, a		
-; bc and hl need a restore
-; (y1-y0)*(x2-x1)
-;  a - (hl)*hl-bc
-	ld	a, (hl)
-	inc	hl
-;	ld	bc, (hl)
-	ld	c, (hl)	; b still hold correct value
-	pop	hl	; pop bc
-	inc	hl
-	ld	hl, (hl)
-	or	a, a
-	sbc	hl, bc
-	sra	h \ rr l
-	ld	c, h
-	ex	de, hl
-	ex	(sp), hl	; save previous de
-	sub	a, (hl)
-	ld	d, a
-	ld	a, 0
-	jr	nc, $+3 \ sub a, e
-	bit 7, c \ jr z, $+3 \ sub a, d
-	mlt	de
-	add	a, d
-	ld	d, a		
-; do de + temp_value
-	pop	hl
-	add	hl, de
-	dec	hl
-	rl	h
-	ret
-
-
 
 #comment
 	ld	ix, (iy+VX_INDEX0)
