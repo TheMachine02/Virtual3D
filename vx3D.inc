@@ -44,17 +44,6 @@
 
 ; geometry ;
 
-#define IPOINT              %00000001
-#define ILINE               %00000010
-#define ITRIANGLE           %00000011
-#define IQUADRI             %00000100
-#define ILINE_FAN           %10000010
-#define ITRIANGLE_FAN       %10000011
-#define IBACK_CULL          %00000001
-
-;;#define IVERTEX_BUFFER      $D09466
-#define IVERTEX_BUFFER $D08000 ;32K
-
 ; mesh ;
 
 ; maths ;
@@ -66,12 +55,6 @@
 ; batch ;
 
 ; depth test ;
-
-#define VX_DEPTH_TEST         $01
-#define VX_DEPTH_OFFSET       8388608
-#define VX_DEPTH_BITS         24
-#define VX_DEPTH_MIN          0
-#define VX_DEPTH_MAX          16777215
 
 ; texture ;
 
@@ -165,9 +148,6 @@
 #macro align(bound)
 	.fill bound-($%bound)
 #endmacro
-
-.addinstr  ld a,(hl+) 000000 3 NOP 1
-.addinstr  ld (hl+),a 000000 3 NOP 1
 
 .list
 
