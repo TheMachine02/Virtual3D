@@ -40,6 +40,8 @@
 	ld	(EulerAngle), hl
 	ld	hl, WorldMatrix
 	call	vxMatrixLoadIdentity
+	ld	hl, -384
+	ld	(posY), hl
 
 MainLoop:
 
