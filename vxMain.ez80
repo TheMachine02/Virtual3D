@@ -45,6 +45,8 @@ vxEngineInit:
 	or	a, a
 	sbc	hl, hl
 	ld	(vxGeometrySize), hl
+	ld	hl, $D30000
+	ld	(vxTexturePage), hl
 ;;	ld	hl, 0E00005h
 ;;;	ld	(hl), 2	; Set flash wait states to 5 + 1 = 6 (total access time = 7)
 	call	vxCreateMemoryPool

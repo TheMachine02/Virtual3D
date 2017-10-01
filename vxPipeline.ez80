@@ -61,6 +61,8 @@ vxLight0Cache:
 	.dw	0,0,0
 vxKeyAnimation:
 	.db	0
+vxTexturePage:
+	.dl	0
 
 vxCmdExecute:
 	ld	hl, (VX_LCD_BUFFER)
@@ -85,6 +87,9 @@ vxCmdExecute:
 	ld	de, VX_PIXEL_SHADER_CODE
 	ld	bc, 64
 	ldir
+
+	ld	hl, (vxTexturePage)
+	ld	(vxShaderTexturePage), hl
 
 	ld	bc, (vxGeometrySize)
 	or	a, a

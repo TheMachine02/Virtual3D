@@ -1,7 +1,7 @@
 vxImageSubCopy:
 ; hl : org, bc : rect size, de : copy
 	push	bc
-	ld	bc, (vxShaderTexturePage)
+	ld	bc, (vxTexturePage)
 	add	hl, bc
 	ex	de, hl
 	add	hl, bc
