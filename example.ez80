@@ -94,7 +94,6 @@ MainLoop:
 	ld	de, TRIDATA
 	call	vxGeometryStream
 
-
 	ld	hl, (vxGeometrySize)
 	ld	(triangle_count), hl
 

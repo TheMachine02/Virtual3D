@@ -1,9 +1,23 @@
 #define	VX_MATRIX_SIZE	18
+#define	VX_VECTOR16X	0
+#define	VX_VECTOR16Y	2
+#define	VX_VECTOR16Z	4
+#define	VX_VECTOR8X	0
+#define	VX_VECTOR8Y	1
+#define	VX_VECTOR8Z	2
 
 vxIdentityMatrix:
 .db	64,0,0
 .db	0,64,0
 .db	0,0,64
+.dl	0,0,0
+vxTmpVector:
+.dw	0,0,0
+.db	0	; pad
+vxLookAtMatrix:
+.db	0,0,0
+.db	0,0,0
+.db	0,0,0
 .dl	0,0,0
 
 vxMatrixLoadIdentity:
@@ -287,6 +301,7 @@ vxfTransform:
 ; [ix+6]*[iy]+[ix+7]*[iy+2]+[ix+8]*[iy+4]+[ix+15]=z
 ; From 1566+x? TStates to 1654 TStates, 333 bytes
 ; X coordinate
+; you know, I am really madd ! *coder stare at you*
 	ld	bc, (iy+0)
 	ld	hl, (ix+9)
 	ld	a, (ix+0)
@@ -320,4 +335,60 @@ vxfTransform:
 	ld	bc, (iy+4)
 	madd
 	ld	(vxPosition+6), hl
+	ret
+vxMatrixLookAt:
+; zaxis = normal(At - Eye)
+; xaxis = normal(cross(Up, zaxis))
+; yaxis = cross(zaxis, xaxis)
+; xaxis.x           xaxis.y           xaxis.z          0
+; yaxis.x           yaxis.y           yaxis.z          0
+; zaxis.x           zaxis.y           zaxis.z          0
+;-dot(xaxis, eye)  -dot(yaxis, eye)  -dot(zaxis, eye)  l
+; ix is eye, iy is At, bc is Up
+	ld	de, (ix+VX_VECTOR16X)
+	ld	hl, (iy+VX_VECTOR16X)
+	or	a, a
+	sbc	hl, de
+	ld	(vxTmpVector+VX_VECTOR16X), hl
+
+	ld	de, (ix+VX_VECTOR16Y)
+	ld	hl, (iy+VX_VECTOR16Y)
+	or	a, a
+	sbc	hl, de
+	ld	(vxTmpVector+VX_VECTOR16Y), hl
+
+	ld	de, (ix+VX_VECTOR16Z)
+	ld	hl, (iy+VX_VECTOR16Z)
+	or	a, a
+	sbc	hl, de
+	ld	(vxTmpVector+VX_VECTOR16Z), hl
+
+	ld	iy, vxTmpVector+VX_VECTOR16X
+	ld	hl, vxLookAtMatrix+VX_MATRIX_C6
+	call	vxNormalize
+
+	push	ix
+	push	bc
+	pop	ix
+	ld	iy, vxLookAtMatrix+VX_MATRIX_C6
+	ld	hl, vxLookAtMatrix+VX_MATRIX_C0
+	call	vxCrossProduct
+
+	ld	ix, vxLookAtMatrix+VX_MATRIX_C6
+	ld	iy, vxLookAtMatrix+VX_MATRIX_C0
+	ld	hl, vxLookAtMatrix+VX_MATRIX_C3
+	call	vxCrossProduct
+	pop	iy
+	ld	ix, vxLookAtMatrix
+	call	vxfTransform
+; here we copy negated value to translation part of the matrix
+	ld	de, (vxPosition+VX_VECTOR16X)
+	or	a, a \ sbc hl,hl \ sbc hl, de
+	ld	(ix+VX_MATRIX_TX), hl
+	ld	de, (vxPosition+VX_VECTOR16Y)
+	or	a, a \ sbc hl,hl \ sbc hl, de
+	ld	(ix+VX_MATRIX_TY), hl
+	ld	de, (vxPosition+VX_VECTOR16Z)
+	or	a, a \ sbc hl,hl \ sbc hl, de
+	ld	(ix+VX_MATRIX_TZ), hl
 	ret

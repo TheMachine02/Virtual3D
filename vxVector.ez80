@@ -182,6 +182,7 @@ vxDotProduct:
 	sbc	hl, bc
 	ret
 vxNormalize:
+; iy vector, hl output
 	ret
 vxLength:
 	ret
