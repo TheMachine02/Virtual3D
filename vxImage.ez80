@@ -1,3 +1,7 @@
+#define	VX_RLE_COMPRESSED	%01000000
+#define	VX_ZX7_COMPRESSED	%10000000
+#define	VX_UNCOMPRESSED		%00100000
+
 vxImageSubCopy:
 ; hl : org, bc : rect size, de : copy
 	push	bc
@@ -23,6 +27,106 @@ vxCopyLoop:
 	dec	a
 	jr	nz, vxCopyLoop
 	ret
+vxImageCopy:
+; hl : org, de : copy, a : format
+	rla
+	jr	c, vxZX7Uncompress
+	rla
+	jr	c, vxRLEUncompress
+	ld	bc, 65536
+	ldir
+	ret
+vxRLEUncompress:
+	ret
+vxZX7Uncompress:
+; Routine copied from the C toolchain & speed optimized
+;  Input:
+;   HL = compressed data pointer
+;   DE = output data pointer
+        ld      a, 128
+
+dzx7t_copy_byte_loop:
+
+        ldi                             ; copy literal byte
+
+dzx7t_main_loop:
+
+        add     a, a                    ; check next bit
+ 	jr nz,$+5 \ ld a,(hl) \ inc hl \ rla
+        jr      nc, dzx7t_copy_byte_loop ; next bit indicates either literal or sequence
+
+; determine number of bits used for length (Elias gamma coding)
+
+        push    de
+        ld      de, 0
+        ld      bc, 1
+
+dzx7t_len_size_loop:
+
+        inc     d
+        add     a, a                    ; check next bit
+ 	jr nz,$+5 \ ld a,(hl) \ inc hl \ rla
+        jr      nc, dzx7t_len_size_loop
+        jp      dzx7t_len_value_start
+
+; determine length
+
+dzx7t_len_value_loop:
+
+        add     a, a                    ; check next bit
+ 	jr nz,$+5 \ ld a,(hl) \ inc hl \ rla
+        rl      c
+        rl      b
+        jr      c, dzx7t_exit           ; check end marker
+
+dzx7t_len_value_start:
+
+        dec     d
+        jr      nz, dzx7t_len_value_loop
+        inc     bc                      ; adjust length
+
+; determine offset
+
+        ld      e, (hl)                 ; load offset flag (1 bit) + offset value (7 bits)
+        inc     hl
+
+        sla e
+        inc e
+
+        jr      nc, dzx7t_offset_end    ; if offset flag is set, load 4 extra bits
+        add     a, a                    ; check next bit
+ 	jr nz,$+5 \ ld a,(hl) \ inc hl \ rla
+        rl      d                       ; insert first bit into D
+        add     a, a                    ; check next bit
+ 	jr nz,$+5 \ ld a,(hl) \ inc hl \ rla
+        rl      d                       ; insert second bit into D
+        add     a, a                    ; check next bit
+ 	jr nz,$+5 \ ld a,(hl) \ inc hl \ rla
+        rl      d                       ; insert third bit into D
+        add     a, a                    ; check next bit
+ 	jr nz,$+5 \ ld a,(hl) \ inc hl \ rla
+        ccf
+        jr      c, dzx7t_offset_end
+        inc     d                       ; equivalent to adding 128 to DE
+
+dzx7t_offset_end:
+
+        rr      e                       ; insert inverted fourth bit into E
+
+; copy previous sequence
+
+        ex      (sp), hl                ; store source, restore destination
+        push    hl                      ; store destination
+        sbc     hl, de                  ; HL = destination - offset - 1
+        pop     de                      ; DE = destination
+       ldir
+
+dzx7t_exit:
+
+        pop     hl                      ; restore source address (compressed data)
+        jr      nc, dzx7t_main_loop
+	ret
+
 vxMipmapLOD:
 ; THIS IS HALF BROKEN AND CANT BE USED RIGHT NOW
 ;    vec2  dx_vtc        = dFdx;

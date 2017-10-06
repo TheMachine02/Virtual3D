@@ -64,7 +64,7 @@ vxKeyAnimation:
 vxTexturePage:
 	.dl	0
 
-vxCmdExecute:
+vxRenderStream:
 	ld	hl, (VX_LCD_BUFFER)
 	ld	(vxSubmissionQueue), hl
 

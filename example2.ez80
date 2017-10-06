@@ -113,7 +113,7 @@ MainLoop:
 
 	ld	c, %00000000
 	call	vxClearBuffer
-	call	vxCmdExecute
+	call	vxRenderStream
 
 ; timer & counter
 
