@@ -54,7 +54,7 @@ MainLoop:
 
 	ld	a, (vxKeyAnimation)
 	inc a
-	cp	19
+	cp	13
 	jr	nz, $+3
 	xor	a, a
 	ld	(vxKeyAnimation), a
