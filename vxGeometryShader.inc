@@ -7,14 +7,35 @@
 #define	VX_GEOMETRY_ID		0
 #define	VX_GEOMETRY_SIZE		8
 
+#define	VX_GEOMETRY_FORMAT	0
+#define	VX_GEOMETRY_BUFFER	1
+
+#define	VX_GEOMETRY_SHADER_SIZE		1024
 #define	VX_GEOMETRY_SHADER_DATA		$E30800
 #define	VX_GEOMETRY_SHADER_CODE		$E30800
 
-vxGeometryShader:
+VX_GEOMETRY_SHADER_COPY:
 
+; relocate the shader to fast VRAM ($E30800)
+
+.relocate VX_GEOMETRY_SHADER_CODE
+
+vxGeometryShader:
+; input : iy=data, bc=size, hl=batchdata
+	ld	ix, (vxSubmissionQueue)
+	ld	a, (hl)
+	ld	(vxGeometryFormat), a
+	ld	a, l
+	ld	(vxGeometryBatch), a
+	inc	hl
+	ld	de, (hl)
+	ld	(vxGeometryBuffer), de
+	ld	hl, VX_VERTEX_RZ
+	add	hl, de
+	ld	(vxGeometryBufferRZ), hl
 vxGeometryLoop:
 	push	bc
-vxBufferOffset=$+1
+vxGeometryBuffer=$+1
 	ld	de, $000000
 
 	ld	hl, (iy+VX_INDEX2)
@@ -36,12 +57,11 @@ vxBufferOffset=$+1
 	or	(hl)
 	ex	de, hl
 	or	(hl)
-	jr	nz, vxGeometryPass
-	call	vxNClip
+	jr	z, vxGeometryNClip
+vxGeometryNext:
 	jr	c, vxGeometryDiscard
-vxGeometryPass:
 ; compute depth and submit polygon to list (ix)
-vxBufferOffsetAddRZ=$+1
+vxGeometryBufferRZ=$+1
 	ld	bc, $000000
 ; index 0 - rz
 	ld	hl, (iy+VX_INDEX0)
@@ -77,15 +97,66 @@ vxGeometryDepthClamp:
 	inc	(hl)
 vxGeometryBucket:
 	ld	(ix+VX_GEOMETRY_INDEX), iy
-vxBatchOffset=$+1
+vxGeometryBatch=$+1
 	ld	a, $00
 	ld	(ix+VX_GEOMETRY_ID), a
 	lea	ix, ix+VX_GEOMETRY_SIZE
 vxGeometryDiscard:
-vxFormatOffset=$+2
+vxGeometryFormat=$+2
 	lea	iy, iy+16
 	pop	bc
 	djnz	vxGeometryLoop
 	dec	c
 	jr	nz, vxGeometryLoop
 	ret
+vxGeometryNClip:
+	inc	hl \ inc bc \ inc de
+	push	hl
+	push	bc
+	ld	a, (bc)
+	inc	hl
+	ld	hl, (hl)
+	ex	de, hl
+	inc	hl
+	ld	bc, (hl)
+	ex	de, hl
+	or	a, a
+	sbc	hl, bc
+	sra	h \ rr l
+	ld	c, h
+	ex	de, hl
+	dec	hl
+	sub	a, (hl)
+	ld	d, a
+	ld	a, 0
+	jr	nc, $+3 \ sub a, e
+	bit 7, c \ jr z, $+3 \ sub a, d
+	mlt	de
+	add	a, d
+	ld	d, a		
+	ld	a, (hl)
+	inc	hl
+	ld	c, (hl)
+	pop	hl
+	inc	hl
+	ld	hl, (hl)
+	or	a, a
+	sbc	hl, bc
+	sra	h \ rr l
+	ld	c, h
+	ex	de, hl
+	ex	(sp), hl
+	sub	a, (hl)
+	ld	d, a
+	ld	a, 0
+	jr	nc, $+3 \ sub a, e
+	bit 7, c \ jr z, $+3 \ sub a, d
+	mlt	de
+	add	a, d
+	ld	d, a		
+	pop	hl
+	add	hl, de
+	dec	hl
+	rl	h
+	jp	vxGeometryNext
+.endrelocate

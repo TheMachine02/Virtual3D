@@ -85,7 +85,7 @@ vxRenderStream:
 	ldir
 	ld	hl, VX_PIXEL_SHADER_COPY
 	ld	de, VX_PIXEL_SHADER_CODE
-	ld	bc, 64
+	ld	bc, VX_PIXEL_SHADER_SIZE
 	ldir
 
 	ld	hl, (vxTexturePage)
@@ -192,27 +192,25 @@ vxGeometryStream:
 ; iy : model matrix
 ; a  : format
 ; now write batch id, batch data (format, cache)
-	push	hl
+	push	de
+	ex	de, hl
 	ld	hl, (vxBatchData)
 	ld	(hl), a	; format
-	ld	(vxFormatOffset), a
 	ld	a, l
 	inc	hl
 	ld	(hl), bc
 	inc hl \ inc hl \ inc hl
 	ld	(vxBatchData), hl
-	ld	(vxBatchOffset), a
-
-	ld	(vxBufferOffset), bc
-	ld	hl, VX_VERTEX_RZ
-	add	hl, bc
-	ld	(vxBufferOffsetAddRZ), hl
-	pop	hl
-
-	push	de
+	ex	de, hl
 	call	vxVertexStream	; stream vertex data to cache
 	pop	iy			; polygon list
 	ret	c			; quit the stream if carry set (bounding box test failed)
+; copy geometry shader
+	ld	hl, VX_GEOMETRY_SHADER_COPY
+	ld	de, VX_GEOMETRY_SHADER_CODE
+	ld	bc, VX_GEOMETRY_SHADER_SIZE
+	ldir
+; continue processing
 	ld	bc, (iy+1)
 	ld	a, c
 	dec	bc
@@ -220,10 +218,9 @@ vxGeometryStream:
 	ld	c, b
 	ld	b, a
 	lea iy, iy+3
-	ld	ix, (vxSubmissionQueue)
-
+	ld	hl, (vxBatchData)
+	dec	hl \ dec hl \ dec hl \ dec hl
 	call	vxGeometryShader
-
 ; need to update count & queue position
 ; simple : new-previous / 8
 	ld	de, (vxSubmissionQueue)
@@ -247,7 +244,7 @@ vxVertexStream:
 	push	hl
 ; load shader first
 	ld	hl, VX_VERTEX_SHADER_COPY
-	ld	de, VX_VRAM
+	ld	de, VX_VERTEX_SHADER_CODE
 	ld	bc, VX_VERTEX_SHADER_SIZE
 	ldir
 ; transform the worldview with the modelworld matrix to have the global modelview matrix

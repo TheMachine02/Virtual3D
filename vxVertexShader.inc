@@ -62,8 +62,8 @@
 #define	VX_LIGHT_AMBIANT	3
 #define	VX_LIGHT_POSITION	4
 
-#define	VX_SHADER_VERTEX_SIZE		16	; per vertex data in pipeline
-#define	VX_DATA_VERTEX_SIZE	9	; this should be changed if you suppress vertex normal data
+#define	VX_VERTEX_SIZE		16	; per vertex data in pipeline
+#define	VX_VERTEX_DATA_SIZE	9	; this should be changed if you suppress vertex normal data
 
 #define	VX_VERTEX_SHADER_SIZE		1024	; allowed shader size
 #define	VX_VERTEX_SHADER_DATA		$E30800
@@ -97,10 +97,10 @@ vxVertexShader:
 ; de = output data register [RC,SY,SX,RI[0-1],RX,RY,RZ]
 ; bc = x vertex coordinate [16bits]
 ; OUT register
-; de = de + VX_SHADER_VERTEX_SIZE
-; iy = iy + VX_DATA_VERTEX_SIZE
+; de = de + VX_VERTEX_SIZE
+; iy = iy + VX_VERTEX_DATA_SIZE
 ; data copied to memory
-	pea	iy+VX_DATA_VERTEX_SIZE
+	pea	iy+VX_VERTEX_DATA_SIZE
 	push	de
 ; X coordinate
 ;	ld	bc, (iy+0)
@@ -454,7 +454,7 @@ vxNext0:
 	ld	(iy+VX_VERTEX_SX), hl
 	xor	a, a
 	ld	(iy+VX_VERTEX_CODE), a
-	lea	de, iy+VX_SHADER_VERTEX_SIZE
+	lea	de, iy+VX_VERTEX_SIZE
 	pop	iy
 	ret
 
@@ -489,7 +489,7 @@ vxPerspectiveClip4:
 	jr	z, $+4
 	or  %00001000
 	ld	(iy+VX_VERTEX_CODE), a
-	lea	de, iy+VX_SHADER_VERTEX_SIZE
+	lea	de, iy+VX_VERTEX_SIZE
 	pop	iy
 	ret
 
