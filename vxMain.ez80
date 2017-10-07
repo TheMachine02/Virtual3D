@@ -9,7 +9,7 @@
 #include	"vxVector.ez80"
 #include	"vxFramebuffer.ez80"
 #include	"vxMemory.ez80"
-#include	"vxPostProcessing.ez80"
+;#include	"vxPostProcessing.ez80"
 #include	"vxData.inc"
 
 ; functions
