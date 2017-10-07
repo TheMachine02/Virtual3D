@@ -1,0 +1,148 @@
+vxBlendRBG:
+; blend color c and a
+; destroy d and e
+	ld	d, a
+	and	c
+	and	VX_COLOR_LOW_BIT
+	ld	e, a
+	ld	a, d
+	and	~VX_COLOR_LOW_BIT
+	ld	d, a
+	ld	a, c
+	and	~VX_COLOR_LOW_BIT
+	add	a, d
+	rra
+	add	a, e
+	ret
+vxLitRBG:
+; lit a color (c) by factor (a) (0-63::255)
+; destroy bc, hl
+	ld	b, a
+	ld	a, c
+	and	VX_GREEN_BITS
+	ld	l, a
+	ld	h, b
+	mlt	hl
+	add	hl, hl
+	add	hl, hl
+	ld	a, h
+	tst	a, %11111000
+	jr	z, $+4
+	ld	h, VX_GREEN_BITS
+	ld	a, c
+	and	VX_BLUE_BITS
+	ld	l, a
+	ld	a, h
+	ld	h, b
+	mlt	hl
+	add	hl, hl
+	add	hl, hl
+	ld	l, a
+	ld	a, h
+	tst	a, %11100000
+	jr	z, $+4
+	ld	a, VX_BLUE_BITS
+	and	VX_BLUE_BITS
+	or	l
+	ld	h, b
+	ld	b, a
+	ld	a, c
+	and	VX_RED_BITS
+	ld	l, a
+	mlt	hl
+	ld	a, h
+	tst	a, %11000000
+	jr	z, $+4
+	ld	h, VX_RED_BITS>>2
+	add	hl, hl
+	add	hl, hl
+	ld	a, h
+	and	VX_RED_BITS
+	or	b
+	ret
+vxLerpRBG:
+; 452 TStates
+	push	hl
+	ld	b, (hl)
+; b,c,e
+	ld	e, a
+	ld	a, b
+	and	VX_GREEN_BITS	
+	ld	h, a
+	ld	a, c
+	and	VX_GREEN_BITS
+	sub	h
+	jr	nc, $+4
+	cpl
+	inc	a
+	ld	h, a
+	ld	l, e
+; convert flag
+	sbc	a, a
+	or	a, a
+; c=nz, nc=z
+	mlt	hl
+	add	hl, hl
+	add	hl, hl
+	ld	a, h
+	jr	z, $+4
+	neg	
+	ld	h, a
+	ld	a, b
+	and	VX_GREEN_BITS
+	add	a, h
+	ld	d, a
+; 138
+	ld	a, b
+	and	VX_BLUE_BITS
+	ld	h, a
+	ld	a, c
+	and	VX_BLUE_BITS
+	sub	h
+	jr	nc, $+4
+	cpl
+	inc	a
+	ld	h, a
+	ld	l, e
+	mlt	hl
+	rl	h	; push down carry flag	
+	add	hl, hl
+	ld	a, h
+	and	VX_BLUE_BITS
+	bit	1, h
+	jr	z, $+4
+	neg
+	ld	h, a
+	ld	a, b
+	and	VX_BLUE_BITS
+	add	a, h
+	or	d
+	ld	d, a
+; 280
+	ld	a, b
+	and	VX_RED_BITS
+	ld	h, a
+	ld	a, c
+	and	VX_RED_BITS
+	sub	h
+	jr	nc, $+4
+	cpl
+	inc	a ; neg, put different flag output
+	ld	h, a
+	ld	l, e
+	mlt	hl
+	rl	h ; push down carry flag
+	ld	a, h
+	and	VX_RED_BITS>>1
+	bit	0, h
+	jr	z, $+4
+	neg
+	ld	h, a
+	ld	a, b
+	rra
+	and	VX_RED_BITS>>1
+	add	a, h
+	sla	a
+	or	d
+	pop	hl
+	ret
