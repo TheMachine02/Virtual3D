@@ -33,6 +33,31 @@ VX_SHADER_INTERPOLATION_COPY:
 
 .relocate VX_SHADER_INTERPOLATION_CODE
 
+vxTexturePolygon:
+	sub	a, 2
+	ld	b, a
+	ld	hl, (iy+0)
+vxTextureCyclicLoop:
+	push	bc
+	ld	de, (iy+3)
+	ld	bc, (iy+6)
+	push	hl
+	push	iy
+	push	hl
+	push	bc
+	push	de
+	call	vxNClip
+	pop	de
+	pop	bc
+	pop	hl
+	call	nc,vxTextureTriangleNoClip
+	pop	iy
+	lea	iy, iy+3
+	pop	hl
+	pop	bc
+	dec	b
+	jp	nz, vxTextureCyclicLoop
+	ret
 vxTextureTriangle:
 	ld	a, (bc)
 	or	(hl)
@@ -578,37 +603,69 @@ vxShaderUniform0=$+1
 vxPixelShaderExit:
 	ld	sp, $000000
 	ret
-
+vxMipmapLOD:
+; THIS IS HALF BROKEN AND CANT BE USED RIGHT NOW
+;    vec2  dx_vtc        = dFdx;
+;    vec2  dy_vtc        = dFdy;
+;    float delta_max_sqr = max(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
+;    return 0.5 * log2(delta_max_sqr)
+	ld	a, (VX_FDUDX+1) ;dudx+1
+	bit	7, a \ jr z, $+4 \ neg
+	ld	l, a
+	ld	h, a
+	mlt	hl
+	ld	a, (VX_FDVDX+1) ;dvdx+1
+	bit	7, a \ jr z, $+4 \ neg
+	ld	d, a
+	ld	e, a
+	mlt	de
+	add	hl, de
+	push	hl
+	ld	a, (VX_FDUDY+1) ;dudy+1
+	bit	7, a \ jr z, $+4 \ neg
+	ld	l, a
+	ld	h, a
+	mlt	hl
+	ld	a, (VX_FDVDY+1) ;dvdy+1
+	bit	7, a \ jr z, $+4 \ neg
+	ld	d, a
+	ld	e, a
+	mlt	de
+	add	hl, de
+	pop	de
+; max(hl,de)
+	or	a, a
+	sbc	hl, de
+	add	hl, de
+	jr	nc, $+3
+	ex	de, hl
+	jr	nz, $+3
+	inc	hl
+; compute log2
+	ld	a,16
+	scf
+__LogLoop:
+	adc.s	hl,hl
+	dec	a
+	jr	nc,__LogLoop
+; result is between [-1;15]
+; 256x256 texture have 9 mipmap levels.
+	srl	a	; remap to [0-8]
+; clamp the result to [0-8]
+; correspondance :
+; 256x256 : 0
+; 128x128 : 1
+;  64x 64 : 2
+;  32x 32 : 3
+;  16x 16 : 4
+;   8x  8 : 5
+;   4x  4 : 6
+;   2x  2 : 7
+;   1x  1 : 8
+	ret
 .endrelocate
 
 #include "vxPixelShader.inc"
-
-
-vxTexturePolygon:
-	sub	a, 2
-	ld	b, a
-	ld	hl, (iy+0)
-vxTextureCyclicLoop:
-	push	bc
-	ld	de, (iy+3)
-	ld	bc, (iy+6)
-	push	hl
-	push	iy
-	push	hl
-	push	bc
-	push	de
-	call	vxNClip
-	pop	de
-	pop	bc
-	pop	hl
-	call	nc,vxTextureTriangleNoClip
-	pop	iy
-	lea	iy, iy+3
-	pop	hl
-	pop	bc
-	dec	b
-	jp	nz, vxTextureCyclicLoop
-	ret
 
 VX_INVERSE_TABLE:
 .dw 65534	; position 0, so nothing in fact (div by 0)
