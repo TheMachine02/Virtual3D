@@ -50,6 +50,11 @@
 
 ; RAM and VRAM ;
 
+#define	VX_LUT_CONVOLVE		$D00000
+#define	VX_LUT_CONVOLVE_SIZE	8192
+#define	VX_LUT_SIN			$D02000
+#define	VX_LUT_SIN_SIZE		512
+
 ; color LCD ;
 
 ; batch ;
@@ -61,8 +66,6 @@
 ; limits ;
 
 ; static variables ;
-
-; functions ;
 
 #define madd                  __imadd_src_()
 #define slhl                 __islhl_src_()

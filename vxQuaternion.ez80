@@ -361,7 +361,7 @@ vxSin:
 	jr	z, vxQuatIndexZero
 vxSinSkp1:
 	bit	1, h
-	ld	hl, VX_SIN_TABLE
+	ld	hl, VX_LUT_SIN
 	jr	nz, vxSinNegate
 	ld	l, a
 	ld	c, (hl)

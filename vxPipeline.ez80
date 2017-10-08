@@ -132,7 +132,7 @@ vxCmdFormatCol:
 	ld	c, 83
 	mlt	bc
 	ld	a, b
-	ld	bc, $D00000
+	ld	bc, VX_LUT_CONVOLVE
 	ld	c, (iy+9)
 	ld	b, a
 	ld	a, (bc)

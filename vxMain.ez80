@@ -61,16 +61,13 @@ vxEngineInit:
 	call	0D18878h
 	pop	hl
 
-#define	VX_COLOR_LUT	$D00000
-#define	VX_SIN_TABLE	$D02000
-
-	ld	hl, VX_COLOR_LUT_DATA
-	ld	de, VX_COLOR_LUT
-	ld	bc, 8192
+	ld	hl, VX_LUT_CONVOLVE_DATA
+	ld	de, VX_LUT_CONVOLVE
+	ld	bc, VX_LUT_CONVOLVE_SIZE
 	ldir
-	ld	hl, VX_SIN_LUT_DATA
-	ld	de, VX_SIN_TABLE
-	ld	bc, 512
+	ld	hl, VX_LUT_SIN_DATA
+	ld	de, VX_LUT_SIN
+	ld	bc, VX_LUT_SIN_SIZE
 	ldir
 
 	call	vxResetPalette
