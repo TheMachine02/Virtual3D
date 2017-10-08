@@ -133,7 +133,7 @@ vxCmdFormatCol:
 	mlt	bc
 	ld	a, b
 	ld	bc, VX_LUT_CONVOLVE
-	ld	c, (iy+9)
+	ld	c, (iy+VX_INDEX_COLOR)
 	ld	b, a
 	ld	a, (bc)
 	lea	bc, ix+0
@@ -147,7 +147,7 @@ vxCmdFormatCol:
 vxCmdFormatTex:
 	ld	ix, (iy+VX_INDEX0)
 	add	ix, bc
-	ld	hl, (iy+10)
+	ld	hl, (iy+VX_INDEX_UV0)
 	ld	(ix+VX_VERTEX_GPR0), l
 	ld	(ix+VX_VERTEX_GPR1), h
 	ld	a, (ix+VX_VERTEX_UNIFORM)
@@ -155,7 +155,7 @@ vxCmdFormatTex:
 
 	ld	ix, (iy+VX_INDEX1)
 	add	ix, bc
-	ld	de, (iy+12)
+	ld	de, (iy+VX_INDEX_UV1)
 	ld	(ix+VX_VERTEX_GPR0), e
 	ld	(ix+VX_VERTEX_GPR1), d
 	add	a, (ix+VX_VERTEX_UNIFORM)
@@ -163,7 +163,7 @@ vxCmdFormatTex:
 
 	ld	ix, (iy+VX_INDEX2)
 	add	ix, bc
-	ld	bc, (iy+14)
+	ld	bc, (iy+VX_INDEX_UV2)
 	ld	(ix+VX_VERTEX_GPR0), c
 	ld	(ix+VX_VERTEX_GPR1), b
 	add	a, (ix+VX_VERTEX_UNIFORM)

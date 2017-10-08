@@ -1,6 +1,10 @@
 #define	VX_INDEX0	0
 #define	VX_INDEX1	3
 #define	VX_INDEX2	6
+#define	VX_INDEX_UV0	10
+#define	VX_INDEX_UV1	12
+#define	VX_INDEX_UV2	14
+#define	VX_INDEX_COLOR	9
 
 #define	VX_GEOMETRY_DEPTH	4
 #define	VX_GEOMETRY_INDEX	1
