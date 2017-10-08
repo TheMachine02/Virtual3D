@@ -155,14 +155,11 @@
 
 #define	VX_PS_1.0
 #define	VX_VS_1.x
-.echo "vxLib API version 1.0"
-.echo "pixel shader version  : ps_1.0"
-; ps_1.0
-.echo "vertex shader version : vs_1.x"
+#define	VX_GS_1.0
 
-.addinstr  ldi	(de),a 1312 2 NOP 0
-.addinstr  xori a,(de) 13EBAEEB 4 NOP 0
-.addinstr  andi a,(de) 13EBA6EB 4 NOP 0
-.addinstr  ori	a,(de) 13EBB6EB 4 NOP 0
+.echo "vxLib API version 0.9 alpha"
+.echo "vertex shader version   : vs_1.x"
+.echo "geometry shader version : gs_1.0"
+.echo "pixel shader version    : ps_1.0"
 
 #endif

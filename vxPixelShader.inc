@@ -30,7 +30,8 @@ vxPixelShader:
 ;	ld	a, (bc)
 	exx
 ;	jr	z, $+3
-	ldi	(de), a
+	ld	(de), a
+	inc	de
 	ld	a, h
 	add	hl, sp
 	exx
@@ -43,7 +44,8 @@ vxPixelShader:
 ;	ld	a, (bc)
 	exx
 ;	jr	z, $+3
-	ldi	(de), a
+	ld	(de), a
+	inc	de
 	djnz	vxPixelShader
 vxShaderGeneralInterpolation:
 	ld	hl, (iy+VX_REGISTER1)
