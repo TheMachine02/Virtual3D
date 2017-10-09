@@ -17,13 +17,17 @@
 vxEngineInit:
 ; get indic off
 	call	_RunIndicoff
-; disable interrupt and start LCD interrupt
-	call	_boot_ClearVRAM
+; disable interrupts
 	di
+;;	ld	hl, 0E00005h
+;;;	ld	(hl), 2	; Set flash wait states to 5 + 1 = 6 (total access time = 7)
+; LCD initialisation
+	call	vxResetPalette
+; start LCD interrupt
+	call	_boot_ClearVRAM
 	ld	a, (VX_LCD_IMSC)
 	or	%00000100
 	ld	(VX_LCD_IMSC), a
-
 ; setup 8bpp mode
 	ld a,VX_BPP8
 	ld	(VX_LCD_CTRL),a
@@ -32,12 +36,24 @@ vxEngineInit:
 	ld	(VX_LCD_BUFFER), hl
 	ld	hl, VX_FRAMEBUFFER_AUX1
 	ld	(vxFramebuffer), hl
-
+; memory initialisation
+	call	vxMemoryUnlock
+	call	vxMemoryCreateDevice
+; data initialisation
+	ld	hl, VX_LUT_CONVOLVE_DATA
+	ld	de, VX_LUT_CONVOLVE
+	ld	bc, VX_LUT_CONVOLVE_SIZE
+	ldir
+	ld	hl, VX_LUT_SIN_DATA
+	ld	de, VX_LUT_SIN
+	ld	bc, VX_LUT_SIN_SIZE
+	ldir
 	ld	hl, VX_DEPTH_BUCKET
 	ld	de, VX_DEPTH_BUCKET+1
 	ld	bc, 511
 	ld	(hl), $00
 	ldir
+; various other data
 	ld	hl, VX_FRAMEBUFFER_AUX1
 	ld	(vxSubmissionQueue), hl
 	ld	hl, VX_BATCH_DATA
@@ -47,30 +63,6 @@ vxEngineInit:
 	ld	(vxGeometrySize), hl
 	ld	hl, $D30000
 	ld	(vxTexturePage), hl
-;;	ld	hl, 0E00005h
-;;;	ld	(hl), 2	; Set flash wait states to 5 + 1 = 6 (total access time = 7)
-	call	vxCreateMemoryPool
-
-	ld	hl,0D18879h
-	ld	de,0C90611h
-	ld	(hl),de
-	dec	hl
-	ld	(hl),0EDh
-	push	hl
-	inc	d
-	call	0D18878h
-	pop	hl
-
-	ld	hl, VX_LUT_CONVOLVE_DATA
-	ld	de, VX_LUT_CONVOLVE
-	ld	bc, VX_LUT_CONVOLVE_SIZE
-	ldir
-	ld	hl, VX_LUT_SIN_DATA
-	ld	de, VX_LUT_SIN
-	ld	bc, VX_LUT_SIN_SIZE
-	ldir
-
-	call	vxResetPalette
 ; insert stack position
 	ld	hl, vxEngineQuit
 	ex	(sp), hl
@@ -99,7 +91,8 @@ vxEngineQuit:
 	ld	hl, VX_FRAMEBUFFER_AUX0
 	ld	(VX_LCD_BUFFER), hl
 
-	call	vxDestroyMemoryPool
+	call	vxMemoryDestroyDevice
+	call	vxMemoryLock
 
 	call _HomeUp
 	call _Clrscrn

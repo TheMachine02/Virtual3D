@@ -1,7 +1,4 @@
-#define	VX_ERROR_NOT_FOUND	$FF
-#define	VX_ERROR_RAM_FULL	$FE
-
-vxFindFile:
+vxMemoryFind:
 ; load a file from an appv
 ; hl : file name
 ; hl = file adress
@@ -11,29 +8,19 @@ vxFindFile:
 	ret	c
 	call	_ChkInRam
 	ex de,hl
-	jr	z, vxFileUnarchived
+	jr	z, vxMemoryUnarchived
 ; 9 bytes - name size (1b), name string, appv size (2b)
 	ld	de, 9
 	add	hl, de
 	ld	e, (hl)
 	add	hl, de
 	inc	hl
-vxFileUnarchived:
+vxMemoryUnarchived:
 	inc	hl
 	inc	hl
 	ret
 
-vxCreateMemoryPool:
-	di
-	ld	a, $D1
-	;ld	mb,a
-	.db	$ED,$6D	; assembler bug
-	ld.sis	sp,$987E
-	call.is	vxUnlockWrite - $D10000
-	ld	a,$D0
-	;ld	mb,a
-	.db	$ED,$6D
-
+vxMemoryCreateDevice:
 	ld	a, $3F
 	call	vxMemorySafeErase
 	ld	a, $3E
@@ -42,60 +29,51 @@ vxCreateMemoryPool:
 	call	vxMemorySafeErase
 	ld	a, $3C
 	call	vxMemorySafeErase
-
 	ld	hl, $D00001
 	ld	(hl), $A5
 	dec	hl
 	ld	(hl), $5A
 	ld	de, $3C0000
 	ld	bc, $40000
-
-	call	__WriteFlash
-
-	di
-	ld.sis	sp,$987E
-	ld	a, $D1
-	;ld	mb,a
-	.db	$ED,$6D	; assembler bug
-	call.is	vxLockWrite - $D10000
-	ld	a,$D0
-	;ld	mb,a
-	.db	$ED,$6D
-; all RAM is free now
-
-	ret
-
+	jp	__WriteFlash
 vxMemorySafeErase:
 	ld	bc,$0000F8
 	push	bc
 	jp	__EraseFlashPage
-vxDestroyMemoryPool:
 
+vxMemoryDestroyDevice:
 ; restore RAM state
 	ld	hl, $3C0000
 	ld	de, $D00000
-	ld	bc, $010000
+	ld	bc, $01887C
 	ldir
-
-;	ld	hl, $3D0000
-;	ld	de, $D10000
-;	ld	bc, $010000
-;	ldir
-
-	ld	hl, $3E0000
-	ld	de, $D20000
-	ld	bc, $010000
+; sps, spl stack aren't copied obviously
+	ld	hl, $3DA881
+	ld	de, $D1A881
+	ld	bc, $02577F
 	ldir
-
-	ld	hl, $3F0000
-	ld	de, $D30000
-	ld	bc, $010000
-	ldir
-
 	ret
-.assume ADL=0
-vxUnlockWrite:
 
+.assume ADL=0
+vxMemoryUnlock:
+	di
+	ld	a, $D1
+	.db	$ED,$6D	; assembler bug
+	ld.sis	sp,$987E
+	call.is	vxMemoryRawUnlock-$D10000
+	ld	a,$D0
+	.db	$ED,$6D
+	ret
+vxMemoryLock:
+	di
+	ld	a, $D1
+	.db	$ED,$6D	; assembler bug
+	ld.sis	sp,$987E
+	call.is	vxMemoryRawLock-$D10000
+	ld	a,$D0
+	.db	$ED,$6D
+	ret
+vxMemoryRawUnlock:
 	ld	a, $8C
 	out0	($24), a
 	ld	c, 4
@@ -103,10 +81,8 @@ vxUnlockWrite:
 	or	c
 	out0	(6), a
 	out0($28), c
-
 	ret.l
-
-vxLockWrite:
+vxMemoryRawLock:
 	xor	a, a
 	out0	($28), a
 	in0	a, (6)

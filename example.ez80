@@ -9,18 +9,18 @@
 	ret	c		; quit if error at init
 
 	ld	hl, VertexName
-	call	vxFindFile
+	call	vxMemoryFind
 	ret	c
 	ld	(Vertex), hl
 
 	ld	hl, TriangleName
-	call	vxFindFile
+	call	vxMemoryFind
 	ret	c
 	ld	(Triangle), hl
 
 
 	ld	hl, TextName
-	call	vxFindFile
+	call	vxMemoryFind
 	ret	c
 	ld	(Texture), hl
 
@@ -52,12 +52,12 @@ MainLoop:
 	call	Camera
 	ret	nz
 
-	ld	a, (vxKeyAnimation)
+	ld	a, (vxAnimationKey)
 	inc a
 	cp	13
 	jr	nz, $+3
 	xor	a, a
-	ld	(vxKeyAnimation), a
+	ld	(vxAnimationKey), a
 
 ; animate the texture
 	ld	a, (texture_frame)

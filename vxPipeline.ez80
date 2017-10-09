@@ -59,7 +59,7 @@ vxLight0Cache:
 	.db	0,0,0
 	.db	0
 	.dw	0,0,0
-vxKeyAnimation:
+vxAnimationKey:
 	.db	0
 vxTexturePage:
 	.dl	0
@@ -318,7 +318,7 @@ vxCmdComputeBone:
 	push	de
 	lea	iy, iy+3
 	push	iy
-	ld	a, (vxKeyAnimation)
+	ld	a, (vxAnimationKey)
 	ld	e, a
 	ld	d, VX_ANIMATION_MATRIX_SIZE
 	mlt	de

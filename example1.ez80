@@ -11,12 +11,12 @@
 	ret	c		; qui if error at init
 
 	ld	hl, VertexName
-	call	vxFindFile
+	call	vxMemoryFind
 	ret	c
 	ld	(Vertex), hl
 
 	ld	hl, TriangleName
-	call	vxFindFile
+	call	vxMemoryFind
 	ret	c
 	ld	(Triangle), hl
 
