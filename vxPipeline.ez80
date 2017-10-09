@@ -13,7 +13,6 @@
 #define	VX_VERTEX_BUFFER		$D08000	; 16*2048 (32K)
 #define	VX_VERTEX_BOX			8
 
-#define	vxPosition			$D03406
 #define	vxDepthSortTemp		$E30014
 
 #define	VX_DEPTH_BUCKET		$D03200
@@ -63,6 +62,8 @@ vxAnimationKey:
 	.db	0
 vxTexturePage:
 	.dl	0
+vxPosition:
+	.dl	0,0,0
 
 vxRenderStream:
 	ld	hl, (VX_LCD_BUFFER)

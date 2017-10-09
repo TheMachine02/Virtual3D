@@ -4,20 +4,18 @@
 #define  vxPlaneBit3             %00010000
 #define  vxPlaneBit4             %00001000
 #define  vxVertexDirty           %11111111
-;;#define  VX_CLIP_EPSILON        	32
-#define  VX_MAX_TMP_VERTEX       8
-#define  VX_MAX_PATCH_SIZE       16
 #define  VX_SCREEN_WIDTH         320
 #define  VX_SCREEN_HEIGHT        240
 #define  VX_SCREEN_WCENTER       160
 #define  VX_SCREEN_HCENTER       120
 
-VX_PATCH_INPUT:
-	.fill	64
-VX_PATCH_OUTPUT:
-	.fill	64
-VX_VERTEX_POOL:
-	.fill	128
+
+#define 	VX_MAX_TMP_VERTEX    	8
+#define 	VX_MAX_PATCH_SIZE    	16
+#define	VX_PATCH_INPUT		$D03480
+#define	VX_PATCH_OUTPUT		$D034C0
+#define	VX_VERTEX_POOL		$D03400
+
 vxNewSize:
 	.db	0
 vxVertexAdress:
