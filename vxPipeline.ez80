@@ -20,14 +20,13 @@
 #define	VX_DEPTH_BITS         24
 #define	VX_DEPTH_MIN          0
 #define	VX_DEPTH_MAX          16777215
+#define	VX_DEPTH_OFFSET		8388608
 
 #define	VX_MAX_TRIANGLE			4096
 #define	VX_MAX_VERTEX			2048
 #define	VX_MAX_BATCH			64
 
-.align 256
-VX_BATCH_DATA:
-.fill 256
+#define	VX_BATCH_DATA		$D03500
 
 ; TODO : create geometry shader in submission
 ; Better vertex shader with decoupled projection
@@ -80,9 +79,9 @@ vxRenderStream:
 	ld	(hl), $00
 	ldir
 
-	ld	hl, VX_SHADER_INTERPOLATION_COPY
-	ld	de, VX_SHADER_INTERPOLATION_CODE
-	ld	bc, 1024
+	ld	hl, VX_REGISTER_INTERPOLATION_COPY
+	ld	de, VX_REGISTER_INTERPOLATION_CODE
+	ld	bc, VX_REGISTER_INTERPOLATION_SIZE
 	ldir
 	ld	hl, VX_PIXEL_SHADER_COPY
 	ld	de, VX_PIXEL_SHADER_CODE
@@ -260,10 +259,10 @@ vxVertexStream:
 ; tmodelworld=transpose(modelworld)
 	lea	hl, iy+0
 	ld	de, vxModelWorld
-	ld	bc, VX_MATRIX_SIZE
+	ld	c, VX_MATRIX_SIZE
 	ldir
 	lea	hl, iy+0
-	ld	bc, VX_MATRIX_SIZE
+	ld	c, VX_MATRIX_SIZE
 	ldir
 	ld	ix, vxTModelWorld
 	call	vxMatrixTranspose
@@ -271,7 +270,7 @@ vxVertexStream:
 ; light0=light0*transpose(modelworld)
 	ld	hl, vxLight0
 	ld	de, vxLight0Cache
-	ld	bc, VX_LIGHT_SIZE
+	ld	c, VX_LIGHT_SIZE
 	ldir
 ; do light*matrix (hl) = (iy)*(ix)
 	ld	hl, vxLight0
@@ -349,25 +348,22 @@ vxCmdComputeBone:
 	pop	bc
 	ld	ix, VX_VERTEX_SHADER_DATA
 	jr	vxVertexStreamLoop
-vxVertexBoxCode:
-	.db	0
 vxVertexStreamBox:
 	push	bc
 ; check the bounding box
 	ld	de, VX_VERTEX_POOL
 	ld	a, $FF
-	ld	(vxVertexBoxCode), a
 	ld	b, 8
 vxVertexBoxLoop:
 	push	bc
+	push	af
 	ld	bc, (iy+0)
 	call	vxVertexShader
 	lea	iy, iy-3
 	ld	hl, -16
 	add	hl, de
-	ld	a, (vxVertexBoxCode)
+	pop	af
 	and	a, (hl)
-	ld	(vxVertexBoxCode), a
 	pop	bc
 	djnz	vxVertexBoxLoop
 	pop	bc

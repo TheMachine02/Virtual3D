@@ -19,8 +19,6 @@
 #define VX_BLUE_BITS        %00011000
 #define VX_COLOR_LOW_BIT    %00101001
 
-#define	VX_LUT_CONVOLVE		$D00000
-
 #define vxFramebuffer       $E30014
 
 vxResetPalette:

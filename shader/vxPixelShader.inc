@@ -393,7 +393,7 @@ vxShaderGeneralInterpolation:
    .db VX_CALL1_NEG, 2
    .db VX_CALL0_NEG, 1
    .db VX_CALL1_NEG, 1
-vxPixelShaderLengthLUT:
+VX_LUT_PIXEL_LENGTH:
    .db VX_CALL_NULL, 1
    .db VX_CALL1_POS, 1
    .db VX_CALL0_POS, 2

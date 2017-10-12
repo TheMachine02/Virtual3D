@@ -1,9 +1,9 @@
 ; README : this layout isn't in place yet, but give an idea on how RAM will be used
 
 
-$D00000 : glib LUT buffer - stack
-$D01000 - $D03000 : color table   | copied, uncompressed
-$D03000 - $D03200 : sin table     | copied, ""
+$D00000 - $D02000 : color table   | copied, uncompressed
+$D02000 - $D02200 : sin table
+
 $D03200 - $D03400 : depth bucket  | memset(0)
 $D03400 - $D03500 : vertex pool   | memset(0)
 $D03500 - $D03600 : VX_BATCH_DATA  | memset(0)

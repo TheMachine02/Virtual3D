@@ -21,19 +21,21 @@
 #define	VX_FDVDX	-6
 #define	VX_FDUDX	-4
 
-#define	VX_SHADER_INTERPOLATION_CODE	$E30800
+#define	VX_REGISTER_INTERPOLATION_CODE	$E30800
+#define	VX_REGISTER_INTERPOLATION_SIZE	1024
 
 	.addinstr ld deu,0 13521B52 4 NOP 0
 	.addinstr ld hlu,0 23522B52 4 NOP 0
 	.addinstr ld bcu,0 03520B52 4 NOP 0
 
+VX_REGISTER_DATA:
 	.fill	32
 VX_PIXEL_SHADER_DATA:
-	.fill	3072
+	.fill	2892
 
-VX_SHADER_INTERPOLATION_COPY:
+VX_REGISTER_INTERPOLATION_COPY:
 
-.relocate VX_SHADER_INTERPOLATION_CODE
+.relocate VX_REGISTER_INTERPOLATION_CODE
 
 vxTexturePolygon:
 	sub	a, 2
@@ -129,7 +131,7 @@ vxRegister01Interpolation:
 	sbc	hl, hl
 	sbc	hl, de
 	ex	de, hl
-	ld	ix, vxPixelShaderLengthLUT/2
+	ld	ix, VX_LUT_PIXEL_LENGTH/2
 	add	ix, de
 	pop	de
 	ld	hl, (iy+VX_REGISTER_X1)		; load x1
@@ -206,7 +208,7 @@ vxRegister11Interpolation:
 		sbc	hl, hl
 		sbc	hl, de
 		ex	de, hl
-		ld	ix, vxPixelShaderLengthLUT/2
+		ld	ix, VX_LUT_PIXEL_LENGTH/2
 		add	ix, de
 		pop	de
 		pop	hl

@@ -16,11 +16,16 @@ vxImageSubCopy:
 ; ready to copy
 vxCopyLoop:
 	push	bc
-	push	de
-	push	hl
 	ldir
-	pop	hl
-	pop	de
+	pop	bc
+	inc	h
+	inc	d
+	dec	a
+	ret	z
+	dec	hl
+	dec	de
+	push	bc
+	lddr
 	pop	bc
 	inc	h
 	inc	d

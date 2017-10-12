@@ -81,12 +81,15 @@ vxGeometryBufferRZ=$+1
 	ld	hl, (iy+VX_INDEX2)
 	add	hl, bc
 	ld	hl, (hl)
-	adc	hl, de
+;	adc	hl, de
 ; no div - way too slow !
-	jp	p, vxGeometryDepthClamp
-	or	a, a
-	sbc	hl, hl
-vxGeometryDepthClamp:
+;	jp	p, vxGeometryDepthClamp
+;	or	a, a
+;	sbc	hl, hl
+;vxGeometryDepthClamp:
+	add	hl, de
+	ld	de, VX_DEPTH_OFFSET
+	add	hl, de
 ; write everything to tmp buffer
 	ld	(ix+VX_GEOMETRY_DEPTH), hl
 ; fill depth bucket
