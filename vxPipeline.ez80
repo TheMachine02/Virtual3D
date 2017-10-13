@@ -301,7 +301,7 @@ vxVertexStreamLoop:
 	ld	a, b
 	xor	VX_ANIMATION_BONE/256
 	or	a, c
-	jr	z, vxCmdComputeBone
+	jr	z, vxComputeBone
 ; wasn't a bone in source, so read vertex
 ; call vertex shader
 	call	vxVertexShader
@@ -312,7 +312,7 @@ vxVertexStreamLoopBack:
 	jr	nz, vxVertexStreamLoop
 	or	a, a
 	ret
-vxCmdComputeBone:
+vxComputeBone:
 ; more complex stuff here. Need to restore initial matrix & do a multiplication with the correct bone key matrix
 ; once done, only advance in the source, not the cache
 	push	de
