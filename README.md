@@ -1,7 +1,5 @@
 # Virtual3D - an ez80 assembly 3D engine
 
-![Suzanne](https://i.imgur.com/xvMlnSp.gif)
-
 # Features
 
 1. Flat filling
@@ -16,7 +14,13 @@
 # Planned feature
 1. Mipmap
 
+# Screen
+
+example:
 ![Tombraider](https://i.imgur.com/7R0LIS2.gif)
+
+example1:
+![Suzanne](https://i.imgur.com/O6qz7pv.gif)
 
 # Converters
 
