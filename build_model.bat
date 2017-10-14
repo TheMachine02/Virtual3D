@@ -12,5 +12,10 @@ tools\mdlconv  file\Suzanne.obj -C -N -S -B
 tools\spasm file\Suzanne0.inc bin\SUZAN0.8xv -E -S
 tools\spasm file\Suzanne1.inc bin\SUZAN1.8xv -E -S
 
+echo "Converting Mateus.obj..."
+tools\mdlconv  file\Mateus.obj -T -N -S -B
+tools\spasm file\Mateus0.inc bin\MATEUS0.8xv -E -S
+tools\spasm file\Mateus1.inc bin\MATEUS1.8xv -E -S
+
 tools\xmlconv
 pause

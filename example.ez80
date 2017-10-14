@@ -45,6 +45,9 @@
 	ld	hl, -384
 	ld	(posY), hl
 
+	ld	a, -64
+	ld	(vxLightUniform+1), a
+
 MainLoop:
 
 	call	vxTimerStart

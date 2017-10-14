@@ -1,7 +1,7 @@
 #define	VX_PIXEL_SHADER_CODE		$E10010
 #define	VX_PIXEL_SHADER_SIZE		64
 #define	VX_PIXEL_SHADER_CONSTANT	$D00000
-#define	VX_PIXEL_SHADER_SUBSIZE	10
+#define	VX_PIXEL_SHADER_SUBSIZE	11
 
 #define	VX_REGISTER_SIZE			12
 #define	VX_REGISTER0			0
@@ -18,12 +18,12 @@ vxPixelShader:
 	add	hl, sp
 	exx
 	ld	h, a
-;	ld	c, (hl)
-	ld	a, (hl)
+	ld	c, (hl)
+;	ld	a, (hl)
 	adc	hl, de
 ;	ld	a, c
 ;	cp	$FF
-;	ld	a, (bc)
+	ld	a, (bc)
 	exx
 ;	jr	z, $+3
 	ld	(de), a
@@ -32,12 +32,12 @@ vxPixelShader:
 	add	hl, sp
 	exx
 	ld	h, a
-;	ld	c, (hl)
-	ld	a, (hl)
+	ld	c, (hl)
+;	ld	a, (hl)
 	adc	hl, de
 ;	ld	a, c
 ;	cp	$FF
-;	ld	a, (bc)
+	ld	a, (bc)
 	exx
 ;	jr	z, $+3
 	ld	(de), a

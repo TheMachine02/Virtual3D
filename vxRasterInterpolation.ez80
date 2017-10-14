@@ -91,14 +91,14 @@ vxTextureSwap1:
 	ex	de, hl
 vxTextureSwap2:
 	ld	a, (bc)	; is this necessary with bfc ? Nope
-	sub	(hl)		; well to be safe, keep it
-	ret	z		;
+	sub	(hl)	; well to be safe, keep it
+	ret	z	;
 	ld	iy, VX_PIXEL_SHADER_DATA	; load up shader data register
 ; copy u&v to constant area
 	push	bc
 	push	de
 	lea	de, iy-32
-	ld	bc, 6		; 1+3+2
+	ld	bc, 6	; 1+3+2
 	ldir
 	pop	hl
 	ld	c, 6
@@ -119,7 +119,7 @@ vxRegister01Interpolation:
 	add	hl, bc
 	add	hl, bc
 	add	hl, de
-	push	hl				; for later, edge 0-2
+	push	hl		; for later, edge 0-2
 	ld	bc, $FFFFFF
 	jr	z, vxRegister01End
 	neg
@@ -134,18 +134,18 @@ vxRegister01Interpolation:
 	ld	ix, VX_LUT_PIXEL_LENGTH/2
 	add	ix, de
 	pop	de
-	ld	hl, (iy+VX_REGISTER_X1)		; load x1
+	ld	hl, (iy+VX_REGISTER_X1)	; load x1
 	ld	hlu, 0
-	ld	a, $2B		; dec ix
+	ld	a, $2B	; dec ix
 	or	a, a
-	sbc	hl, de		; hl = x1-x0
+	sbc	hl, de	; hl = x1-x0
 	jr	nc, vxRegister01Direction
-	xor	a, $08		; inc ix	(inverted due to <0 working function)
-	add	hl, de		;
-	ex	de, hl		;
-	sbc	hl, de		; hl = -x1+x0
+	xor	a, $08	; inc ix	(inverted due to <0 working function)
+	add	hl, de	;
+	ex	de, hl	;
+	sbc	hl, de	; hl = -x1+x0
 vxRegister01Direction:
-	ex	de, hl		; de = abs(x1-x0)
+	ex	de, hl	; de = abs(x1-x0)
 	ld	(vxRegister01Increment), a
 vxRegister01ErrorAdvance:
 ; bc = y-size, ix = adress
@@ -170,7 +170,7 @@ vxRegister01Increment=$
 	add	hl, bc
 	jr	c, vxRegister01Restore
 vxRegister01Next:
-	ld	(iy+VX_REGISTER1), ix		; this is framebuffer adress
+	ld	(iy+VX_REGISTER1), ix	; this is framebuffer adress
 	add	ix, sp
 	lea	iy, iy+VX_REGISTER_SIZE
 	dec	a
@@ -183,79 +183,79 @@ vxRegister01End:
 	ld	de, VX_PIXEL_SHADER_DATA-20
 
 vxRegister11Interpolation:
-		ld	bc, $FFFFFF
-	; take point0 (hl) and point1 (de), point0 is the lowest point
-		ld	a, (de)
-		ld	c, (hl)
-		sub	a, c
-		jr	z, vxRegister11End
-		neg
-		inc	hl
-		push	de
-		ld	de, (hl)
-		ld	deu, 0
-		push	de
-		ld	l, c
-		ld	c, a
-		ld	h, 160
-		mlt	hl
-		add	hl, hl
-		add	hl, de
-		ld	de, (vxFramebuffer)
-		add	hl, de
-		ex	de, hl
-		or	a, a
-		sbc	hl, hl
-		sbc	hl, de
-		ex	de, hl
-		ld	ix, VX_LUT_PIXEL_LENGTH/2
-		add	ix, de
-		pop	de
-		pop	hl
-		inc	hl			; fetch x coordinate
-		ld	hl, (hl)		; load x1
-		ld	hlu, 0
-		ld	a, $2B		; dec ix
-		or	a, a
-		sbc	hl, de		; hl = x1-x0
-		jr	nc, vxRegister11Direction
-		xor	a, $08		; inc ix	(inverted due to <0 working function)
-		add	hl, de		;
-		ex	de, hl		;
-		sbc	hl, de		; hl = -x1+x0
+	ld	bc, $FFFFFF
+; take point0 (hl) and point1 (de), point0 is the lowest point
+	ld	a, (de)
+	ld	c, (hl)
+	sub	a, c
+	jr	z, vxRegister11End
+	neg
+	inc	hl
+	push	de
+	ld	de, (hl)
+	ld	deu, 0
+	push	de
+	ld	l, c
+	ld	c, a
+	ld	h, 160
+	mlt	hl
+	add	hl, hl
+	add	hl, de
+	ld	de, (vxFramebuffer)
+	add	hl, de
+	ex	de, hl
+	or	a, a
+	sbc	hl, hl
+	sbc	hl, de
+	ex	de, hl
+	ld	ix, VX_LUT_PIXEL_LENGTH/2
+	add	ix, de
+	pop	de
+	pop	hl
+	inc	hl		; fetch x coordinate
+	ld	hl, (hl)	; load x1
+	ld	hlu, 0
+	ld	a, $2B	; dec ix
+	or	a, a
+	sbc	hl, de	; hl = x1-x0
+	jr	nc, vxRegister11Direction
+	xor	a, $08	; inc ix	(inverted due to <0 working function)
+	add	hl, de	;
+	ex	de, hl	;
+	sbc	hl, de	; hl = -x1+x0
 vxRegister11Direction:
-		ex	de, hl		; de = abs(x1-x0)
-		ld	(vxRegister11Increment), a
+	ex	de, hl	; de = abs(x1-x0)
+	ld	(vxRegister11Increment), a
 vxRegister11ErrorAdvance:
 	; bc = y-size, ix = adress
 	; de = error
-		ld	(vxRegister11SP), sp
-		ld	sp, -320
-		ld	a, c
-		scf
-		sbc	hl, hl
-		ld	l, a
-		sbc	hl, de
-		sra	h
-		rr	l
-		neg
+	ld	(vxRegister11SP), sp
+	ld	sp, -320
+	ld	a, c
+	scf
+	sbc	hl, hl
+	ld	l, a
+	sbc	hl, de
+	sra	h
+	rr	l
+	neg
 vxRegister11Loop:
-		add	hl, de
-		jr	nc, vxRegister11Next
+	add	hl, de
+	jr	nc, vxRegister11Next
 vxRegister11Restore:
-		.db	$DD
+	.db	$DD
 vxRegister11Increment=$
-		nop
-		add	hl, bc
-		jr	c, vxRegister11Restore
+	nop
+	add	hl, bc
+	jr	c, vxRegister11Restore
 vxRegister11Next:
-		ld	(iy+VX_REGISTER1), ix		; this is framebuffer adress
-		add	ix, sp
-		lea	iy, iy+VX_REGISTER_SIZE
-		dec	a
-		jr	nz, vxRegister11Loop
+	ld	(iy+VX_REGISTER1), ix	; this is framebuffer adress
+	add	ix, sp
+	lea	iy, iy+VX_REGISTER_SIZE
+	dec	a
+	jr	nz, vxRegister11Loop
 vxRegister11SP=$+1
-		ld	sp, $000000
+	ld	sp, $000000
 vxRegister11End:
 
 	ld	iy, VX_PIXEL_SHADER_DATA	; load up shader data register
@@ -271,19 +271,19 @@ vxRegister0Interpolation:
 	ld	c, a
 	pop	ix
 
-	ld	hl, (iy+VX_REGISTER_X2)		; load x1
+	ld	hl, (iy+VX_REGISTER_X2)	; load x1
 	ld	hlu, 0
 	push	hl
-	ld	a, $23		; inc ix
+	ld	a, $23	; inc ix
 	or	a, a
-	sbc	hl, de		; hl = x1-x0
+	sbc	hl, de	; hl = x1-x0
 	jr	nc, vxRegister0Direction
-	or	a, $08		; dec ix
-	add	hl, de		;
-	ex	de, hl		;
-	sbc	hl, de		; hl = -x1+x0
+	or	a, $08	; dec ix
+	add	hl, de	;
+	ex	de, hl	;
+	sbc	hl, de	; hl = -x1+x0
 vxRegister0Direction:
-	ex	de, hl		; de = abs(x1-x0)
+	ex	de, hl	; de = abs(x1-x0)
 	ld	(vxRegister0Increment), a
 vxRegister0ErrorAdvance:
 ; bc = y-size, ix = adress
@@ -308,7 +308,7 @@ vxRegister0Increment=$
 	add	hl, bc
 	jr	c, vxRegister0Restore
 vxRegister0Next:
-	ld	(iy+VX_REGISTER0), ix		; this is framebuffer adress
+	ld	(iy+VX_REGISTER0), ix	; this is framebuffer adress
 	add	ix, sp
 	lea	iy, iy+VX_REGISTER_SIZE
 	dec	a
@@ -383,7 +383,7 @@ vxRegisterDerivativeNull:
 	ld	de, (iy+VX_REGISTER0)
 	ld	a, $13
 	or	a, a
-	sbc	hl, de		; x1-rx
+	sbc	hl, de	; x1-rx
 ; I have here interpolated dx=x1-rx value, sign is correct
 ; if dx < 0, make abs() and change to dec de mode (rx is at right, x1 is at left) ;; ISSUE 1 : need to correct sign based on sign of X ?
 	jp	p, vxRegisterDerivativeAbs
@@ -397,7 +397,7 @@ vxRegisterDerivativeAbs:
 	ld	(VX_PIXEL_SHADER_SUBSIZE-1+VX_PIXEL_SHADER_CODE), a
 	ld	(VX_PIXEL_SHADER_SUBSIZE*2-1+VX_PIXEL_SHADER_CODE), a
 	add	hl, hl
-	add	hl, bc		; bc =VX_INVERE_TABLE
+	add	hl, bc	; bc =VX_INVERE_TABLE
 	ld	hl, (hl)
 	inc.s	hl	; essential, table have (value-1)
 ; FIXME SAVE HL AND RESTORE PREVIOUS HL
@@ -425,7 +425,7 @@ vxRegisterDerivativeAbs:
 	ex	de, hl
 	ex	(sp), hl
 	ex	de, hl
-	bit	7, h		;check sign of ratio
+	bit	7, h	;check sign of ratio
 ; de = new ratio
 vxRegisterDerivativeDY1=$+1
 	ld	a, 0
@@ -590,12 +590,12 @@ vxRegisterGradientEnd:
 	ld	ix, VX_PIXEL_SHADER_CODE
 	ld	iy, VX_PIXEL_SHADER_DATA
 ; hl'= texture page and accumulator for dux	LOADED
-; de'= low byte is dux											INIT
-; sp = dux*65536+dvx												INIT
-; bc'= undefined														INIT
-; hl = accumulator for dux									LOADED
-; de = screen adress												LOADED
-; bc = djnz size														LOADED
+; de'= low byte is dux						INIT
+; sp = dux*65536+dvx						INIT
+; bc'= undefined							INIT
+; hl = accumulator for dux					LOADED
+; de = screen adress						LOADED
+; bc = djnz size							LOADED
 	ld	(vxPixelShaderExit+1), sp
 vxShaderUniform0=$+1
 	ld	bc, VX_PIXEL_SHADER_CONSTANT
