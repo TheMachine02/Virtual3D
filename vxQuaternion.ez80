@@ -296,7 +296,7 @@ vxQuaternionRotationAxis:
 	call	vxCos
 	ld	(iy+VX_QW), hl
 	ret
-IQuaternionDot:
+vxQuaternionDot:
 	ld	hl, (ix+VX_QW)
 	ld	de, (iy+VX_QW)
 	call	vxQuatMlt

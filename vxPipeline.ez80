@@ -53,8 +53,8 @@ vxTModelWorld:
 	.db	0,0,0
 	.db	0,0,0
 	.dl	0,0,0
-vxLight0Cache:
-	.db	0,0,0
+vxLightUniform:
+	.db	0,0,-64
 	.db	0
 	.dw	0,0,0
 vxAnimationKey:
@@ -89,7 +89,7 @@ vxRenderStream:
 	ldir
 
 	ld	hl, (vxTexturePage)
-	ld	(vxShaderTexturePage), hl
+	ld	(vxShaderUniform1), hl
 
 	ld	bc, (vxGeometrySize)
 	or	a, a
@@ -266,15 +266,10 @@ vxVertexStream:
 	ldir
 	ld	ix, vxTModelWorld
 	call	vxMatrixTranspose
-; light0cache=light0
-; light0=light0*transpose(modelworld)
-	ld	hl, vxLight0
-	ld	de, vxLight0Cache
-	ld	c, VX_LIGHT_SIZE
-	ldir
+; light=lightuniform*transpose(modelworld)
 ; do light*matrix (hl) = (iy)*(ix)
-	ld	hl, vxLight0
-	ld	iy, vxLight0Cache
+	ld	hl, vxLight
+	ld	iy, vxLightUniform
 	call	vxMatrixLightning
 ; load up shader data
 	ld	ix, VX_VERTEX_SHADER_DATA
@@ -329,14 +324,14 @@ vxComputeBone:
 	call	vxMatrixTransform	; (hl)=(iy)*(ix)
 ; I have the correct modelview matrix in shader cache area
 ; next one is reduced matrix without translation, since it will only be a direction vector mlt. However, the light vector position also need to be transformed by the transposed matrix
-; light0 = light0cache*transpose(bonemodel*modelworld)
+; light = lightuniform*transpose(bonemodel*modelworld)
 	ld	ix, vxModelWorld
 	lea	hl, ix+VX_MATRIX_SIZE
 	call	vxMatrixMlt
 	lea	ix, ix+VX_MATRIX_SIZE
 	call	vxMatrixTranspose
-	ld	hl, vxLight0
-	ld	iy, vxLight0Cache
+	ld	hl, vxLight
+	ld	iy, vxLightUniform
 	call	vxMatrixLightning
 	pop	iy
 	ld	a, (iy-1)

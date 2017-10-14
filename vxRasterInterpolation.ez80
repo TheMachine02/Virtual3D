@@ -555,7 +555,7 @@ vxRegisterDerivativeDY2=$+1
 	ld	(vxShaderOffset+2), a
 	ld	a, h
 
-vxShaderTexturePage=$+1
+vxShaderUniform1=$+1
 	ld	hl, $D30000
 	ld	l, (iy+VX_REGISTER_U0)
 	add	a, l

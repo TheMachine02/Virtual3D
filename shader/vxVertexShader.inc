@@ -84,8 +84,8 @@ vxModelView:
 	.db	0,0,0
 	.db	0,0,0
 	.dl	0,0,0
-vxLight0:
-	.db	0,0,-64
+vxLight:
+	.db	0,0,0
 	.db	0
 	.dw	0,0,0
 
@@ -380,9 +380,14 @@ vxVertexSkip0:
 	ld	(iy+VX_VERTEX_RX), de
 	ld	(iy+VX_VERTEX_RY), hl
 	ld	(iy+VX_VERTEX_RZ), bc
+
+vxPerspectiveDivide:
+	ld	a, (iy+VX_VERTEX_RZ+2)
+	rla
+	jp	c, vxPerspectiveClipZ
 	xor	a, a
 	add	hl, hl
-	jr	nc, $+11
+	jr	nc, vxPerspectiveAbs0
 	rla
 	push	de
 	ex   de, hl
@@ -390,14 +395,13 @@ vxVertexSkip0:
 	sbc   hl, de
 	pop	de
 	or	a, a
+vxPerspectiveAbs0:
 	sbc	hl, bc
-	jp	m, vxDivideNext0
-	or	a, a
-; potential clipping issue
+	jr	c, vxPerspectiveNext0
 	sbc	hl, bc
-	jp	p, vxPerspectiveClip0
+	jp	nc, vxPerspectiveClip0
 	or	a, a
-vxDivideNext0:
+vxPerspectiveNext0:
 	adc	a,a \ add hl,bc
 	add	hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
    	add	hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
@@ -418,20 +422,20 @@ vxDivideNext0:
 	ex	de, hl
 	xor	a, a
 	add	hl, hl
-	jr	nc, $+9
+	jr	nc, vxPerspectiveAbs1
 	rla
 	ex   de, hl
 	sbc   hl, hl
 	sbc   hl, de
 	or	a, a
+vxPerspectiveAbs1:
 	sbc	hl, bc
-	jp	m, vxNext0
-	or	a, a
+	jr	c, vxPerspectiveNext1
 ; potential clipping issue
 	sbc	hl, bc
-	jp	p, vxPerspectiveClip2
+	jr	nc, vxPerspectiveClip2
 	or	a, a
-vxNext0:
+vxPerspectiveNext1:
    	adc a,a \ add hl,bc
    	add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
    	add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
@@ -457,7 +461,11 @@ vxNext0:
 	lea	de, iy+VX_VERTEX_SIZE
 	pop	iy
 	ret
-
+vxPerspectiveCode:
+	bit	7,(iy+VX_VERTEX_RZ+2)
+	jr	z, $+4
+vxPerspectiveClipZ:
+	or  %00001000
 vxPerspectiveClip0:
 	ld	hl, (iy+VX_VERTEX_RY)
 	xor	a, a
@@ -485,9 +493,7 @@ vxPerspectiveClip3:
 	or	a, %01000000
 vxPerspectiveClip4:
 ; x clipping handled
-	bit	7,(iy+VX_VERTEX_RZ+2)
-	jr	z, $+4
-	or  %00001000
+	and	%11111000
 	ld	(iy+VX_VERTEX_CODE), a
 	lea	de, iy+VX_VERTEX_SIZE
 	pop	iy

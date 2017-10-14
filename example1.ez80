@@ -25,6 +25,7 @@
 
 	ld	hl, 0
 	ld	(EulerAngle), hl
+	ld	(LightAngle), hl
 
 	ld	ix, WorldMatrix
 	lea	hl, ix+0
@@ -35,6 +36,18 @@
 MainLoop:
 
 	call	vxTimerStart
+
+	ld	hl, (LightAngle)
+	ld	de, 16
+	add	hl, de
+	ld	(LightAngle), hl
+	call	vxSin
+	ld	a, h
+	ld	(vxLightUniform+2), a
+	ld	hl, (LightAngle)
+	call	vxCos
+	ld	a, h
+	ld	(vxLightUniform), a
 
 	ld	hl, (EulerAngle)
 	ld	iy, Quaternion
@@ -216,4 +229,6 @@ ModelMatrix:
 	.db	0,0,64
 	.dw	0,0,0
 EulerAngle:
+	.dl	0,0,0
+LightAngle:
 	.dl	0,0,0
