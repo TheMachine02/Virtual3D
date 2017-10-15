@@ -106,16 +106,16 @@ vxRenderStream:
 vxCmdExeLoop:
 	push	bc
 
-	ld	hl, VX_BATCH_DATA
+	ld	hl, VX_BATCH_DATA + VX_GEOMETRY_TI9
+	ld	a, l
 	ld	l, (iy+VX_GEOMETRY_ID)
-	ld	a, (hl)	; format
+	cp	(hl)	; format
 	inc	hl
 	ld	bc, (hl)	; subcache
 	pea	iy+4
 	ld	iy, (iy+VX_GEOMETRY_INDEX)	; read triangle data
 ; switch(format)
-	cp	VX_GEOMETRY_TI9
-	jr	nc, vxCmdFormatTex
+	jr	z, vxRenderTexture
 vxCmdFormatCol:
 	ld	ix, (iy+VX_INDEX0)
 	add	ix, bc
@@ -144,7 +144,7 @@ vxCmdFormatCol:
 	dec	c
 	jp	nz, vxCmdExeLoop
 	ret
-vxCmdFormatTex:
+vxRenderTexture:
 	ld	ix, (iy+VX_INDEX0)
 	add	ix, bc
 	ld	hl, (iy+VX_INDEX_UV0)

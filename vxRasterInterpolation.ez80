@@ -90,21 +90,22 @@ vxTextureSwap1:
 	jr	nc, vxTextureSwap2
 	ex	de, hl
 vxTextureSwap2:
-	ld	a, (bc)	; is this necessary with bfc ? Nope
-	sub	(hl)	; well to be safe, keep it
-	ret	z	;
+;	ld	a, (bc)	; is this necessary with bfc ? Nope
+;	sub	(hl)	; well to be safe, keep it
+;	ret	z	;
 	ld	iy, VX_PIXEL_SHADER_DATA	; load up shader data register
 ; copy u&v to constant area
 	push	bc
 	push	de
 	lea	de, iy-32
-	ld	bc, 6	; 1+3+2
+	ld	bc, 6
+	ld	a, c
 	ldir
 	pop	hl
-	ld	c, 6
+	ld	c, a
 	ldir
 	pop	hl
-	ld	c, 6
+	ld	c, a
 	ldir
 ; do e0-1
 vxRegister01Interpolation:
