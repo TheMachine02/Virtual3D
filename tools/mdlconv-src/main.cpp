@@ -51,11 +51,11 @@ int main(int argc, char* argv[])
     {
         ///print the usage
         printf("Options : \n");
-        printf("-T : output triangle texture uv\n");
-        printf("-N : output vertex normal\n");
-        printf("-C : output material color\n");
-        printf("-B : output bounding box\n");
-        printf("-S : output different files for vertex and index");
+        printf("-t : output triangle texture uv\n");
+        printf("-n : output vertex normal\n");
+        printf("-c : output material color\n");
+        printf("-b : output bounding box\n");
+        printf("-s : output different files for vertex and index");
         return false;
     }
 
@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
     {
         if(argv[arg][0]=='-'||argv[arg][0]=='/')
         {
-            switch(argv[arg][1])
+            switch(toupper(argv[arg][1]))
             {
             case 'T':
                 option=option|TEXTURE;
@@ -98,7 +98,6 @@ int main(int argc, char* argv[])
         printf("No file has been set\n");
         return false;
     }
-    //SetEasyBMPwarningsOff();
 
     loadOBJ(path,option);
 }
@@ -133,7 +132,6 @@ bool loadOBJ(const char * path, unsigned short option)
     char materialName[256];
     unsigned int indexMaterial=0;
     unsigned int i=0;
-    //BMP texture;
 
     while (std::getline(in, line))
     {

@@ -1,0 +1,102 @@
+#include	"vxClipping.ez80"
+#include	"vxPipeline.ez80"
+#include	"vxImage.ez80"
+#include	"vxRasterFlat.ez80"
+#include	"vxRasterInterpolation.ez80"
+#include	"vxTimer.ez80"
+#include	"vxMatrix.ez80"
+#include	"vxQuaternion.ez80"
+#include	"vxVector.ez80"
+#include	"vxFramebuffer.ez80"
+#include	"vxMemory.ez80"
+;#include	"vxPostProcessing.ez80"
+#include	"vxData.inc"
+
+; functions
+
+vxEngineInit:
+; get indic off
+	call	_RunIndicoff
+; disable interrupts
+	di
+;;	ld	hl, 0E00005h
+;;;	ld	(hl), 2	; Set flash wait states to 5 + 1 = 6 (total access time = 7)
+; LCD initialisation
+	call	vxResetPalette
+; start LCD interrupt
+	call	_boot_ClearVRAM
+	ld	a, (VX_LCD_IMSC)
+	or	%00000100
+	ld	(VX_LCD_IMSC), a
+; setup 8bpp mode
+	ld a,VX_BPP8
+	ld	(VX_LCD_CTRL),a
+; load vram buffer
+	ld	hl, VX_FRAMEBUFFER_AUX0
+	ld	(VX_LCD_BUFFER), hl
+	ld	hl, VX_FRAMEBUFFER_AUX1
+	ld	(vxFramebuffer), hl
+; memory initialisation
+	call	vxMemoryUnlock
+	call	vxMemoryCreateDevice
+; data initialisation
+	ld	hl, VX_LUT_CONVOLVE_DATA
+	ld	de, VX_LUT_CONVOLVE
+	ld	bc, VX_LUT_CONVOLVE_SIZE
+	ldir
+	ld	hl, VX_LUT_SIN_DATA
+	ld	de, VX_LUT_SIN
+	ld	bc, VX_LUT_SIN_SIZE
+	ldir
+	ld	hl, VX_DEPTH_BUCKET
+	ld	de, VX_DEPTH_BUCKET+1
+	ld	bc, 511
+	ld	(hl), $00
+	ldir
+; various other data
+	ld	hl, VX_FRAMEBUFFER_AUX1
+	ld	(vxSubmissionQueue), hl
+	ld	hl, VX_BATCH_DATA
+	ld	(vxBatchData), hl
+	or	a, a
+	sbc	hl, hl
+	ld	(vxGeometrySize), hl
+	ld	hl, $D30000
+	ld	(vxTexturePage), hl
+; insert stack position
+	ld	hl, vxEngineQuit
+	ex	(sp), hl
+	jp	(hl)
+vxEngineQuit:
+	ld	a, $D0
+	.db	$ED,$6D
+	ld hl,$F50000
+	xor a		; Mode 0
+	ld (hl),a
+	inc l		; 0F50001h
+	ld (hl),15	; Wait 15*256 APB cycles before scanning each row
+	inc l		; 0F50002h
+	xor a
+	ld (hl),a
+ 	inc l		; 0F50003h
+	ld (hl),15	; Wait 15 APB cycles before each scan
+	inc l		; 0F50004h
+	ld a,8		; Number of rows to scan
+	ld (hl),a
+	inc l		; 0F50005h
+	ld (hl),a	; Number of columns to scan
+	ld iy, OS__FLAGS
+	ld a, VX_BPP16
+	ld (VX_LCD_CTRL),a
+	ld	hl, VX_FRAMEBUFFER_AUX0
+	ld	(VX_LCD_BUFFER), hl
+
+	call	vxMemoryDestroyDevice
+	call	vxMemoryLock
+
+	call _HomeUp
+	call _Clrscrn
+	call _DrawStatusBar
+	call _RunIndicon
+	ei
+	jp _DrawBatteryIndicator
