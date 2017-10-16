@@ -11,6 +11,13 @@
 6. Animation
 7. Automatic bounding box
 
+# Todo list
+
+1. Fix lightning compute
+2. Improve clipping
+
+Feel free to ask for a new feature
+
 # Planned feature
 
 1. Mipmap
@@ -24,6 +31,8 @@ Screen of the examples :
 ![Suzanne](https://i.imgur.com/O6qz7pv.gif)
 
 ![Mateus](https://i.imgur.com/XORQ14y.gif)
+
+![Tonberry](https://i.imgur.com/9PDBvai.gif)
 
 # Converters
 
