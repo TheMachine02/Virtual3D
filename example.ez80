@@ -45,8 +45,10 @@
 	ld	hl, -384
 	ld	(posY), hl
 
-	ld	a, -64
-	ld	(vxLightUniform+1), a
+	ld	a, 17
+	ld	(vxLightUniform+3), a
+	ld	a, 0
+	ld	(vxLightUniform+4), a
 
 MainLoop:
 

@@ -16,7 +16,7 @@
 #define	VX_VERTEX_VX		0
 #define	VX_VERTEX_VY		2
 #define	VX_VERTEX_VZ		4
-#define	VX_VERTEX_NORMAL	6
+#define	VX_VERTEX_NORMAL		6
 #define	VX_VERTEX_NX		6
 #define	VX_VERTEX_NY		7
 #define	VX_VERTEX_NZ		8
@@ -39,7 +39,8 @@
 
 #define	VX_LIGHT0_VECTOR	18
 #define	VX_LIGHT0_AMBIANT	21
-#define	VX_LIGHT0_POSITION	22
+#define	VX_LIGHT0_POW		22
+#define	VX_LIGHT0_POSITION	23
 
 ; constant ;
 
@@ -57,10 +58,11 @@
 #define	VX_MATRIX_TY		12
 #define	VX_MATRIX_TZ		15
 
-#define	VX_LIGHT_SIZE		10
+#define	VX_LIGHT_SIZE		11
 #define	VX_LIGHT_VECTOR		0
 #define	VX_LIGHT_AMBIANT	3
-#define	VX_LIGHT_POSITION	4
+#define	VX_LIGHT_POW		4
+#define	VX_LIGHT_POSITION	5
 
 #define	VX_VERTEX_SIZE		16	; per vertex data in pipeline
 #define	VX_VERTEX_DATA_SIZE	9	; this should be changed if you suppress vertex normal data
@@ -86,7 +88,7 @@ vxModelView:
 	.dl	0,0,0
 vxLight:
 	.db	0,0,0
-	.db	0
+	.db	0,0
 	.dw	0,0,0
 
 ; global shader call
@@ -367,8 +369,13 @@ vxVertexSkip0:
 ; max(a,0)
 	jp	p, $+5
 	xor	a, a
+	ld	c, a
+	ld	b, (ix+VX_LIGHT0_POW)
+	mlt	bc
+	ld	a, b
+	rl	c
 ; ambiant lightning=12
-	add	a, 12
+	adc	a, (ix+VX_LIGHT0_AMBIANT)
 ; min(a,31)
 	cp	32
 	jr	c, $+4

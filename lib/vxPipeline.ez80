@@ -55,7 +55,7 @@ vxTModelWorld:
 	.dl	0,0,0
 vxLightUniform:
 	.db	0,0,0
-	.db	0
+	.db	0,0
 	.dw	0,0,0
 vxAnimationKey:
 	.db	0
@@ -103,7 +103,7 @@ vxRenderStream:
 	inc	b
 	ld	c, b
 	ld	b, a
-vxCmdExeLoop:
+vxRenderLoop:
 	push	bc
 
 	ld	hl, VX_BATCH_DATA + VX_GEOMETRY_TI9
@@ -116,7 +116,7 @@ vxCmdExeLoop:
 	ld	iy, (iy+VX_GEOMETRY_INDEX)	; read triangle data
 ; switch(format)
 	jr	z, vxRenderTexture
-vxCmdFormatCol:
+vxRenderColor:
 	ld	ix, (iy+VX_INDEX0)
 	add	ix, bc
 	ld	a, (ix+VX_VERTEX_UNIFORM)
@@ -140,9 +140,9 @@ vxCmdFormatCol:
 	call	vxFlatTriangle
 	pop	iy
 	pop	bc
-	djnz	vxCmdExeLoop
+	djnz	vxRenderLoop
 	dec	c
-	jp	nz, vxCmdExeLoop
+	jp	nz, vxRenderLoop
 	ret
 vxRenderTexture:
 	ld	ix, (iy+VX_INDEX0)
@@ -179,9 +179,9 @@ vxRenderTexture:
 	pop	iy
 	pop	bc
 	dec	b
-	jp	nz, vxCmdExeLoop
+	jp	nz, vxRenderLoop
 	dec	c
-	jp	nz, vxCmdExeLoop
+	jp	nz, vxRenderLoop
 	ret
 
 vxGeometryStream:
@@ -296,7 +296,7 @@ vxVertexStreamLoop:
 	ld	a, b
 	xor	VX_ANIMATION_BONE/256
 	or	a, c
-	jr	z, vxComputeBone
+	jr	z, vxVertexLoadBone
 ; wasn't a bone in source, so read vertex
 ; call vertex shader
 	call	vxVertexShader
@@ -307,7 +307,7 @@ vxVertexStreamLoopBack:
 	jr	nz, vxVertexStreamLoop
 	or	a, a
 	ret
-vxComputeBone:
+vxVertexLoadBone:
 ; more complex stuff here. Need to restore initial matrix & do a multiplication with the correct bone key matrix
 ; once done, only advance in the source, not the cache
 	push	de
@@ -362,7 +362,6 @@ vxVertexBoxLoop:
 	pop	bc
 	djnz	vxVertexBoxLoop
 	pop	bc
-	or	a, a	
 	ret	z
 	scf
 	ret

@@ -290,6 +290,10 @@ vxMatrixLightLoop:
 	ld	(hl), de
 ; AMBIANT_VALUE was writed with bad value.
 vxMatrixLightEarlyOut:
+	inc	hl
+	ld	a, (iy+VX_LIGHT_POW)
+	ld	(hl), a
+	dec	hl
 	ld	a, (iy+VX_LIGHT_AMBIANT)
 	ld	(hl), a
 	dec	hl \ dec hl \ dec hl

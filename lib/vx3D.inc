@@ -156,9 +156,9 @@
 
 ; global compilation variable ;
 
-#define	VX_PS_1.0
-#define	VX_VS_1.x
-#define	VX_GS_1.0
+#define	VX_PS_1.0	$10
+#define	VX_VS_1.x	$1F
+#define	VX_GS_1.0	$10
 
 .echo "vxLib API version 0.9 alpha"
 .echo "vertex shader version   : vs_1.x"

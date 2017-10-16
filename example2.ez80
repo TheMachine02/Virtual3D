@@ -43,24 +43,18 @@
 
 	ld	hl, Light
 	ld	de, vxLightUniform
-	ld	bc, 3
+	ld	bc, VX_LIGHT_SIZE
 	ldir
 
 MainLoop:
 
 	call	vxTimerStart
 
-;	ld	hl, (LightAngle)
-;	ld	de, 16
-;	add	hl, de
-;	ld	(LightAngle), hl
-;	call	vxSin
-;	ld	a, h
-;	ld	(vxLightUniform+2), a
-;	ld	hl, (LightAngle)
-;	call	vxCos
-;	ld	a, h
-;	ld	(vxLightUniform), a
+	call	Random
+	ld	a, l
+	and	31
+	add	a, 224
+	ld	(vxLightUniform+4), a
 
 	ld	hl, (EulerAngle)
 	ld	iy, Quaternion
@@ -203,6 +197,41 @@ _kskip4:
 	jp	z, MainLoop
 	ret
 
+Random:
+    ld ix, rand1
+    ld hl, (ix)
+    ld de, (ix+3)
+    ld b, h
+    ld c, l
+    add hl, hl
+    rl e
+    rl d
+    add hl, hl
+    rl e
+    rl d
+    inc l
+    add hl, bc
+    ld (ix), hl
+    adc hl, de
+    ld (ix+3), hl
+    ex de, hl
+    ld hl, (ix+6)
+    ld bc, (ix+9)
+    add hl, hl
+    rl c
+    rl b
+    ld (ix+9), bc
+    sbc a, a
+    and %11000101
+    xor l
+    ld l, a
+    ld (ix+6), hl
+    ex de, hl
+    add hl, bc
+    ret
+rand1:
+.fill	12
+
 #include	"vxMain.ez80"
 #include	"graphics_lib.asm"
 
@@ -230,7 +259,10 @@ TextureName:
 Texture:
 	.dl	0
 Light:
-	.db	0,45,-45
+	.db	0,0,-64
+	.db	12
+	.db	255
+	.dw	0,0,0
 
 ScaleMatrix:
 	.db	77,0,0		; 44

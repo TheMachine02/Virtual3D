@@ -47,27 +47,27 @@ vxClipTriangle:
 	call	vxClipPlanePolygon
 	pop	af
 vxNextPlane0:
-	tst	a, %01000000
+	tst	a, %00010000
 	jr	z, vxNextPlane1
+	push	af
+	ld	a, %00010000
+	ld	ix, vxUpDistance
+	call	vxClipPlanePolygon
+	pop	af
+vxNextPlane1:
+	tst	a, %01000000
+	jr	z, vxNextPlane2
 	push	af
 	ld	a, %01000000
 	ld	ix, vxLeftDistance
 	call	vxClipPlanePolygon
 	pop	af
-vxNextPlane1:
+vxNextPlane2:
 	tst	a, %00100000
-	jr	z, vxNextPlane2
+	jr	z, vxClipEnd
 	push	af
 	ld	a, %00100000
 	ld	ix, vxDownDistance
-	call	vxClipPlanePolygon
-	pop	af
-vxNextPlane2:
-	tst	a, %00010000
-	jr	z, vxClipEnd
-	push	af
-	ld	a, %00010000
-	ld	ix, vxUpDistance
 	call	vxClipPlanePolygon
 	pop	af
 vxClipEnd:
