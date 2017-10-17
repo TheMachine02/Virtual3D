@@ -47,7 +47,6 @@
 	ldir
 
 MainLoop:
-
 	call	vxTimerStart
 
 	call	Random
@@ -99,11 +98,11 @@ MainLoop:
 	ld	(TextXPos_SMC), hl
 	ld	a, 0
 	ld	(TextYPos_SMC), a
-
 	call	vxTimerRead
 ; do (ade/256)/187
 	ld	(Temp), de
 	ld	(Temp+3), a
+
 	ld	de, (Temp+1)
 ; divide de by 187
 	ex	de, hl

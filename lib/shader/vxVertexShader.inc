@@ -469,13 +469,14 @@ vxPerspectiveNext1:
 	pop	iy
 	ret
 vxPerspectiveCode:
+	xor	a, a
 	bit	7,(iy+VX_VERTEX_RZ+2)
 	jr	z, $+4
 vxPerspectiveClipZ:
-	or  %00001000
+	ld	a, %00001000
 vxPerspectiveClip0:
 	ld	hl, (iy+VX_VERTEX_RY)
-	xor	a, a
+	or	a, a
 	sbc	hl, bc
 	jp	m, vxPerspectiveClip1
 	or	%00100000
