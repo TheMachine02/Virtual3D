@@ -14,7 +14,7 @@ vxImageSubCopy:
 	ld	a, b
 	ld	b, 0
 ; ready to copy
-vxCopyLoop:
+vxImageCopyLoop:
 	push	bc
 	ldir
 	pop	bc
@@ -30,7 +30,17 @@ vxCopyLoop:
 	inc	h
 	inc	d
 	dec	a
-	jr	nz, vxCopyLoop
+	jr	nz, vxImageCopyLoop
+	ret
+vxImageClear:
+	ld	bc, 65535
+	xor	a, a
+	ld	(hl), a
+	ex	de, hl
+	sbc	hl, hl
+	add	hl, de
+	inc	de
+	ldir
 	ret
 vxImageCopy:
 ; hl : org, de : copy, a : format
@@ -131,3 +141,4 @@ dzx7t_exit:
         pop     hl                      ; restore source address (compressed data)
         jr      nc, dzx7t_main_loop
 	ret
+	

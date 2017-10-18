@@ -25,7 +25,8 @@ VX_GEOMETRY_SHADER_COPY:
 .relocate VX_GEOMETRY_SHADER_CODE
 
 vxGeometryShader:
-; input : iy=data, bc=size, hl=batchdata
+; input : iy=data, bc=size
+	ld	hl, (vxGeometryBatchID)
 	ld	ix, (vxSubmissionQueue)
 	ld	a, (hl)
 	ld	(vxGeometryFormat), a

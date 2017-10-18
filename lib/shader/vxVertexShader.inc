@@ -346,6 +346,7 @@ vxVertexSkip0:
 	mlt	bc
 	add	hl, bc
 	add	hl, de
+
 ; lightning model is here, infinite directionnal light, no pow
 	xor	a, a
 	ld	c, (iy+VX_VERTEX_NX)
@@ -452,10 +453,10 @@ vxPerspectiveNext1:
    	add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
    	add hl,hl \ sbc hl,bc \ adc a,a
    	cpl
-   	ld	e, a
-   	ld	d, VX_SCREEN_WIDTH/2+1
-   	mlt	de
-   	ld	a, d
+   	ld	l, a
+   	ld	h, VX_SCREEN_WIDTH/2+1
+   	mlt	hl
+   	ld	a, h
    	sbc	hl, hl
    	jr	nc, $+3
    	cpl
@@ -506,5 +507,4 @@ vxPerspectiveClip4:
 	lea	de, iy+VX_VERTEX_SIZE
 	pop	iy
 	ret
-
 .endrelocate

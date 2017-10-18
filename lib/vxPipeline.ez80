@@ -36,7 +36,7 @@ vxSubmissionQueue:
 	.dl	0
 vxGeometrySize:
 	.dl	0
-vxBatchData:
+vxGeometryBatchID:
 	.dl	0
 vxModelViewCache:
 	.db	0,0,0
@@ -69,8 +69,8 @@ vxRenderStream:
 	ld	(vxSubmissionQueue), hl
 
 	ld	iy, VX_GEOMETRY_QUEUE
-	ld	hl, VX_BATCH_DATA
-	ld	(vxBatchData), hl
+	ld	hl, VX_BATCH_DATA-4
+	ld	(vxGeometryBatchID), hl
 ; various reset blahblah
 
 	ld	hl, VX_DEPTH_BUCKET
@@ -194,13 +194,13 @@ vxGeometryStream:
 ; now write batch id, batch data (format, cache)
 	push	de
 	ex	de, hl
-	ld	hl, (vxBatchData)
+	ld	hl, (vxGeometryBatchID)
+	inc	hl \ inc hl \ inc hl \ inc hl
+	ld	(vxGeometryBatchID), hl
 	ld	(hl), a	; format
 	ld	a, l
 	inc	hl
 	ld	(hl), bc
-	inc hl \ inc hl \ inc hl
-	ld	(vxBatchData), hl
 	ex	de, hl
 	call	vxVertexStream	; stream vertex data to cache
 	pop	iy			; polygon list
@@ -218,8 +218,6 @@ vxGeometryStream:
 	ld	c, b
 	ld	b, a
 	lea iy, iy+3
-	ld	hl, (vxBatchData)
-	dec	hl \ dec hl \ dec hl \ dec hl
 	call	vxGeometryShader
 ; need to update count & queue position
 ; simple : new-previous / 8

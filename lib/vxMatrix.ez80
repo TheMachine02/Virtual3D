@@ -213,7 +213,6 @@ vxMatrixTranspose:
 	ld	a, (ix+5)
 	ld	(ix+7), a
 	ld	(ix+5), c	
-#comment
 	ld	de, (ix+9)
 	or	a, a
 	sbc	hl, hl
@@ -229,7 +228,6 @@ vxMatrixTranspose:
 	sbc	hl, hl
 	sbc	hl, de
 	ld	(ix+15), hl
-#endcomment
 	ret
 vxMatrixLightning:
 	ex	de, hl

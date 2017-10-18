@@ -95,10 +95,18 @@ MainLoop:
 
 	ld	a, VX_GEOMETRY_TI9
 	ld	ix, WorldMatrix
-	ld	iy, LaraMatrix
+	ld	iy, BossMatrix
 	ld	bc, VX_VERTEX_BUFFER+(1024*16)
 	ld	hl, VERTEXDATA
 	ld	de, TRIDATA
+	call	vxGeometryStream
+
+	ld	a, VX_GEOMETRY_TI9
+	ld	ix, WorldMatrix
+	ld	iy, LaraMatrix
+	ld	bc, VX_VERTEX_BUFFER+(1536*16)
+	ld	hl, VERTEXDATA1
+	ld	de, TRIDATA1
 	call	vxGeometryStream
 
 	ld	hl, (vxGeometrySize)
@@ -203,11 +211,16 @@ ModelMatrix:
 	.db	0,64,0
 	.db	0,0,64
 	.dw	0,0,0
-LaraMatrix:
+BossMatrix:
 	.db	64,0,0
 	.db	0,64,0
 	.db	0,0,64
-	.dw	128,64,64
+	.dw	128,64,128
+LaraMatrix:
+	.db	-64,0,0
+	.db	0,64,0
+	.db	0,0,-64
+	.dw	-1024,64,128
 EulerAngle:
 	.dl	0,0,0
 texture_frame:
@@ -362,3 +375,4 @@ _kskip7:
 
 
 #include "XML.ez80"
+#include "XML-1.ez80"
