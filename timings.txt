@@ -1,0 +1,9 @@
+TEST2 :
+ms      routine
+47	vxGeometryStream
+ 28	vxVertexStream
+ 19	vxGeometryShader
+9	vxDepthSort
+11	vxBufferClear
+58	vxRenderStream
+126	tot

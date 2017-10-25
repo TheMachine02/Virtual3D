@@ -145,6 +145,43 @@ vxRenderColor:
 	jp	nz, vxRenderLoop
 	ret
 vxRenderTexture:
+
+	lea	hl, iy+VX_INDEX_UV0
+
+	ld	ix, (iy+VX_INDEX0)
+	add	ix, bc
+	lea	de, ix+VX_VERTEX_GPR0
+	ldi
+	ldi
+	ld	a, (de)
+	pea	ix+0
+	ld	ix, (iy+VX_INDEX1)
+	add	ix, bc
+	lea	de, ix+VX_VERTEX_GPR0+2
+	ldi
+	ldi
+	ex	de, hl
+	add	a, (hl)
+	ex	de, hl
+	ld	iy, (iy+VX_INDEX2)
+	add	iy, bc
+	lea	de, iy+VX_VERTEX_GPR0+4
+	ldi
+	ldi
+	ex	de, hl
+	add	a, (hl)
+
+	ld	b, a
+	ld	c, 83
+	mlt	bc
+	ld	a, b
+	ld	(vxShaderUniform0+1), a
+
+	lea	bc, iy+4
+	lea	de, ix+2
+	pop	hl
+
+#comment
 	ld	ix, (iy+VX_INDEX0)
 	add	ix, bc
 	ld	hl, (iy+VX_INDEX_UV0)
@@ -174,7 +211,7 @@ vxRenderTexture:
 	ld	a, b
 	ld	(vxShaderUniform0+1), a
 	lea	bc, ix+0
-
+#endcomment
 	call	vxTextureTriangle
 	pop	iy
 	pop	bc
@@ -276,11 +313,11 @@ vxVertexStream:
 	ld	a, (iy+0)
 	ld	bc, (iy+1)
 	lea	iy, iy+3
+; iy+0 are options, so check those. Here, only bounding box is interesting.
 	and	VX_VERTEX_BOX
 	call	nz, vxVertexStreamBox
 	pop	de
 	ret	c
-; iy+0 are options, so check those. Here, only bounding box is interesting.
 	ld	a, c
 	dec	bc
 	inc	b

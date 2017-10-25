@@ -20,7 +20,7 @@ vxEngineInit:
 ; disable interrupts
 	di
 ;;	ld	hl, 0E00005h
-;;;	ld	(hl), 2	; Set flash wait states to 5 + 1 = 6 (total access time = 7)
+;;	ld	(hl), 3	; Set flash wait states to 5 + 3 = 8 (total access time = 9)
 ; LCD initialisation
 	call	vxResetPalette
 ; start LCD interrupt
@@ -90,10 +90,10 @@ vxEngineQuit:
 	ld (VX_LCD_CTRL),a
 	ld	hl, VX_FRAMEBUFFER_AUX0
 	ld	(VX_LCD_BUFFER), hl
-
 	call	vxMemoryDestroyDevice
 	call	vxMemoryLock
-
+;;	ld	hl, 0E00005h
+;;	ld	(hl), 4	; Set flash wait states to 5 + 4 = 9 (total access time = 10)
 	call _HomeUp
 	call _Clrscrn
 	call _DrawStatusBar
