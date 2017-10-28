@@ -22,5 +22,10 @@ tools\mdlconv  file\Tonberry.obj -T -N -S -B
 tools\spasm -I lib/ file\Tonberry0.inc bin\TONB0.8xv -E -S
 tools\spasm -I lib/ file\Tonberry1.inc bin\TONB1.8xv -E -S
 
+echo Converting London.obj
+tools\mdlconv  file\London.obj -T -N -S -B
+tools\spasm -I lib/ file\London0.inc bin\LONDON0.8xv -E -S
+tools\spasm -I lib/ file\London1.inc bin\LONDON1.8xv -E -S
+
 tools\xmlconv
 pause

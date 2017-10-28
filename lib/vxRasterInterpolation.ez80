@@ -385,6 +385,8 @@ vxRegisterDerivativeAbs:
 ; write inc/dec
 	ld	(VX_PIXEL_SHADER_SUBSIZE-1+VX_PIXEL_SHADER_CODE), a
 	ld	(VX_PIXEL_SHADER_SUBSIZE*2-1+VX_PIXEL_SHADER_CODE), a
+; small hack to force a slighty bigger X span to be sure only the in triangle texel will actually be mapped. In worst case, it miss a few one, but it is okayish engouh.
+	inc	hl \ inc hl
 	add	hl, hl
 	add	hl, bc	; bc =VX_INVERE_TABLE
 	ld	hl, (hl)

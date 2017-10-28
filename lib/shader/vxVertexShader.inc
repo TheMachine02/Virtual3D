@@ -133,7 +133,7 @@ vxVertexShader:
 	add	hl, de
 	ld	a, (ix+VX_MATRIX0_C1)
 	or	a, a
-	jr	z, vxVertexSkip0
+	jr	z, vxVertexSkipC1
 	ld	bc, (iy+VX_VERTEX_VY)
 	ex	de, hl
 	ld	h, b
@@ -159,7 +159,7 @@ vxVertexShader:
 	mlt	bc
 	add	hl, bc
 	add	hl, de
-vxVertexSkip0:
+vxVertexSkipC1:
 	ld	a, (ix+VX_MATRIX0_C2)
 	ld	bc, (iy+VX_VERTEX_VZ)
 	ld	d, c

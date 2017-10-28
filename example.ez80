@@ -63,7 +63,7 @@ MainLoop:
 	jr	nz, $+3
 	xor	a, a
 	ld	(vxAnimationKey), a
-
+#comment
 ; animate the texture
 	ld	a, (texture_frame)
 	inc	a
@@ -84,7 +84,7 @@ MainLoop:
 	ld	bc, 16*256+64
 	
 	call	vxImageSubCopy
-
+#endcomment
 	ld	a, VX_GEOMETRY_TI9
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
@@ -93,21 +93,21 @@ MainLoop:
 	ld	de, (Triangle)
 	call	vxGeometryStream
 
-	ld	a, VX_GEOMETRY_TI9
-	ld	ix, WorldMatrix
-	ld	iy, BossMatrix
-	ld	bc, VX_VERTEX_BUFFER+(1024*16)
-	ld	hl, VERTEXDATA
-	ld	de, TRIDATA
-	call	vxGeometryStream
+;	ld	a, VX_GEOMETRY_TI9
+;	ld	ix, WorldMatrix
+;	ld	iy, BossMatrix
+;	ld	bc, VX_VERTEX_BUFFER+(1024*16)
+;	ld	hl, VERTEXDATA
+;	ld	de, TRIDATA
+;	call	vxGeometryStream
 
-	ld	a, VX_GEOMETRY_TI9
-	ld	ix, WorldMatrix
-	ld	iy, LaraMatrix
-	ld	bc, VX_VERTEX_BUFFER+(1536*16)
-	ld	hl, VERTEXDATA1
-	ld	de, TRIDATA1
-	call	vxGeometryStream
+;	ld	a, VX_GEOMETRY_TI9
+;	ld	ix, WorldMatrix
+;	ld	iy, LaraMatrix
+;	ld	bc, VX_VERTEX_BUFFER+(1536*16)
+;	ld	hl, VERTEXDATA1
+;	ld	de, TRIDATA1
+;	call	vxGeometryStream
 
 	ld	hl, (vxGeometrySize)
 	ld	(triangle_count), hl
@@ -374,5 +374,5 @@ _kskip7:
 	ret
 
 
-#include "XML.ez80"
-#include "XML-1.ez80"
+;#include "XML.ez80"
+;#include "XML-1.ez80"

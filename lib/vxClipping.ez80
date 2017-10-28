@@ -5,7 +5,7 @@
 #define  vxPlaneBit4             %00001000
 #define  vxVertexDirty           %11111111
 #define  VX_SCREEN_WIDTH         320
-#define  VX_SCREEN_HEIGHT        240
+#define  VX_SCREEN_HEIGHT        180
 #define  VX_SCREEN_WCENTER       160
 #define  VX_SCREEN_HCENTER       120
 
