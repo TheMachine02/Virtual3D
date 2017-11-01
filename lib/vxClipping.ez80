@@ -493,25 +493,29 @@ vxParametricSignAdjust:
 	ret
 vxParametricFactor:
 ; bc (16bits) = hl*65536/(hl-de)
-	push	hl
-	sbc	hl, de
+; if hl-de < 0 then hl is < 0, else both are >0
 	ex	de, hl
-	pop	hl
-	add   hl,hl
-	jr	nc,vxParametricAbsolute
+	or	a, a
+	sbc	hl, de
+	push	de
+; abs(de-hl), if >0 then de <0
+	jp	p, vxParametricDeltaAbs
+	add	hl, de
+	ex	de, hl
+	or	a, a
+	sbc	hl, de
+vxParametricDeltaAbs:
+	pop	de
+	ex	de, hl
+	add	hl, hl
+	jr	nc, vxParametricValueAbs
 	push	de
 	ex	de, hl
 	or	a, a
 	sbc	hl, hl
 	sbc	hl, de
 	pop	de
-	push	hl
-	or	a, a
-	sbc	hl, hl
-	sbc	hl, de
-	ex	de, hl
-	pop	hl
-vxParametricAbsolute:
+vxParametricValueAbs:
 	sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
 	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
 	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
