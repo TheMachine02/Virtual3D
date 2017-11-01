@@ -5,7 +5,7 @@
 #define  vxPlaneBit4             %00001000
 #define  vxVertexDirty           %11111111
 #define  VX_SCREEN_WIDTH         320
-#define  VX_SCREEN_HEIGHT        180
+#define  VX_SCREEN_HEIGHT        240
 #define  VX_SCREEN_WCENTER       160
 #define  VX_SCREEN_HCENTER       120
 
@@ -120,8 +120,8 @@ vxClipPlanePolygon:
 	ld	ix, VX_PATCH_OUTPUT
 vxClipSutherHodgmanLoop:
 	push	bc
-	ld	hl, (iy+0)
-	ld	de, (iy+3)
+	ld	hl, (iy+3)
+	ld	de, (iy+0)
 	ld	a, (de)
 	and	(hl)
 vxMM0=$+1
@@ -132,103 +132,41 @@ vxMM0=$+1
 vxMM1=$+1
 	and	0
 	jr	nz, vxClipCheck0
-	ld	(ix+0), hl		; both point out, copy v0
+	ld	(ix+0), de		; both point out, copy v0
 	lea	ix, ix+3
 	ld	a, (vxNewSize)
 	inc	a
 	ld	(vxNewSize), a
 	jp	vxClipContinueX
 vxClipCheck0:
-	ld	a, (hl)
-	push	ix
-	call	vxClipDistance
-	ex	de, hl	; distance 0
-	call	vxClipDistance
+	ld	a, (de)
+	call	vxClipDistance	; compute distance 1
+	ex	de, hl
+	call	vxClipDistance	; compute distance 0
 vxMM2=$+1
 	and	0
 	push	af	; is edge leaving
 
-	push	hl
-	or	a, a
-	sbc	hl, de	; d0/(d0-d1)
-	pop	de
-	ex	de, hl
-	call	vxClipFactor
+; hl = d0, de = d1
+; compute f=d0/(d0-d1)
+	call	vxParametricFactor
 
-	ld	ix, (iy+3)
-	ld	de, (ix+VX_VERTEX_RZ)
+; ~1600 cycles vs old ~1850 cycles
+	push	ix
+	push	iy
 	ld	ix, (iy+0)
-	ld	hl, (ix+VX_VERTEX_RZ)
-	call	vxClipMixWord
-	ld	(VX_CLIP_VERTEX0+VX_VERTEX_RZ), hl
-
-	ld	ix, (iy+3)
-	ld	de, (ix+VX_VERTEX_RX)
-	ld	ix, (iy+0)
-	ld	hl, (ix+VX_VERTEX_RX)
-	call	vxClipMixWord
-	ld	(VX_CLIP_VERTEX0+VX_VERTEX_RX), hl
-
-	ld	ix, (iy+3)
-	ld	de, (ix+VX_VERTEX_RY)
-	ld	ix, (iy+0)
-	ld	hl, (ix+VX_VERTEX_RY)
-	call	vxClipMixWord
-	ld	(VX_CLIP_VERTEX0+VX_VERTEX_RY), hl
-
-	ld	de, 0
-	ld	ix, (iy+3)
-	ld	e, (ix+VX_VERTEX_GPR0)
-	ld	ix, (iy+0)
-	ld	d, (ix+VX_VERTEX_GPR0)
-	;;call	vxClipMixByte
-	ld	a, d
-	sub	e
-	ld	l, a
-	ld	h, b
-	mlt	hl
-	jr	nc, $+5
-	ld	a, h
-	sub	b
-	ld	h, a
-	ld	d, e
-	ld	e, 0
-	add	hl, de
-	ld	a, h
-
-	ld	(VX_CLIP_VERTEX0+VX_VERTEX_GPR0), a
-
-	ld	ix, (iy+3)
-	ld	e, (ix+VX_VERTEX_GPR1)
-	ld	ix, (iy+0)
-	ld	d, (ix+VX_VERTEX_GPR1)
-	;call	vxClipMixByte
-
-	ld	a, d
-	sub	e
-	ld	l, a
-	ld	h, b
-	mlt	hl
-	jr	nc, $+5
-	ld	a, h
-	sub	b
-	ld	h, a
-	ld	d, e
-	ld	e, 0
-	add	hl, de
-	ld	a, h
-
-	ld	(VX_CLIP_VERTEX0+VX_VERTEX_GPR1), a
-
+	ld	iy, (iy+3)
+; ix = iy+0 (p0) , iy = iy+3 (p1)
+	call	vxParametricCompute
+	pop	iy
+; compute the new outcode for intersection point
 	ld	ix, VX_CLIP_VERTEX0+0
 	call	vxClipFrustrumCode
 	or	a, $01
 	ld	(ix+0), a
-
+	pop	ix
 ; do specific edge shift here
 	pop	af
-	pop	ix
-
 	jp	nz, vxEdgeRentring
 ; edge leaving
 ; copy clip vertex, output both v0 and intersection
@@ -319,112 +257,6 @@ tUPP:
 	ld	hl, (hl)
 	add	hl, bc
 	ret
-
-vxClipMixByte:
-; a = (d-e)*bc/65536+e
-	ld	a, d
-	sub	e
-	ld	l, a
-	ld	h, b
-	mlt	hl
-	jr	nc, $+5
-	or	a, a
-	sbc	hl, bc
-	ld	d, e
-	ld	e, 0
-	add	hl, de
-	ret
-
-vxClipMixWord:
-; (hl-de)*bc/65536+de
-	push	de
-	or	a, a
-	sbc	hl, de
-	ld	(vxMixWrite), hl
-	ld	ix, vxMixWrite
-
-	ld	h, (ix+2)
-	bit	7, h
-	ld	l, b
-	mlt	hl
-	jr	z, $+5
-	or	a, a
-	sbc	hl, bc
-
-	slhl
-
-	ld	d, (ix+1)
-	ld	e, b
-	mlt	de
-	add	hl, de
-
-	ld	d, (ix+0)
-	ld	e, b
-	mlt	de
-	ld	e, d
-	ld	d, 0
-	add	hl, de
-
-	ld	d, (ix+2)
-	ld	e, c
-	mlt	de
-	add	hl, de
-
-	ld	d, (ix+1)
-	ld	e, c
-	mlt	de
-	ld	e, d
-	ld	d, 0
-	add	hl, de
-
-	pop	de
-	add	hl, de
-
-	ret
-
-vxClipFactor:
-; hl*65536/de, nz = do 65536-bc, z = bc
-; 467 TStates
-   inc.s bc
-   add   hl,hl
-	jr	nc, vxx
-	push	de
-	ex	de, hl
-	or	a, a
-	sbc	hl, hl
-	sbc	hl, de
-	pop	de
-
-	push	hl
-	or	a, a
-	sbc	hl, hl
-	sbc	hl, de
-	ex	de, hl
-	pop	hl
-
-vxx:
-	sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-   add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-   add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-   add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-   add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-   add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-   add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-   add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-   cpl
-   ld   b, a
-   add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-   add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-   add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-   add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-   add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-   add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-   add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-   add   hl,hl \ sbc hl,de \ adc a,a
-   cpl
-   ld   c, a
-	ret
-
 vxClipDivide:
 	ld	bc, (iy+VX_VERTEX_RZ)
 	bit	7, (iy+VX_VERTEX_RZ+2)
@@ -552,4 +384,152 @@ vxClipError3:
 	bit	7, (ix+VX_VERTEX_RZ+2)
 	ret	z
 	or	%00001000
+	ret
+
+vxParametricCompute:
+; compute (p1-p0)*t+p0, for 24 bits vertex
+; t = bc, p0 = ix, p1 = iy, output = clip_vertex0
+; vertex coordinate rx
+	ld	hl, (iy+VX_VERTEX_RX)
+	ld	de, (ix+VX_VERTEX_RX)
+	call	vxParametricExtendMlt
+	ld	(VX_CLIP_VERTEX0+VX_VERTEX_RX), hl
+; vertex coordinate ry
+	ld	hl, (iy+VX_VERTEX_RY)
+	ld	de, (ix+VX_VERTEX_RY)
+	call	vxParametricExtendMlt
+	ld	(VX_CLIP_VERTEX0+VX_VERTEX_RY), hl
+; vertex coordinate rz
+	ld	hl, (iy+VX_VERTEX_RZ)
+	ld	de, (ix+VX_VERTEX_RZ)
+	call	vxParametricExtendMlt
+	ld	(VX_CLIP_VERTEX0+VX_VERTEX_RZ), hl
+; now, other vertex parameters
+	ld	hl, VX_CLIP_VERTEX0 + VX_VERTEX_GPR0
+; parameter 0
+	ld	a, (iy+VX_VERTEX_GPR0); a = p1
+	ld	d, (ix+VX_VERTEX_GPR0); d = p0
+	sub	a, d				; a = p1-p0
+	ld	e, a				; e = p1-p0
+	ld	a, d				; a = p0
+	jr	nc, $+3			; sign correction
+	sub	a, b				; 
+	ld	d, b				; 
+	mlt	de				; de = (unsigned)(p1-p0)*b
+	add	a, d				; a = (signed)(p1-p0)*b/256+p0
+	ld	(hl), a			; and write result
+	inc	hl				; next parameter
+; parameter 1
+	ld	a, (iy+VX_VERTEX_GPR1)
+	ld	d, (ix+VX_VERTEX_GPR1)
+	sub	a, d
+	ld	e, a
+	ld	a, d
+	jr	nc, $+3
+	sub	a, b
+	ld	d, b
+	mlt	de
+	add	a, d
+	ld	(hl), a
+	ret
+vxParametricExtendMlt:
+; (p1-p0)*f/65536+p0
+; p1 = hl (24bits), p0 = de (24bits), f = bc (16bits)
+	or	a, a
+	sbc	hl, de	; hl = p1-p0
+	push	de
+	ld	a, l
+	push	af
+; grab hlu in a
+	push	hl
+	inc	sp
+	pop	af
+	dec	sp
+	ld	d, h
+; hlu x b x 256
+	ld	l, a
+	bit	7, a
+	ld	h, b
+	mlt	hl
+	jr	z, vxParametricSignAdjust
+	or	a, a
+	sbc	hl, bc
+vxParametricSignAdjust:
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+; hlu x c
+	ld	e, a
+	ld	a, d
+	ld	d, c
+	mlt	de
+	add	hl, de
+; h x b
+	ld	e, a
+	ld	d, b
+	mlt	de
+	add	hl, de
+; h x c / 256
+	ld	e, a
+	ld	d, c
+	mlt	de
+	ld	e, d
+	ld	d, 0
+	add	hl, de
+	pop	de
+; l x b /256
+	ld	e, b
+	mlt	de
+	ld	e, d
+	ld	d, 0
+	add	hl, de
+	pop	de
+	add	hl, de	; add up p0
+	ret
+vxParametricFactor:
+; bc (16bits) = hl*65536/(hl-de)
+	push	hl
+	sbc	hl, de
+	ex	de, hl
+	pop	hl
+	add   hl,hl
+	jr	nc,vxParametricAbsolute
+	push	de
+	ex	de, hl
+	or	a, a
+	sbc	hl, hl
+	sbc	hl, de
+	pop	de
+	push	hl
+	or	a, a
+	sbc	hl, hl
+	sbc	hl, de
+	ex	de, hl
+	pop	hl
+vxParametricAbsolute:
+	sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	cpl
+	ld   b, a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ adc a,a
+	cpl
+	ld   c, a
 	ret
