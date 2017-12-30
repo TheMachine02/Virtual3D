@@ -82,15 +82,12 @@ vxGeometryBufferRZ=$+1
 	ld	hl, (iy+VX_INDEX2)
 	add	hl, bc
 	ld	hl, (hl)
-;	adc	hl, de
+	adc	hl, de
 ; no div - way too slow !
-;	jp	p, vxGeometryDepthClamp
-;	or	a, a
-;	sbc	hl, hl
-;vxGeometryDepthClamp:
-	add	hl, de
-	ld	de, VX_DEPTH_OFFSET
-	add	hl, de
+	jp	p, vxGeometryDepthClamp
+	or	a, a
+	sbc	hl, hl
+vxGeometryDepthClamp:
 ; write everything to tmp buffer
 	ld	(ix+VX_GEOMETRY_DEPTH), hl
 ; fill depth bucket
@@ -105,9 +102,8 @@ vxGeometryBufferRZ=$+1
 	inc	(hl)
 vxGeometryBucket:
 	ld	(ix+VX_GEOMETRY_INDEX), iy
-vxGeometryBatch=$+1
-	ld	a, $00
-	ld	(ix+VX_GEOMETRY_ID), a
+vxGeometryBatch=$+3
+	ld	(ix+VX_GEOMETRY_ID), $00
 	lea	ix, ix+VX_GEOMETRY_SIZE
 vxGeometryDiscard:
 vxGeometryFormat=$+2
@@ -141,7 +137,7 @@ vxGeometryNClip:
 	bit 7, c \ jr z, $+3 \ sub a, d
 	mlt	de
 	add	a, d
-	ld	d, a		
+	ld	d, a
 	ld	a, (hl)
 	inc	hl
 	ld	c, (hl)
@@ -152,19 +148,17 @@ vxGeometryNClip:
 	sbc	hl, bc
 	sra	h \ rr l
 	ld	c, h
-	ex	de, hl
-	ex	(sp), hl
-	sub	a, (hl)
-	ld	d, a
-	ld	a, 0
-	jr	nc, $+3 \ sub a, e
-	bit 7, c \ jr z, $+3 \ sub a, d
-	mlt	de
-	add	a, d
-	ld	d, a		
+	ld	b, l
 	pop	hl
+	sub	a, (hl)
+	ld	l, a
+	ld	h, b
+	ld	a, 0 \ jr nc,$+3 \ sub a, h
+	bit	7, c \ jr z, $+3 \ sub a, l
+	mlt	hl
 	add	hl, de
 	dec	hl
-	rl	h
+	add	a, h
+	rla
 	jp	vxGeometryNext
 .endrelocate

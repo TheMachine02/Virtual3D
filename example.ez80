@@ -25,7 +25,7 @@
 	ld	(Texture), hl
 
 	ld	a, VX_ZX7_COMPRESSED
-	ld	de, $D30000-2
+	ld	de, $D30000
 	call	vxImageCopy
 
 ; about vertex coordinate :
@@ -42,10 +42,8 @@
 	ld	(EulerAngle), hl
 	ld	hl, WorldMatrix
 	call	vxMatrixLoadIdentity
-	ld	hl, -384
-	ld	(posY), hl
 
-	ld	a, 17
+	ld	a, 15
 	ld	(vxLightUniform+3), a
 	ld	a, 0
 	ld	(vxLightUniform+4), a
@@ -163,6 +161,36 @@ triangle_count=$+1
 	call	_PrintUInt
 	pop	de
 	pop	hl
+	ld	hl, (TextXPos_SMC)
+	ld	de, 8
+	add	hl, de
+	ld	(TextXPos_SMC), hl
+
+	ld	hl, 0
+	ld	a, (posX+1)
+	neg
+	ld	l, a
+	ld	de, 4
+	push	de
+	push	hl
+	call	_PrintUInt
+	pop	de
+	pop	hl
+	ld	hl, (TextXPos_SMC)
+	ld	de, 8
+	add	hl, de
+	ld	(TextXPos_SMC), hl
+
+	ld	a, (posZ+1)
+	neg
+	ld	l, a
+	ld	de, 4
+	push	de
+	push	hl
+	call	_PrintUInt
+	pop	de
+	pop	hl
+
 
 	call	vxFlushLCD
 
@@ -173,31 +201,34 @@ triangle_count=$+1
 #include	"graphics_lib.asm"
 
 posX:
-	.dw	0
+	.dw	-3*256
 posY:
-	.dw	0
+	.dw	-1*256
 posZ:
-	.dw	0
+	.dw	-3*256
+
+posXt:
+	.dw	-3*256
+posYt:
+	.dw	-1*256
+posZt:
+	.dw	-3*256
+
 Temp:
 	.dl	0,0
 
 VertexName:
-	.db	AppVarObj, "TONY0",0
+	.db	AppVarObj, "TRAIN0",0
 Vertex:
 	.dl	0
 TriangleName:
-	.db	AppVarObj, "TONY1", 0
+	.db	AppVarObj, "TRAIN1", 0
 Triangle:
 	.dl	0
 TextName:
-	.db	AppVarObj, "TONY2",0
+	.db	AppVarObj, "TRAIN2",0
 Texture:
 	.dl	0
-
-ScaleMatrix:
-	.db	77,0,0		; 44
-	.db	0,102,0		; 58
-	.db	0,0,64		; 37
 UnitVector:
 	.dl	0,16384,0
 Quaternion:
@@ -261,7 +292,7 @@ _kskip2:
 	ld	ix, WorldMatrix
 	call	vxQuaternionGetMatrix
 	ld	iy, WorldMatrix
-	ld	ix, ScaleMatrix
+	ld	ix, vxProjectionMatrix
 	ld	hl, WorldMatrix
 	call	vxMatrixMlt
 
@@ -280,7 +311,7 @@ _kskip2:
 	or	a, a
 	add	hl, de
 	ld	de, (posY)
-	ld	(posX), hl
+	ld	(posXt), hl
 	ld	a, (WorldMatrix+7)
 	rla
 	sbc	hl, hl
@@ -290,7 +321,7 @@ _kskip2:
 	or	a, a
 	add	hl, de
 	ld	de, (posZ)
-	ld	(posY), hl
+	ld	(posYt), hl
 	ld	a, (WorldMatrix+8)
 	rla
 	sbc	hl, hl
@@ -299,7 +330,7 @@ _kskip2:
 	add	hl, hl
 	or	a, a
 	add	hl, de
-	ld	(posZ), hl
+	ld	(posZt), hl
 _kskip3:
 
 	ld	a, ($F5001E)
@@ -317,7 +348,7 @@ _kskip3:
 	or	a, a
 	add	hl, de
 	ld	de, (posY)
-	ld	(posX), hl
+	ld	(posXt), hl
 	ld	a, (WorldMatrix+7)
 	neg
 	rla
@@ -328,7 +359,7 @@ _kskip3:
 	or	a, a
 	add	hl, de
 	ld	de, (posZ)
-	ld	(posY), hl
+	ld	(posYt), hl
 	ld	a, (WorldMatrix+8)
 	neg
 	rla
@@ -338,28 +369,70 @@ _kskip3:
 	add	hl, hl
 	or	a, a
 	add	hl, de
-	ld	(posZ), hl
+	ld	(posZt), hl
 _kskip4:
 
 
-	ld	hl, (posY)
-	ld	de, 32
-	ld	a, ($F50012)
-	bit	0, a
-	jr	z, _kskip6
-	add	hl, de
-_kskip6:	
-
-	bit	4, a
-	jr	z, _kskip7
-	or	a, a
-	sbc	hl, de
-_kskip7:
+;	ld	hl, (posY)
+;	ld	de, 32
+;	ld	a, ($F50012)
+;	bit	0, a
+;	jr	z, _kskip6
+;	add	hl, de
+;_kskip6:	
+;
+;	bit	4, a
+;	jr	z, _kskip7
+;	or	a, a
+;	sbc	hl, de
+;_kskip7:
 	
+;	ld	a, l
+;	ld	(posY), a
+;	ld	a, h
+;	ld	(posY+1), a
+
+	call	GetHeightMap
+#comment
+; compare posY to the value in map.
+	push	hl
+	ld	de, (posY)	
+	ex.s	de, hl
+	or	a, a
+	sbc.s hl,de
+	jp	p, _skipabs
+	add.s	hl, de
+	ex.s	de, hl
+	or	a, a
+	sbc.s	hl, de
+_skipabs:
+	ld.s	bc, 128
+	scf	
+	sbc.s	hl, bc	; difference height=<128
+	pop	hl
+#endcomment
+
+	ld	(smc_write), hl
+	ld	de, (posY)
+	or	a, a
+	sbc.s	hl, de
+	jp	p, _change
+	ld.s	bc, 129
+	or	a, a
+	adc.s	hl, bc
+	jp	m, _nochange
+_change:
+	ld	hl, posXt
+	ld	de, posX
+	ld	bc, 6
+	ldir
+smc_write=$+1
+	ld	hl, 0
 	ld	a, l
 	ld	(posY), a
 	ld	a, h
 	ld	(posY+1), a
+_nochange:
 
 	ld	ix, WorldMatrix
 	ld	iy, posX
@@ -372,6 +445,43 @@ _kskip7:
 	ld a,($F5001C)
 	bit 6,a
 	ret
+
+GetHeightMap:
+; posY, pos, posZ
+	ld	a, (posZt+1)
+	cpl
+	ld	l, a
+	ld	h, 24
+	mlt	hl
+	ld	de, RoomMap
+	add	hl, de
+	ld	a, (posXt+1)
+	cpl
+	ld	de, 0
+	ld	e, a
+	add	hl, de
+	add	hl, de
+	ld	bc, (hl)
+	ld	hl, -256
+	sbc.s	hl, bc
+	ret
+RoomMap:
+;;	.db	12,15
+	.dw	4096,4096,4096,4096,4096,4096,4096,4096,4096,4096,4096,4096
+	.dw	4096,4096,4096,4096,4096,64,4096,4096,4096,4096,4096,4096
+	.dw	4096,4096,0,0,0,0,0,0,0,0,64,4096
+	.dw	4096,192,0,128,64,0,256,192,64,0,64,4096
+	.dw	4096,192,0,192,0,0,0,0,0,0,4096,4096
+	.dw	4096,4096,0,256,0,0,0,0,4096,64,4096,4096
+	.dw	4096,4096,0,0,0,0,0,0,0,32,4096,4096
+	.dw	4096,192,0,0,0,0,0,0,0,0,4096,4096
+	.dw	4096,192,0,256,0,256,256,0,0,0,4096,4096
+	.dw	4096,4096,0,256,0,192,0,0,0,128,4096,4096
+	.dw	4096,4096,0,0,0,64,0,0,4096,0,4096,4096
+	.dw	4096,4096,0,0,0,0,0,0,0,0,4096,4096
+	.dw	4096,4096,0,256,0,0,256,0,0,0,4096,4096
+	.dw	4096,4096,0,0,0,0,0,0,0,128,4096,4096
+	.dw	4096,4096,4096,4096,4096,4096,4096,4096,4096,4096,4096,4096
 
 
 ;#include "XML.ez80"

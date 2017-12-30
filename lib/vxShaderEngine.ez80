@@ -28,9 +28,8 @@
 	.addinstr ld hlu,0 23522B52 4 NOP 0
 	.addinstr ld bcu,0 03520B52 4 NOP 0
 
-VX_REGISTER_DATA:
 	.fill	32, 0
-VX_PIXEL_SHADER_DATA:
+VX_REGISTER_DATA:
 	.fill	2892, 0
 
 VX_REGISTER_INTERPOLATION_COPY:
@@ -91,8 +90,8 @@ vxTextureSwap2:
 	ld	a, (bc)	; is this necessary with bfc ? Nope
 	sub	(hl)	; well to be safe, keep it
 	ret	z	;
-	ld	iy, VX_PIXEL_SHADER_DATA	; load up shader data register
-; copy u&v to constant area
+	ld	iy, VX_REGISTER_DATA	; load up shader data register
+; copy x&y u&v to constant area
 	push	bc
 	push	de
 	lea	de, iy-32
@@ -130,7 +129,7 @@ vxRegister01Interpolation:
 	sbc	hl, hl
 	sbc	hl, de
 	ex	de, hl
-	ld	ix, VX_LUT_PIXEL_LENGTH/2
+	ld	ix, VX_LUT_PIXEL_LENGTH/4
 	add	ix, de
 	pop	de
 	ld	hl, (iy+VX_REGISTER_X1)	; load x1
@@ -179,7 +178,7 @@ vxRegister01SP=$+1
 vxRegister01End:
 ; here bc < 0 already, only need to write c
 	
-	ld	ix, VX_PIXEL_SHADER_DATA
+	ld	ix, VX_REGISTER_DATA
 
 vxRegister11Interpolation:
 ; take point0 (hl) and point1 (de), point0 is the lowest point
@@ -204,7 +203,7 @@ vxRegister11Interpolation:
 	sbc	hl, de
 	ex	de, hl
 	ld	hl, (ix+VX_REGISTER_X2)	; before destroying ix, fetch x2
-	ld	ix, VX_LUT_PIXEL_LENGTH/2
+	ld	ix, VX_LUT_PIXEL_LENGTH/4
 	add	ix, de
 	pop	de
 	ex.s	de, hl
@@ -255,7 +254,7 @@ vxRegister11End:
 vxRegister0Interpolation:
 ; take point0 (hl) and point1 (de), point0 is the lowest point
 	pop	ix
-	ld	iy, VX_PIXEL_SHADER_DATA	; load up shader data register
+	ld	iy, VX_REGISTER_DATA	; load up shader data register
 
 	ld	a, (iy+VX_REGISTER_Y0)
 	sub	a, (iy+VX_REGISTER_Y2)
@@ -309,7 +308,7 @@ vxRegister0SP=$+1
 	pop	bc
 
 	ld	(iy+VX_REGISTER0), bc
-	ld	hl, vxPixelShaderExitLUT/2
+	ld	hl, vxPixelShaderExitLUT/4
 	sbc	hl,bc
 	ld	(iy+VX_REGISTER1), hl
 vxRegister0End:
@@ -320,7 +319,7 @@ vxRegister0End:
 ; compute dvdx
 ; offset and compute register2&3
 vxRegisterDerivative:
-	ld	iy, VX_PIXEL_SHADER_DATA
+	ld	iy, VX_REGISTER_DATA
 	lea	ix, iy+0
 	lea hl, iy+VX_REGISTER_Y0
 	lea de, iy+VX_REGISTER_Y1
@@ -386,7 +385,7 @@ vxRegisterDerivativeAbs:
 	ld	(VX_PIXEL_SHADER_SUBSIZE-1+VX_PIXEL_SHADER_CODE), a
 	ld	(VX_PIXEL_SHADER_SUBSIZE*2-1+VX_PIXEL_SHADER_CODE), a
 ; small hack to force a slighty bigger X span to be sure only the in triangle texel will actually be mapped. In worst case, it miss a few one, but it is okayish engouh.
-	inc	hl \ inc hl
+	inc	hl
 	add	hl, hl
 	add	hl, bc	; bc =VX_INVERE_TABLE
 	ld	hl, (hl)
@@ -514,16 +513,16 @@ vxDerivateZero1:
 	dec.s	hl
 	ld	(iy+VX_FDUDX), hl
 ; interpolate u,v register2 and register3, and initialise drawing
-
+#comment
 ; hl = u0*256+(dudy+dudx)/2, ix=v0*256+(dvdy+dvdx)/2
 	ld	hl, (iy+VX_FDVDY)
 	ld	de, (iy+VX_FDVDX)
-	add.s	hl, de
+	add	hl, de
 	sra	h \ rr l
 	ex	de, hl
 	ld	hl, (iy+VX_FDUDY)
 	ld	bc, (iy+VX_FDUDX)
-	add.s	hl, bc
+	add	hl, bc
 	sra	h \ rr  l
 	ld	a, l
 	ld	(vxShaderOffset+2), a
@@ -543,6 +542,30 @@ vxShaderOffset=$+2
 ; load de and bc
 	ld	bc, (iy+VX_FDVDY)
 	ld	de, (iy+VX_FDUDY+1)
+#endcomment
+	ld	bc, (iy+VX_FDUDY)
+	add	hl, bc
+	sra	h \ rr l
+	ld	a, l
+	ld	(vxShaderOffset+2), a
+	ld	a, (iy+VX_REGISTER_U0)
+	add	a, h
+vxShaderUniform1=$+1
+	ld	hl, $D30000
+	ld	l, a
+	ex	de, hl
+vxShaderOffset=$+2
+	ld	ix, $000000
+	ld	hl, (iy+VX_FDVDX)
+	ld	bc, (iy+VX_FDVDY)
+	add	hl, bc
+	sra	h \ rr l
+	ld	a, (iy+VX_REGISTER_V0)
+	add	a, h
+	ex	de, hl
+	ld	ixh, a
+	ld	ixl, e
+	ld	de, (iy+VX_FDUDY+1)
 ; ready to interpolate
 	pop	af
 vxRegisterGradientLoop:
@@ -561,21 +584,21 @@ vxRegisterGradientLoop:
 	jr	nz, vxRegisterGradientLoop
 vxRegisterGradientEnd:
 ; initialise drawing
-	ld	ix, VX_PIXEL_SHADER_CODE
-	ld	iy, VX_PIXEL_SHADER_DATA
+;;	ld	ix, VX_PIXEL_SHADER_CODE ; this init is now useless
+	ld	iy, VX_REGISTER_DATA
 ; hl'= texture page and accumulator for dux	LOADED
-; de'= low byte is dux						INIT
+; bc'= low byte is dux						INIT
 ; sp = dux*65536+dvx						INIT
-; bc'= undefined							INIT
+; de'= undefined							INIT
 ; hl = accumulator for dux					LOADED
 ; de = screen adress						LOADED
 ; bc = djnz size							LOADED
 	ld	(vxPixelShaderExit+1), sp
 vxShaderUniform0=$+1
-	ld	bc, VX_PIXEL_SHADER_CONSTANT
+	ld	de, VX_PIXEL_SHADER_DATA
 	ld	hl, (iy+VX_FDVDX)
 	ld	sp, hl
-	ld	de, (iy+VX_FDUDX+1)
+	ld	bc, (iy+VX_FDUDX+1)
 	exx
 	jp	vxShaderGeneralInterpolation
 vxPixelShaderExit:

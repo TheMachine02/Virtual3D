@@ -1,7 +1,9 @@
+#define	VX_PIXEL_SHADER			%00000001
 #define	VX_PIXEL_SHADER_CODE		$E10010
+#define	VX_PIXEL_SHADER_DATA		$D00000
 #define	VX_PIXEL_SHADER_SIZE		64
-#define	VX_PIXEL_SHADER_CONSTANT	$D00000
-#define	VX_PIXEL_SHADER_SUBSIZE	11
+#define	VX_PIXEL_SHADER_MAX_SIZE	38
+#define	VX_PIXEL_SHADER_SUBSIZE	18	; 11
 
 #define	VX_REGISTER_SIZE			12
 #define	VX_REGISTER0			0
@@ -14,16 +16,18 @@ VX_PIXEL_SHADER_COPY:
 .relocate	VX_PIXEL_SHADER_CODE
 
 vxPixelShader:
+#comment
 	ld	a, h
 	add	hl, sp
 	exx
 	ld	h, a
-	ld	c, (hl)
+	ld	e, (hl)
+	ld	a, (de)
 ;	ld	a, (hl)
-	adc	hl, de
+	adc	hl, bc
 ;	ld	a, c
 ;	cp	$FF
-	ld	a, (bc)
+;	ld	a, (bc)
 	exx
 ;	jr	z, $+3
 	ld	(de), a
@@ -32,687 +36,721 @@ vxPixelShader:
 	add	hl, sp
 	exx
 	ld	h, a
-	ld	c, (hl)
+	ld	e, (hl)
+	ld	a, (de)
 ;	ld	a, (hl)
-	adc	hl, de
+	adc	hl, bc
 ;	ld	a, c
 ;	cp	$FF
-	ld	a, (bc)
+;	ld	a, (bc)
 	exx
 ;	jr	z, $+3
 	ld	(de), a
 	inc	de
+#endcomment
+	add	hl, sp
+	ld	a, h
+	exx
+	adc	hl, bc
+	ld	h, a
+	ld	d, (hl)
+	exx
+	ld	a, (de)
+	exx
+	ld	e, a
+	ld	a, (de)
+	set	7, h
+	add	a, (hl)
+	exx
+	ld	(de), a
+	inc	de
+
+	add	hl, sp
+	ld	a, h
+	exx
+	adc	hl, bc
+	ld	h, a
+	ld	d, (hl)
+	exx
+	ld	a, (de)
+	exx
+	ld	e, a
+	ld	a, (de)
+	set	7, h
+	add	a, (hl)
+	exx
+	ld	(de), a
+	inc	de
+#endcomment
 	djnz	vxPixelShader
 vxShaderGeneralInterpolation:
 	ld	hl, (iy+VX_REGISTER1)
 	ld	de, (iy+VX_REGISTER0)
 	add	hl, de
 	add	hl, hl
-	ld	a, (hl)
-	ld	ixl, a
-	inc	hl
+	add	hl, hl
 	ld	b, (hl)
+	inc	hl
+	ld	ix, (hl)
 	ld	hl, (iy+VX_REGISTER2)	; v
 	exx
 	ld	hl, (iy+VX_REGISTER3)	; u
 	exx
 	lea	iy, iy+VX_REGISTER_SIZE
 	jp	(ix)
-	jp	vxPixelShaderExit
 ; exactly 64 bytes
 
 .endrelocate
 
-#define	VX_CALL0_POS	(VX_PIXEL_SHADER_SUBSIZE*2-1+VX_PIXEL_SHADER_CODE)%256
-#define	VX_CALL1_POS	(VX_PIXEL_SHADER_SUBSIZE-1+VX_PIXEL_SHADER_CODE)%256
-#define	VX_CALL_NULL	((VX_PIXEL_SHADER_SUBSIZE+1)*2+VX_PIXEL_SHADER_CODE)%256
-#define	VX_CALL1_NEG	(VX_PIXEL_SHADER_SUBSIZE+VX_PIXEL_SHADER_CODE)%256
-#define	VX_CALL0_NEG	(VX_PIXEL_SHADER_CODE)%256
-#define	VX_CALL_EXIT	(VX_PIXEL_SHADER_SUBSIZE*2+28+VX_PIXEL_SHADER_CODE)%256
-
-; pad to two bytes
-   .align  2
-   .db VX_CALL1_NEG, 161
-   .db VX_CALL0_NEG, 160
-   .db VX_CALL1_NEG, 160
-   .db VX_CALL0_NEG, 159
-   .db VX_CALL1_NEG, 159
-   .db VX_CALL0_NEG, 158
-   .db VX_CALL1_NEG, 158
-   .db VX_CALL0_NEG, 157
-   .db VX_CALL1_NEG, 157
-   .db VX_CALL0_NEG, 156
-   .db VX_CALL1_NEG, 156
-   .db VX_CALL0_NEG, 155
-   .db VX_CALL1_NEG, 155
-   .db VX_CALL0_NEG, 154
-   .db VX_CALL1_NEG, 154
-   .db VX_CALL0_NEG, 153
-   .db VX_CALL1_NEG, 153
-   .db VX_CALL0_NEG, 152
-   .db VX_CALL1_NEG, 152
-   .db VX_CALL0_NEG, 151
-   .db VX_CALL1_NEG, 151
-   .db VX_CALL0_NEG, 150
-   .db VX_CALL1_NEG, 150
-   .db VX_CALL0_NEG, 149
-   .db VX_CALL1_NEG, 149
-   .db VX_CALL0_NEG, 148
-   .db VX_CALL1_NEG, 148
-   .db VX_CALL0_NEG, 147
-   .db VX_CALL1_NEG, 147
-   .db VX_CALL0_NEG, 146
-   .db VX_CALL1_NEG, 146
-   .db VX_CALL0_NEG, 145
-   .db VX_CALL1_NEG, 145
-   .db VX_CALL0_NEG, 144
-   .db VX_CALL1_NEG, 144
-   .db VX_CALL0_NEG, 143
-   .db VX_CALL1_NEG, 143
-   .db VX_CALL0_NEG, 142
-   .db VX_CALL1_NEG, 142
-   .db VX_CALL0_NEG, 141
-   .db VX_CALL1_NEG, 141
-   .db VX_CALL0_NEG, 140
-   .db VX_CALL1_NEG, 140
-   .db VX_CALL0_NEG, 139
-   .db VX_CALL1_NEG, 139
-   .db VX_CALL0_NEG, 138
-   .db VX_CALL1_NEG, 138
-   .db VX_CALL0_NEG, 137
-   .db VX_CALL1_NEG, 137
-   .db VX_CALL0_NEG, 136
-   .db VX_CALL1_NEG, 136
-   .db VX_CALL0_NEG, 135
-   .db VX_CALL1_NEG, 135
-   .db VX_CALL0_NEG, 134
-   .db VX_CALL1_NEG, 134
-   .db VX_CALL0_NEG, 133
-   .db VX_CALL1_NEG, 133
-   .db VX_CALL0_NEG, 132
-   .db VX_CALL1_NEG, 132
-   .db VX_CALL0_NEG, 131
-   .db VX_CALL1_NEG, 131
-   .db VX_CALL0_NEG, 130
-   .db VX_CALL1_NEG, 130
-   .db VX_CALL0_NEG, 129
-   .db VX_CALL1_NEG, 129
-   .db VX_CALL0_NEG, 128
-   .db VX_CALL1_NEG, 128
-   .db VX_CALL0_NEG, 127
-   .db VX_CALL1_NEG, 127
-   .db VX_CALL0_NEG, 126
-   .db VX_CALL1_NEG, 126
-   .db VX_CALL0_NEG, 125
-   .db VX_CALL1_NEG, 125
-   .db VX_CALL0_NEG, 124
-   .db VX_CALL1_NEG, 124
-   .db VX_CALL0_NEG, 123
-   .db VX_CALL1_NEG, 123
-   .db VX_CALL0_NEG, 122
-   .db VX_CALL1_NEG, 122
-   .db VX_CALL0_NEG, 121
-   .db VX_CALL1_NEG, 121
-   .db VX_CALL0_NEG, 120
-   .db VX_CALL1_NEG, 120
-   .db VX_CALL0_NEG, 119
-   .db VX_CALL1_NEG, 119
-   .db VX_CALL0_NEG, 118
-   .db VX_CALL1_NEG, 118
-   .db VX_CALL0_NEG, 117
-   .db VX_CALL1_NEG, 117
-   .db VX_CALL0_NEG, 116
-   .db VX_CALL1_NEG, 116
-   .db VX_CALL0_NEG, 115
-   .db VX_CALL1_NEG, 115
-   .db VX_CALL0_NEG, 114
-   .db VX_CALL1_NEG, 114
-   .db VX_CALL0_NEG, 113
-   .db VX_CALL1_NEG, 113
-   .db VX_CALL0_NEG, 112
-   .db VX_CALL1_NEG, 112
-   .db VX_CALL0_NEG, 111
-   .db VX_CALL1_NEG, 111
-   .db VX_CALL0_NEG, 110
-   .db VX_CALL1_NEG, 110
-   .db VX_CALL0_NEG, 109
-   .db VX_CALL1_NEG, 109
-   .db VX_CALL0_NEG, 108
-   .db VX_CALL1_NEG, 108
-   .db VX_CALL0_NEG, 107
-   .db VX_CALL1_NEG, 107
-   .db VX_CALL0_NEG, 106
-   .db VX_CALL1_NEG, 106
-   .db VX_CALL0_NEG, 105
-   .db VX_CALL1_NEG, 105
-   .db VX_CALL0_NEG, 104
-   .db VX_CALL1_NEG, 104
-   .db VX_CALL0_NEG, 103
-   .db VX_CALL1_NEG, 103
-   .db VX_CALL0_NEG, 102
-   .db VX_CALL1_NEG, 102
-   .db VX_CALL0_NEG, 101
-   .db VX_CALL1_NEG, 101
-   .db VX_CALL0_NEG, 100
-   .db VX_CALL1_NEG, 100
-   .db VX_CALL0_NEG, 99
-   .db VX_CALL1_NEG, 99
-   .db VX_CALL0_NEG, 98
-   .db VX_CALL1_NEG, 98
-   .db VX_CALL0_NEG, 97
-   .db VX_CALL1_NEG, 97
-   .db VX_CALL0_NEG, 96
-   .db VX_CALL1_NEG, 96
-   .db VX_CALL0_NEG, 95
-   .db VX_CALL1_NEG, 95
-   .db VX_CALL0_NEG, 94
-   .db VX_CALL1_NEG, 94
-   .db VX_CALL0_NEG, 93
-   .db VX_CALL1_NEG, 93
-   .db VX_CALL0_NEG, 92
-   .db VX_CALL1_NEG, 92
-   .db VX_CALL0_NEG, 91
-   .db VX_CALL1_NEG, 91
-   .db VX_CALL0_NEG, 90
-   .db VX_CALL1_NEG, 90
-   .db VX_CALL0_NEG, 89
-   .db VX_CALL1_NEG, 89
-   .db VX_CALL0_NEG, 88
-   .db VX_CALL1_NEG, 88
-   .db VX_CALL0_NEG, 87
-   .db VX_CALL1_NEG, 87
-   .db VX_CALL0_NEG, 86
-   .db VX_CALL1_NEG, 86
-   .db VX_CALL0_NEG, 85
-   .db VX_CALL1_NEG, 85
-   .db VX_CALL0_NEG, 84
-   .db VX_CALL1_NEG, 84
-   .db VX_CALL0_NEG, 83
-   .db VX_CALL1_NEG, 83
-   .db VX_CALL0_NEG, 82
-   .db VX_CALL1_NEG, 82
-   .db VX_CALL0_NEG, 81
-   .db VX_CALL1_NEG, 81
-   .db VX_CALL0_NEG, 80
-   .db VX_CALL1_NEG, 80
-   .db VX_CALL0_NEG, 79
-   .db VX_CALL1_NEG, 79
-   .db VX_CALL0_NEG, 78
-   .db VX_CALL1_NEG, 78
-   .db VX_CALL0_NEG, 77
-   .db VX_CALL1_NEG, 77
-   .db VX_CALL0_NEG, 76
-   .db VX_CALL1_NEG, 76
-   .db VX_CALL0_NEG, 75
-   .db VX_CALL1_NEG, 75
-   .db VX_CALL0_NEG, 74
-   .db VX_CALL1_NEG, 74
-   .db VX_CALL0_NEG, 73
-   .db VX_CALL1_NEG, 73
-   .db VX_CALL0_NEG, 72
-   .db VX_CALL1_NEG, 72
-   .db VX_CALL0_NEG, 71
-   .db VX_CALL1_NEG, 71
-   .db VX_CALL0_NEG, 70
-   .db VX_CALL1_NEG, 70
-   .db VX_CALL0_NEG, 69
-   .db VX_CALL1_NEG, 69
-   .db VX_CALL0_NEG, 68
-   .db VX_CALL1_NEG, 68
-   .db VX_CALL0_NEG, 67
-   .db VX_CALL1_NEG, 67
-   .db VX_CALL0_NEG, 66
-   .db VX_CALL1_NEG, 66
-   .db VX_CALL0_NEG, 65
-   .db VX_CALL1_NEG, 65
-   .db VX_CALL0_NEG, 64
-   .db VX_CALL1_NEG, 64
-   .db VX_CALL0_NEG, 63
-   .db VX_CALL1_NEG, 63
-   .db VX_CALL0_NEG, 62
-   .db VX_CALL1_NEG, 62
-   .db VX_CALL0_NEG, 61
-   .db VX_CALL1_NEG, 61
-   .db VX_CALL0_NEG, 60
-   .db VX_CALL1_NEG, 60
-   .db VX_CALL0_NEG, 59
-   .db VX_CALL1_NEG, 59
-   .db VX_CALL0_NEG, 58
-   .db VX_CALL1_NEG, 58
-   .db VX_CALL0_NEG, 57
-   .db VX_CALL1_NEG, 57
-   .db VX_CALL0_NEG, 56
-   .db VX_CALL1_NEG, 56
-   .db VX_CALL0_NEG, 55
-   .db VX_CALL1_NEG, 55
-   .db VX_CALL0_NEG, 54
-   .db VX_CALL1_NEG, 54
-   .db VX_CALL0_NEG, 53
-   .db VX_CALL1_NEG, 53
-   .db VX_CALL0_NEG, 52
-   .db VX_CALL1_NEG, 52
-   .db VX_CALL0_NEG, 51
-   .db VX_CALL1_NEG, 51
-   .db VX_CALL0_NEG, 50
-   .db VX_CALL1_NEG, 50
-   .db VX_CALL0_NEG, 49
-   .db VX_CALL1_NEG, 49
-   .db VX_CALL0_NEG, 48
-   .db VX_CALL1_NEG, 48
-   .db VX_CALL0_NEG, 47
-   .db VX_CALL1_NEG, 47
-   .db VX_CALL0_NEG, 46
-   .db VX_CALL1_NEG, 46
-   .db VX_CALL0_NEG, 45
-   .db VX_CALL1_NEG, 45
-   .db VX_CALL0_NEG, 44
-   .db VX_CALL1_NEG, 44
-   .db VX_CALL0_NEG, 43
-   .db VX_CALL1_NEG, 43
-   .db VX_CALL0_NEG, 42
-   .db VX_CALL1_NEG, 42
-   .db VX_CALL0_NEG, 41
-   .db VX_CALL1_NEG, 41
-   .db VX_CALL0_NEG, 40
-   .db VX_CALL1_NEG, 40
-   .db VX_CALL0_NEG, 39
-   .db VX_CALL1_NEG, 39
-   .db VX_CALL0_NEG, 38
-   .db VX_CALL1_NEG, 38
-   .db VX_CALL0_NEG, 37
-   .db VX_CALL1_NEG, 37
-   .db VX_CALL0_NEG, 36
-   .db VX_CALL1_NEG, 36
-   .db VX_CALL0_NEG, 35
-   .db VX_CALL1_NEG, 35
-   .db VX_CALL0_NEG, 34
-   .db VX_CALL1_NEG, 34
-   .db VX_CALL0_NEG, 33
-   .db VX_CALL1_NEG, 33
-   .db VX_CALL0_NEG, 32
-   .db VX_CALL1_NEG, 32
-   .db VX_CALL0_NEG, 31
-   .db VX_CALL1_NEG, 31
-   .db VX_CALL0_NEG, 30
-   .db VX_CALL1_NEG, 30
-   .db VX_CALL0_NEG, 29
-   .db VX_CALL1_NEG, 29
-   .db VX_CALL0_NEG, 28
-   .db VX_CALL1_NEG, 28
-   .db VX_CALL0_NEG, 27
-   .db VX_CALL1_NEG, 27
-   .db VX_CALL0_NEG, 26
-   .db VX_CALL1_NEG, 26
-   .db VX_CALL0_NEG, 25
-   .db VX_CALL1_NEG, 25
-   .db VX_CALL0_NEG, 24
-   .db VX_CALL1_NEG, 24
-   .db VX_CALL0_NEG, 23
-   .db VX_CALL1_NEG, 23
-   .db VX_CALL0_NEG, 22
-   .db VX_CALL1_NEG, 22
-   .db VX_CALL0_NEG, 21
-   .db VX_CALL1_NEG, 21
-   .db VX_CALL0_NEG, 20
-   .db VX_CALL1_NEG, 20
-   .db VX_CALL0_NEG, 19
-   .db VX_CALL1_NEG, 19
-   .db VX_CALL0_NEG, 18
-   .db VX_CALL1_NEG, 18
-   .db VX_CALL0_NEG, 17
-   .db VX_CALL1_NEG, 17
-   .db VX_CALL0_NEG, 16
-   .db VX_CALL1_NEG, 16
-   .db VX_CALL0_NEG, 15
-   .db VX_CALL1_NEG, 15
-   .db VX_CALL0_NEG, 14
-   .db VX_CALL1_NEG, 14
-   .db VX_CALL0_NEG, 13
-   .db VX_CALL1_NEG, 13
-   .db VX_CALL0_NEG, 12
-   .db VX_CALL1_NEG, 12
-   .db VX_CALL0_NEG, 11
-   .db VX_CALL1_NEG, 11
-   .db VX_CALL0_NEG, 10
-   .db VX_CALL1_NEG, 10
-   .db VX_CALL0_NEG, 9
-   .db VX_CALL1_NEG, 9
-   .db VX_CALL0_NEG, 8
-   .db VX_CALL1_NEG, 8
-   .db VX_CALL0_NEG, 7
-   .db VX_CALL1_NEG, 7
-   .db VX_CALL0_NEG, 6
-   .db VX_CALL1_NEG, 6
-   .db VX_CALL0_NEG, 5
-   .db VX_CALL1_NEG, 5
-   .db VX_CALL0_NEG, 4
-   .db VX_CALL1_NEG, 4
-   .db VX_CALL0_NEG, 3
-   .db VX_CALL1_NEG, 3
-   .db VX_CALL0_NEG, 2
-   .db VX_CALL1_NEG, 2
-   .db VX_CALL0_NEG, 1
-   .db VX_CALL1_NEG, 1
+#define	VX_CALL0_POS	VX_PIXEL_SHADER_SUBSIZE*2-1+VX_PIXEL_SHADER_CODE
+#define	VX_CALL1_POS	VX_PIXEL_SHADER_SUBSIZE-1+VX_PIXEL_SHADER_CODE
+#define	VX_CALL_NULL	(VX_PIXEL_SHADER_SUBSIZE+1)*2+ VX_PIXEL_SHADER_CODE
+#define	VX_CALL1_NEG	VX_PIXEL_SHADER_SUBSIZE+VX_PIXEL_SHADER_CODE
+#define	VX_CALL0_NEG	VX_PIXEL_SHADER_CODE
+#define	VX_CALL_EXIT	vxPixelShaderExit
+; pad to four bytes
+   .align  4
+   .db 161 \ .dl VX_CALL1_NEG
+   .db 160 \ .dl VX_CALL0_NEG
+   .db 160 \ .dl VX_CALL1_NEG
+   .db 159 \ .dl VX_CALL0_NEG
+   .db 159 \ .dl VX_CALL1_NEG
+   .db 158 \ .dl VX_CALL0_NEG
+   .db 158 \ .dl VX_CALL1_NEG
+   .db 157 \ .dl VX_CALL0_NEG
+   .db 157 \ .dl VX_CALL1_NEG
+   .db 156 \ .dl VX_CALL0_NEG
+   .db 156 \ .dl VX_CALL1_NEG
+   .db 155 \ .dl VX_CALL0_NEG
+   .db 155 \ .dl VX_CALL1_NEG
+   .db 154 \ .dl VX_CALL0_NEG
+   .db 154 \ .dl VX_CALL1_NEG
+   .db 153 \ .dl VX_CALL0_NEG
+   .db 153 \ .dl VX_CALL1_NEG
+   .db 152 \ .dl VX_CALL0_NEG
+   .db 152 \ .dl VX_CALL1_NEG
+   .db 151 \ .dl VX_CALL0_NEG
+   .db 151 \ .dl VX_CALL1_NEG
+   .db 150 \ .dl VX_CALL0_NEG
+   .db 150 \ .dl VX_CALL1_NEG
+   .db 149 \ .dl VX_CALL0_NEG
+   .db 149 \ .dl VX_CALL1_NEG
+   .db 148 \ .dl VX_CALL0_NEG
+   .db 148 \ .dl VX_CALL1_NEG
+   .db 147 \ .dl VX_CALL0_NEG
+   .db 147 \ .dl VX_CALL1_NEG
+   .db 146 \ .dl VX_CALL0_NEG
+   .db 146 \ .dl VX_CALL1_NEG
+   .db 145 \ .dl VX_CALL0_NEG
+   .db 145 \ .dl VX_CALL1_NEG
+   .db 144 \ .dl VX_CALL0_NEG
+   .db 144 \ .dl VX_CALL1_NEG
+   .db 143 \ .dl VX_CALL0_NEG
+   .db 143 \ .dl VX_CALL1_NEG
+   .db 142 \ .dl VX_CALL0_NEG
+   .db 142 \ .dl VX_CALL1_NEG
+   .db 141 \ .dl VX_CALL0_NEG
+   .db 141 \ .dl VX_CALL1_NEG
+   .db 140 \ .dl VX_CALL0_NEG
+   .db 140 \ .dl VX_CALL1_NEG
+   .db 139 \ .dl VX_CALL0_NEG
+   .db 139 \ .dl VX_CALL1_NEG
+   .db 138 \ .dl VX_CALL0_NEG
+   .db 138 \ .dl VX_CALL1_NEG
+   .db 137 \ .dl VX_CALL0_NEG
+   .db 137 \ .dl VX_CALL1_NEG
+   .db 136 \ .dl VX_CALL0_NEG
+   .db 136 \ .dl VX_CALL1_NEG
+   .db 135 \ .dl VX_CALL0_NEG
+   .db 135 \ .dl VX_CALL1_NEG
+   .db 134 \ .dl VX_CALL0_NEG
+   .db 134 \ .dl VX_CALL1_NEG
+   .db 133 \ .dl VX_CALL0_NEG
+   .db 133 \ .dl VX_CALL1_NEG
+   .db 132 \ .dl VX_CALL0_NEG
+   .db 132 \ .dl VX_CALL1_NEG
+   .db 131 \ .dl VX_CALL0_NEG
+   .db 131 \ .dl VX_CALL1_NEG
+   .db 130 \ .dl VX_CALL0_NEG
+   .db 130 \ .dl VX_CALL1_NEG
+   .db 129 \ .dl VX_CALL0_NEG
+   .db 129 \ .dl VX_CALL1_NEG
+   .db 128 \ .dl VX_CALL0_NEG
+   .db 128 \ .dl VX_CALL1_NEG
+   .db 127 \ .dl VX_CALL0_NEG
+   .db 127 \ .dl VX_CALL1_NEG
+   .db 126 \ .dl VX_CALL0_NEG
+   .db 126 \ .dl VX_CALL1_NEG
+   .db 125 \ .dl VX_CALL0_NEG
+   .db 125 \ .dl VX_CALL1_NEG
+   .db 124 \ .dl VX_CALL0_NEG
+   .db 124 \ .dl VX_CALL1_NEG
+   .db 123 \ .dl VX_CALL0_NEG
+   .db 123 \ .dl VX_CALL1_NEG
+   .db 122 \ .dl VX_CALL0_NEG
+   .db 122 \ .dl VX_CALL1_NEG
+   .db 121 \ .dl VX_CALL0_NEG
+   .db 121 \ .dl VX_CALL1_NEG
+   .db 120 \ .dl VX_CALL0_NEG
+   .db 120 \ .dl VX_CALL1_NEG
+   .db 119 \ .dl VX_CALL0_NEG
+   .db 119 \ .dl VX_CALL1_NEG
+   .db 118 \ .dl VX_CALL0_NEG
+   .db 118 \ .dl VX_CALL1_NEG
+   .db 117 \ .dl VX_CALL0_NEG
+   .db 117 \ .dl VX_CALL1_NEG
+   .db 116 \ .dl VX_CALL0_NEG
+   .db 116 \ .dl VX_CALL1_NEG
+   .db 115 \ .dl VX_CALL0_NEG
+   .db 115 \ .dl VX_CALL1_NEG
+   .db 114 \ .dl VX_CALL0_NEG
+   .db 114 \ .dl VX_CALL1_NEG
+   .db 113 \ .dl VX_CALL0_NEG
+   .db 113 \ .dl VX_CALL1_NEG
+   .db 112 \ .dl VX_CALL0_NEG
+   .db 112 \ .dl VX_CALL1_NEG
+   .db 111 \ .dl VX_CALL0_NEG
+   .db 111 \ .dl VX_CALL1_NEG
+   .db 110 \ .dl VX_CALL0_NEG
+   .db 110 \ .dl VX_CALL1_NEG
+   .db 109 \ .dl VX_CALL0_NEG
+   .db 109 \ .dl VX_CALL1_NEG
+   .db 108 \ .dl VX_CALL0_NEG
+   .db 108 \ .dl VX_CALL1_NEG
+   .db 107 \ .dl VX_CALL0_NEG
+   .db 107 \ .dl VX_CALL1_NEG
+   .db 106 \ .dl VX_CALL0_NEG
+   .db 106 \ .dl VX_CALL1_NEG
+   .db 105 \ .dl VX_CALL0_NEG
+   .db 105 \ .dl VX_CALL1_NEG
+   .db 104 \ .dl VX_CALL0_NEG
+   .db 104 \ .dl VX_CALL1_NEG
+   .db 103 \ .dl VX_CALL0_NEG
+   .db 103 \ .dl VX_CALL1_NEG
+   .db 102 \ .dl VX_CALL0_NEG
+   .db 102 \ .dl VX_CALL1_NEG
+   .db 101 \ .dl VX_CALL0_NEG
+   .db 101 \ .dl VX_CALL1_NEG
+   .db 100 \ .dl VX_CALL0_NEG
+   .db 100 \ .dl VX_CALL1_NEG
+   .db 99 \ .dl VX_CALL0_NEG
+   .db 99 \ .dl VX_CALL1_NEG
+   .db 98 \ .dl VX_CALL0_NEG
+   .db 98 \ .dl VX_CALL1_NEG
+   .db 97 \ .dl VX_CALL0_NEG
+   .db 97 \ .dl VX_CALL1_NEG
+   .db 96 \ .dl VX_CALL0_NEG
+   .db 96 \ .dl VX_CALL1_NEG
+   .db 95 \ .dl VX_CALL0_NEG
+   .db 95 \ .dl VX_CALL1_NEG
+   .db 94 \ .dl VX_CALL0_NEG
+   .db 94 \ .dl VX_CALL1_NEG
+   .db 93 \ .dl VX_CALL0_NEG
+   .db 93 \ .dl VX_CALL1_NEG
+   .db 92 \ .dl VX_CALL0_NEG
+   .db 92 \ .dl VX_CALL1_NEG
+   .db 91 \ .dl VX_CALL0_NEG
+   .db 91 \ .dl VX_CALL1_NEG
+   .db 90 \ .dl VX_CALL0_NEG
+   .db 90 \ .dl VX_CALL1_NEG
+   .db 89 \ .dl VX_CALL0_NEG
+   .db 89 \ .dl VX_CALL1_NEG
+   .db 88 \ .dl VX_CALL0_NEG
+   .db 88 \ .dl VX_CALL1_NEG
+   .db 87 \ .dl VX_CALL0_NEG
+   .db 87 \ .dl VX_CALL1_NEG
+   .db 86 \ .dl VX_CALL0_NEG
+   .db 86 \ .dl VX_CALL1_NEG
+   .db 85 \ .dl VX_CALL0_NEG
+   .db 85 \ .dl VX_CALL1_NEG
+   .db 84 \ .dl VX_CALL0_NEG
+   .db 84 \ .dl VX_CALL1_NEG
+   .db 83 \ .dl VX_CALL0_NEG
+   .db 83 \ .dl VX_CALL1_NEG
+   .db 82 \ .dl VX_CALL0_NEG
+   .db 82 \ .dl VX_CALL1_NEG
+   .db 81 \ .dl VX_CALL0_NEG
+   .db 81 \ .dl VX_CALL1_NEG
+   .db 80 \ .dl VX_CALL0_NEG
+   .db 80 \ .dl VX_CALL1_NEG
+   .db 79 \ .dl VX_CALL0_NEG
+   .db 79 \ .dl VX_CALL1_NEG
+   .db 78 \ .dl VX_CALL0_NEG
+   .db 78 \ .dl VX_CALL1_NEG
+   .db 77 \ .dl VX_CALL0_NEG
+   .db 77 \ .dl VX_CALL1_NEG
+   .db 76 \ .dl VX_CALL0_NEG
+   .db 76 \ .dl VX_CALL1_NEG
+   .db 75 \ .dl VX_CALL0_NEG
+   .db 75 \ .dl VX_CALL1_NEG
+   .db 74 \ .dl VX_CALL0_NEG
+   .db 74 \ .dl VX_CALL1_NEG
+   .db 73 \ .dl VX_CALL0_NEG
+   .db 73 \ .dl VX_CALL1_NEG
+   .db 72 \ .dl VX_CALL0_NEG
+   .db 72 \ .dl VX_CALL1_NEG
+   .db 71 \ .dl VX_CALL0_NEG
+   .db 71 \ .dl VX_CALL1_NEG
+   .db 70 \ .dl VX_CALL0_NEG
+   .db 70 \ .dl VX_CALL1_NEG
+   .db 69 \ .dl VX_CALL0_NEG
+   .db 69 \ .dl VX_CALL1_NEG
+   .db 68 \ .dl VX_CALL0_NEG
+   .db 68 \ .dl VX_CALL1_NEG
+   .db 67 \ .dl VX_CALL0_NEG
+   .db 67 \ .dl VX_CALL1_NEG
+   .db 66 \ .dl VX_CALL0_NEG
+   .db 66 \ .dl VX_CALL1_NEG
+   .db 65 \ .dl VX_CALL0_NEG
+   .db 65 \ .dl VX_CALL1_NEG
+   .db 64 \ .dl VX_CALL0_NEG
+   .db 64 \ .dl VX_CALL1_NEG
+   .db 63 \ .dl VX_CALL0_NEG
+   .db 63 \ .dl VX_CALL1_NEG
+   .db 62 \ .dl VX_CALL0_NEG
+   .db 62 \ .dl VX_CALL1_NEG
+   .db 61 \ .dl VX_CALL0_NEG
+   .db 61 \ .dl VX_CALL1_NEG
+   .db 60 \ .dl VX_CALL0_NEG
+   .db 60 \ .dl VX_CALL1_NEG
+   .db 59 \ .dl VX_CALL0_NEG
+   .db 59 \ .dl VX_CALL1_NEG
+   .db 58 \ .dl VX_CALL0_NEG
+   .db 58 \ .dl VX_CALL1_NEG
+   .db 57 \ .dl VX_CALL0_NEG
+   .db 57 \ .dl VX_CALL1_NEG
+   .db 56 \ .dl VX_CALL0_NEG
+   .db 56 \ .dl VX_CALL1_NEG
+   .db 55 \ .dl VX_CALL0_NEG
+   .db 55 \ .dl VX_CALL1_NEG
+   .db 54 \ .dl VX_CALL0_NEG
+   .db 54 \ .dl VX_CALL1_NEG
+   .db 53 \ .dl VX_CALL0_NEG
+   .db 53 \ .dl VX_CALL1_NEG
+   .db 52 \ .dl VX_CALL0_NEG
+   .db 52 \ .dl VX_CALL1_NEG
+   .db 51 \ .dl VX_CALL0_NEG
+   .db 51 \ .dl VX_CALL1_NEG
+   .db 50 \ .dl VX_CALL0_NEG
+   .db 50 \ .dl VX_CALL1_NEG
+   .db 49 \ .dl VX_CALL0_NEG
+   .db 49 \ .dl VX_CALL1_NEG
+   .db 48 \ .dl VX_CALL0_NEG
+   .db 48 \ .dl VX_CALL1_NEG
+   .db 47 \ .dl VX_CALL0_NEG
+   .db 47 \ .dl VX_CALL1_NEG
+   .db 46 \ .dl VX_CALL0_NEG
+   .db 46 \ .dl VX_CALL1_NEG
+   .db 45 \ .dl VX_CALL0_NEG
+   .db 45 \ .dl VX_CALL1_NEG
+   .db 44 \ .dl VX_CALL0_NEG
+   .db 44 \ .dl VX_CALL1_NEG
+   .db 43 \ .dl VX_CALL0_NEG
+   .db 43 \ .dl VX_CALL1_NEG
+   .db 42 \ .dl VX_CALL0_NEG
+   .db 42 \ .dl VX_CALL1_NEG
+   .db 41 \ .dl VX_CALL0_NEG
+   .db 41 \ .dl VX_CALL1_NEG
+   .db 40 \ .dl VX_CALL0_NEG
+   .db 40 \ .dl VX_CALL1_NEG
+   .db 39 \ .dl VX_CALL0_NEG
+   .db 39 \ .dl VX_CALL1_NEG
+   .db 38 \ .dl VX_CALL0_NEG
+   .db 38 \ .dl VX_CALL1_NEG
+   .db 37 \ .dl VX_CALL0_NEG
+   .db 37 \ .dl VX_CALL1_NEG
+   .db 36 \ .dl VX_CALL0_NEG
+   .db 36 \ .dl VX_CALL1_NEG
+   .db 35 \ .dl VX_CALL0_NEG
+   .db 35 \ .dl VX_CALL1_NEG
+   .db 34 \ .dl VX_CALL0_NEG
+   .db 34 \ .dl VX_CALL1_NEG
+   .db 33 \ .dl VX_CALL0_NEG
+   .db 33 \ .dl VX_CALL1_NEG
+   .db 32 \ .dl VX_CALL0_NEG
+   .db 32 \ .dl VX_CALL1_NEG
+   .db 31 \ .dl VX_CALL0_NEG
+   .db 31 \ .dl VX_CALL1_NEG
+   .db 30 \ .dl VX_CALL0_NEG
+   .db 30 \ .dl VX_CALL1_NEG
+   .db 29 \ .dl VX_CALL0_NEG
+   .db 29 \ .dl VX_CALL1_NEG
+   .db 28 \ .dl VX_CALL0_NEG
+   .db 28 \ .dl VX_CALL1_NEG
+   .db 27 \ .dl VX_CALL0_NEG
+   .db 27 \ .dl VX_CALL1_NEG
+   .db 26 \ .dl VX_CALL0_NEG
+   .db 26 \ .dl VX_CALL1_NEG
+   .db 25 \ .dl VX_CALL0_NEG
+   .db 25 \ .dl VX_CALL1_NEG
+   .db 24 \ .dl VX_CALL0_NEG
+   .db 24 \ .dl VX_CALL1_NEG
+   .db 23 \ .dl VX_CALL0_NEG
+   .db 23 \ .dl VX_CALL1_NEG
+   .db 22 \ .dl VX_CALL0_NEG
+   .db 22 \ .dl VX_CALL1_NEG
+   .db 21 \ .dl VX_CALL0_NEG
+   .db 21 \ .dl VX_CALL1_NEG
+   .db 20 \ .dl VX_CALL0_NEG
+   .db 20 \ .dl VX_CALL1_NEG
+   .db 19 \ .dl VX_CALL0_NEG
+   .db 19 \ .dl VX_CALL1_NEG
+   .db 18 \ .dl VX_CALL0_NEG
+   .db 18 \ .dl VX_CALL1_NEG
+   .db 17 \ .dl VX_CALL0_NEG
+   .db 17 \ .dl VX_CALL1_NEG
+   .db 16 \ .dl VX_CALL0_NEG
+   .db 16 \ .dl VX_CALL1_NEG
+   .db 15 \ .dl VX_CALL0_NEG
+   .db 15 \ .dl VX_CALL1_NEG
+   .db 14 \ .dl VX_CALL0_NEG
+   .db 14 \ .dl VX_CALL1_NEG
+   .db 13 \ .dl VX_CALL0_NEG
+   .db 13 \ .dl VX_CALL1_NEG
+   .db 12 \ .dl VX_CALL0_NEG
+   .db 12 \ .dl VX_CALL1_NEG
+   .db 11 \ .dl VX_CALL0_NEG
+   .db 11 \ .dl VX_CALL1_NEG
+   .db 10 \ .dl VX_CALL0_NEG
+   .db 10 \ .dl VX_CALL1_NEG
+   .db 9 \ .dl VX_CALL0_NEG
+   .db 9 \ .dl VX_CALL1_NEG
+   .db 8 \ .dl VX_CALL0_NEG
+   .db 8 \ .dl VX_CALL1_NEG
+   .db 7 \ .dl VX_CALL0_NEG
+   .db 7 \ .dl VX_CALL1_NEG
+   .db 6 \ .dl VX_CALL0_NEG
+   .db 6 \ .dl VX_CALL1_NEG
+   .db 5 \ .dl VX_CALL0_NEG
+   .db 5 \ .dl VX_CALL1_NEG
+   .db 4 \ .dl VX_CALL0_NEG
+   .db 4 \ .dl VX_CALL1_NEG
+   .db 3 \ .dl VX_CALL0_NEG
+   .db 3 \ .dl VX_CALL1_NEG
+   .db 2 \ .dl VX_CALL0_NEG
+   .db 2 \ .dl VX_CALL1_NEG
+   .db 1 \ .dl VX_CALL0_NEG
+   .db 1 \ .dl VX_CALL1_NEG
 VX_LUT_PIXEL_LENGTH:
-   .db VX_CALL_NULL, 1
-   .db VX_CALL1_POS, 1
-   .db VX_CALL0_POS, 2
-   .db VX_CALL1_POS, 2
-   .db VX_CALL0_POS, 3
-   .db VX_CALL1_POS, 3
-   .db VX_CALL0_POS, 4
-   .db VX_CALL1_POS, 4
-   .db VX_CALL0_POS, 5
-   .db VX_CALL1_POS, 5
-   .db VX_CALL0_POS, 6
-   .db VX_CALL1_POS, 6
-   .db VX_CALL0_POS, 7
-   .db VX_CALL1_POS, 7
-   .db VX_CALL0_POS, 8
-   .db VX_CALL1_POS, 8
-   .db VX_CALL0_POS, 9
-   .db VX_CALL1_POS, 9
-   .db VX_CALL0_POS, 10
-   .db VX_CALL1_POS, 10
-   .db VX_CALL0_POS, 11
-   .db VX_CALL1_POS, 11
-   .db VX_CALL0_POS, 12
-   .db VX_CALL1_POS, 12
-   .db VX_CALL0_POS, 13
-   .db VX_CALL1_POS, 13
-   .db VX_CALL0_POS, 14
-   .db VX_CALL1_POS, 14
-   .db VX_CALL0_POS, 15
-   .db VX_CALL1_POS, 15
-   .db VX_CALL0_POS, 16
-   .db VX_CALL1_POS, 16
-   .db VX_CALL0_POS, 17
-   .db VX_CALL1_POS, 17
-   .db VX_CALL0_POS, 18
-   .db VX_CALL1_POS, 18
-   .db VX_CALL0_POS, 19
-   .db VX_CALL1_POS, 19
-   .db VX_CALL0_POS, 20
-   .db VX_CALL1_POS, 20
-   .db VX_CALL0_POS, 21
-   .db VX_CALL1_POS, 21
-   .db VX_CALL0_POS, 22
-   .db VX_CALL1_POS, 22
-   .db VX_CALL0_POS, 23
-   .db VX_CALL1_POS, 23
-   .db VX_CALL0_POS, 24
-   .db VX_CALL1_POS, 24
-   .db VX_CALL0_POS, 25
-   .db VX_CALL1_POS, 25
-   .db VX_CALL0_POS, 26
-   .db VX_CALL1_POS, 26
-   .db VX_CALL0_POS, 27
-   .db VX_CALL1_POS, 27
-   .db VX_CALL0_POS, 28
-   .db VX_CALL1_POS, 28
-   .db VX_CALL0_POS, 29
-   .db VX_CALL1_POS, 29
-   .db VX_CALL0_POS, 30
-   .db VX_CALL1_POS, 30
-   .db VX_CALL0_POS, 31
-   .db VX_CALL1_POS, 31
-   .db VX_CALL0_POS, 32
-   .db VX_CALL1_POS, 32
-   .db VX_CALL0_POS, 33
-   .db VX_CALL1_POS, 33
-   .db VX_CALL0_POS, 34
-   .db VX_CALL1_POS, 34
-   .db VX_CALL0_POS, 35
-   .db VX_CALL1_POS, 35
-   .db VX_CALL0_POS, 36
-   .db VX_CALL1_POS, 36
-   .db VX_CALL0_POS, 37
-   .db VX_CALL1_POS, 37
-   .db VX_CALL0_POS, 38
-   .db VX_CALL1_POS, 38
-   .db VX_CALL0_POS, 39
-   .db VX_CALL1_POS, 39
-   .db VX_CALL0_POS, 40
-   .db VX_CALL1_POS, 40
-   .db VX_CALL0_POS, 41
-   .db VX_CALL1_POS, 41
-   .db VX_CALL0_POS, 42
-   .db VX_CALL1_POS, 42
-   .db VX_CALL0_POS, 43
-   .db VX_CALL1_POS, 43
-   .db VX_CALL0_POS, 44
-   .db VX_CALL1_POS, 44
-   .db VX_CALL0_POS, 45
-   .db VX_CALL1_POS, 45
-   .db VX_CALL0_POS, 46
-   .db VX_CALL1_POS, 46
-   .db VX_CALL0_POS, 47
-   .db VX_CALL1_POS, 47
-   .db VX_CALL0_POS, 48
-   .db VX_CALL1_POS, 48
-   .db VX_CALL0_POS, 49
-   .db VX_CALL1_POS, 49
-   .db VX_CALL0_POS, 50
-   .db VX_CALL1_POS, 50
-   .db VX_CALL0_POS, 51
-   .db VX_CALL1_POS, 51
-   .db VX_CALL0_POS, 52
-   .db VX_CALL1_POS, 52
-   .db VX_CALL0_POS, 53
-   .db VX_CALL1_POS, 53
-   .db VX_CALL0_POS, 54
-   .db VX_CALL1_POS, 54
-   .db VX_CALL0_POS, 55
-   .db VX_CALL1_POS, 55
-   .db VX_CALL0_POS, 56
-   .db VX_CALL1_POS, 56
-   .db VX_CALL0_POS, 57
-   .db VX_CALL1_POS, 57
-   .db VX_CALL0_POS, 58
-   .db VX_CALL1_POS, 58
-   .db VX_CALL0_POS, 59
-   .db VX_CALL1_POS, 59
-   .db VX_CALL0_POS, 60
-   .db VX_CALL1_POS, 60
-   .db VX_CALL0_POS, 61
-   .db VX_CALL1_POS, 61
-   .db VX_CALL0_POS, 62
-   .db VX_CALL1_POS, 62
-   .db VX_CALL0_POS, 63
-   .db VX_CALL1_POS, 63
-   .db VX_CALL0_POS, 64
-   .db VX_CALL1_POS, 64
-   .db VX_CALL0_POS, 65
-   .db VX_CALL1_POS, 65
-   .db VX_CALL0_POS, 66
-   .db VX_CALL1_POS, 66
-   .db VX_CALL0_POS, 67
-   .db VX_CALL1_POS, 67
-   .db VX_CALL0_POS, 68
-   .db VX_CALL1_POS, 68
-   .db VX_CALL0_POS, 69
-   .db VX_CALL1_POS, 69
-   .db VX_CALL0_POS, 70
-   .db VX_CALL1_POS, 70
-   .db VX_CALL0_POS, 71
-   .db VX_CALL1_POS, 71
-   .db VX_CALL0_POS, 72
-   .db VX_CALL1_POS, 72
-   .db VX_CALL0_POS, 73
-   .db VX_CALL1_POS, 73
-   .db VX_CALL0_POS, 74
-   .db VX_CALL1_POS, 74
-   .db VX_CALL0_POS, 75
-   .db VX_CALL1_POS, 75
-   .db VX_CALL0_POS, 76
-   .db VX_CALL1_POS, 76
-   .db VX_CALL0_POS, 77
-   .db VX_CALL1_POS, 77
-   .db VX_CALL0_POS, 78
-   .db VX_CALL1_POS, 78
-   .db VX_CALL0_POS, 79
-   .db VX_CALL1_POS, 79
-   .db VX_CALL0_POS, 80
-   .db VX_CALL1_POS, 80
-   .db VX_CALL0_POS, 81
-   .db VX_CALL1_POS, 81
-   .db VX_CALL0_POS, 82
-   .db VX_CALL1_POS, 82
-   .db VX_CALL0_POS, 83
-   .db VX_CALL1_POS, 83
-   .db VX_CALL0_POS, 84
-   .db VX_CALL1_POS, 84
-   .db VX_CALL0_POS, 85
-   .db VX_CALL1_POS, 85
-   .db VX_CALL0_POS, 86
-   .db VX_CALL1_POS, 86
-   .db VX_CALL0_POS, 87
-   .db VX_CALL1_POS, 87
-   .db VX_CALL0_POS, 88
-   .db VX_CALL1_POS, 88
-   .db VX_CALL0_POS, 89
-   .db VX_CALL1_POS, 89
-   .db VX_CALL0_POS, 90
-   .db VX_CALL1_POS, 90
-   .db VX_CALL0_POS, 91
-   .db VX_CALL1_POS, 91
-   .db VX_CALL0_POS, 92
-   .db VX_CALL1_POS, 92
-   .db VX_CALL0_POS, 93
-   .db VX_CALL1_POS, 93
-   .db VX_CALL0_POS, 94
-   .db VX_CALL1_POS, 94
-   .db VX_CALL0_POS, 95
-   .db VX_CALL1_POS, 95
-   .db VX_CALL0_POS, 96
-   .db VX_CALL1_POS, 96
-   .db VX_CALL0_POS, 97
-   .db VX_CALL1_POS, 97
-   .db VX_CALL0_POS, 98
-   .db VX_CALL1_POS, 98
-   .db VX_CALL0_POS, 99
-   .db VX_CALL1_POS, 99
-   .db VX_CALL0_POS, 100
-   .db VX_CALL1_POS, 100
-   .db VX_CALL0_POS, 101
-   .db VX_CALL1_POS, 101
-   .db VX_CALL0_POS, 102
-   .db VX_CALL1_POS, 102
-   .db VX_CALL0_POS, 103
-   .db VX_CALL1_POS, 103
-   .db VX_CALL0_POS, 104
-   .db VX_CALL1_POS, 104
-   .db VX_CALL0_POS, 105
-   .db VX_CALL1_POS, 105
-   .db VX_CALL0_POS, 106
-   .db VX_CALL1_POS, 106
-   .db VX_CALL0_POS, 107
-   .db VX_CALL1_POS, 107
-   .db VX_CALL0_POS, 108
-   .db VX_CALL1_POS, 108
-   .db VX_CALL0_POS, 109
-   .db VX_CALL1_POS, 109
-   .db VX_CALL0_POS, 110
-   .db VX_CALL1_POS, 110
-   .db VX_CALL0_POS, 111
-   .db VX_CALL1_POS, 111
-   .db VX_CALL0_POS, 112
-   .db VX_CALL1_POS, 112
-   .db VX_CALL0_POS, 113
-   .db VX_CALL1_POS, 113
-   .db VX_CALL0_POS, 114
-   .db VX_CALL1_POS, 114
-   .db VX_CALL0_POS, 115
-   .db VX_CALL1_POS, 115
-   .db VX_CALL0_POS, 116
-   .db VX_CALL1_POS, 116
-   .db VX_CALL0_POS, 117
-   .db VX_CALL1_POS, 117
-   .db VX_CALL0_POS, 118
-   .db VX_CALL1_POS, 118
-   .db VX_CALL0_POS, 119
-   .db VX_CALL1_POS, 119
-   .db VX_CALL0_POS, 120
-   .db VX_CALL1_POS, 120
-   .db VX_CALL0_POS, 121
-   .db VX_CALL1_POS, 121
-   .db VX_CALL0_POS, 122
-   .db VX_CALL1_POS, 122
-   .db VX_CALL0_POS, 123
-   .db VX_CALL1_POS, 123
-   .db VX_CALL0_POS, 124
-   .db VX_CALL1_POS, 124
-   .db VX_CALL0_POS, 125
-   .db VX_CALL1_POS, 125
-   .db VX_CALL0_POS, 126
-   .db VX_CALL1_POS, 126
-   .db VX_CALL0_POS, 127
-   .db VX_CALL1_POS, 127
-   .db VX_CALL0_POS, 128
-   .db VX_CALL1_POS, 128
-   .db VX_CALL0_POS, 129
-   .db VX_CALL1_POS, 129
-   .db VX_CALL0_POS, 130
-   .db VX_CALL1_POS, 130
-   .db VX_CALL0_POS, 131
-   .db VX_CALL1_POS, 131
-   .db VX_CALL0_POS, 132
-   .db VX_CALL1_POS, 132
-   .db VX_CALL0_POS, 133
-   .db VX_CALL1_POS, 133
-   .db VX_CALL0_POS, 134
-   .db VX_CALL1_POS, 134
-   .db VX_CALL0_POS, 135
-   .db VX_CALL1_POS, 135
-   .db VX_CALL0_POS, 136
-   .db VX_CALL1_POS, 136
-   .db VX_CALL0_POS, 137
-   .db VX_CALL1_POS, 137
-   .db VX_CALL0_POS, 138
-   .db VX_CALL1_POS, 138
-   .db VX_CALL0_POS, 139
-   .db VX_CALL1_POS, 139
-   .db VX_CALL0_POS, 140
-   .db VX_CALL1_POS, 140
-   .db VX_CALL0_POS, 141
-   .db VX_CALL1_POS, 141
-   .db VX_CALL0_POS, 142
-   .db VX_CALL1_POS, 142
-   .db VX_CALL0_POS, 143
-   .db VX_CALL1_POS, 143
-   .db VX_CALL0_POS, 144
-   .db VX_CALL1_POS, 144
-   .db VX_CALL0_POS, 145
-   .db VX_CALL1_POS, 145
-   .db VX_CALL0_POS, 146
-   .db VX_CALL1_POS, 146
-   .db VX_CALL0_POS, 147
-   .db VX_CALL1_POS, 147
-   .db VX_CALL0_POS, 148
-   .db VX_CALL1_POS, 148
-   .db VX_CALL0_POS, 149
-   .db VX_CALL1_POS, 149
-   .db VX_CALL0_POS, 150
-   .db VX_CALL1_POS, 150
-   .db VX_CALL0_POS, 151
-   .db VX_CALL1_POS, 151
-   .db VX_CALL0_POS, 152
-   .db VX_CALL1_POS, 152
-   .db VX_CALL0_POS, 153
-   .db VX_CALL1_POS, 153
-   .db VX_CALL0_POS, 154
-   .db VX_CALL1_POS, 154
-   .db VX_CALL0_POS, 155
-   .db VX_CALL1_POS, 155
-   .db VX_CALL0_POS, 156
-   .db VX_CALL1_POS, 156
-   .db VX_CALL0_POS, 157
-   .db VX_CALL1_POS, 157
-   .db VX_CALL0_POS, 158
-   .db VX_CALL1_POS, 158
-   .db VX_CALL0_POS, 159
-   .db VX_CALL1_POS, 159
-   .db VX_CALL0_POS, 160
-   .db VX_CALL1_POS, 160
+   .db 1 \ .dl VX_CALL_NULL 
+   .db 1 \ .dl VX_CALL1_POS
+   .db 2 \ .dl VX_CALL0_POS
+   .db 2 \ .dl VX_CALL1_POS
+   .db 3 \ .dl VX_CALL0_POS
+   .db 3 \ .dl VX_CALL1_POS
+   .db 4 \ .dl VX_CALL0_POS
+   .db 4 \ .dl VX_CALL1_POS
+   .db 5 \ .dl VX_CALL0_POS
+   .db 5 \ .dl VX_CALL1_POS
+   .db 6 \ .dl VX_CALL0_POS
+   .db 6 \ .dl VX_CALL1_POS
+   .db 7 \ .dl VX_CALL0_POS
+   .db 7 \ .dl VX_CALL1_POS
+   .db 8 \ .dl VX_CALL0_POS
+   .db 8 \ .dl VX_CALL1_POS
+   .db 9 \ .dl VX_CALL0_POS
+   .db 9 \ .dl VX_CALL1_POS
+   .db 10 \ .dl VX_CALL0_POS
+   .db 10 \ .dl VX_CALL1_POS
+   .db 11 \ .dl VX_CALL0_POS
+   .db 11 \ .dl VX_CALL1_POS
+   .db 12 \ .dl VX_CALL0_POS
+   .db 12 \ .dl VX_CALL1_POS
+   .db 13 \ .dl VX_CALL0_POS
+   .db 13 \ .dl VX_CALL1_POS
+   .db 14 \ .dl VX_CALL0_POS
+   .db 14 \ .dl VX_CALL1_POS
+   .db 15 \ .dl VX_CALL0_POS
+   .db 15 \ .dl VX_CALL1_POS
+   .db 16 \ .dl VX_CALL0_POS
+   .db 16 \ .dl VX_CALL1_POS
+   .db 17 \ .dl VX_CALL0_POS
+   .db 17 \ .dl VX_CALL1_POS
+   .db 18 \ .dl VX_CALL0_POS
+   .db 18 \ .dl VX_CALL1_POS
+   .db 19 \ .dl VX_CALL0_POS
+   .db 19 \ .dl VX_CALL1_POS
+   .db 20 \ .dl VX_CALL0_POS
+   .db 20 \ .dl VX_CALL1_POS
+   .db 21 \ .dl VX_CALL0_POS
+   .db 21 \ .dl VX_CALL1_POS
+   .db 22 \ .dl VX_CALL0_POS
+   .db 22 \ .dl VX_CALL1_POS
+   .db 23 \ .dl VX_CALL0_POS
+   .db 23 \ .dl VX_CALL1_POS
+   .db 24 \ .dl VX_CALL0_POS
+   .db 24 \ .dl VX_CALL1_POS
+   .db 25 \ .dl VX_CALL0_POS
+   .db 25 \ .dl VX_CALL1_POS
+   .db 26 \ .dl VX_CALL0_POS
+   .db 26 \ .dl VX_CALL1_POS
+   .db 27 \ .dl VX_CALL0_POS
+   .db 27 \ .dl VX_CALL1_POS
+   .db 28 \ .dl VX_CALL0_POS
+   .db 28 \ .dl VX_CALL1_POS
+   .db 29 \ .dl VX_CALL0_POS
+   .db 29 \ .dl VX_CALL1_POS
+   .db 30 \ .dl VX_CALL0_POS
+   .db 30 \ .dl VX_CALL1_POS
+   .db 31 \ .dl VX_CALL0_POS
+   .db 31 \ .dl VX_CALL1_POS
+   .db 32 \ .dl VX_CALL0_POS
+   .db 32 \ .dl VX_CALL1_POS
+   .db 33 \ .dl VX_CALL0_POS
+   .db 33 \ .dl VX_CALL1_POS
+   .db 34 \ .dl VX_CALL0_POS
+   .db 34 \ .dl VX_CALL1_POS
+   .db 35 \ .dl VX_CALL0_POS
+   .db 35 \ .dl VX_CALL1_POS
+   .db 36 \ .dl VX_CALL0_POS
+   .db 36 \ .dl VX_CALL1_POS
+   .db 37 \ .dl VX_CALL0_POS
+   .db 37 \ .dl VX_CALL1_POS
+   .db 38 \ .dl VX_CALL0_POS
+   .db 38 \ .dl VX_CALL1_POS
+   .db 39 \ .dl VX_CALL0_POS
+   .db 39 \ .dl VX_CALL1_POS
+   .db 40 \ .dl VX_CALL0_POS
+   .db 40 \ .dl VX_CALL1_POS
+   .db 41 \ .dl VX_CALL0_POS
+   .db 41 \ .dl VX_CALL1_POS
+   .db 42 \ .dl VX_CALL0_POS
+   .db 42 \ .dl VX_CALL1_POS
+   .db 43 \ .dl VX_CALL0_POS
+   .db 43 \ .dl VX_CALL1_POS
+   .db 44 \ .dl VX_CALL0_POS
+   .db 44 \ .dl VX_CALL1_POS
+   .db 45 \ .dl VX_CALL0_POS
+   .db 45 \ .dl VX_CALL1_POS
+   .db 46 \ .dl VX_CALL0_POS
+   .db 46 \ .dl VX_CALL1_POS
+   .db 47 \ .dl VX_CALL0_POS
+   .db 47 \ .dl VX_CALL1_POS
+   .db 48 \ .dl VX_CALL0_POS
+   .db 48 \ .dl VX_CALL1_POS
+   .db 49 \ .dl VX_CALL0_POS
+   .db 49 \ .dl VX_CALL1_POS
+   .db 50 \ .dl VX_CALL0_POS
+   .db 50 \ .dl VX_CALL1_POS
+   .db 51 \ .dl VX_CALL0_POS
+   .db 51 \ .dl VX_CALL1_POS
+   .db 52 \ .dl VX_CALL0_POS
+   .db 52 \ .dl VX_CALL1_POS
+   .db 53 \ .dl VX_CALL0_POS
+   .db 53 \ .dl VX_CALL1_POS
+   .db 54 \ .dl VX_CALL0_POS
+   .db 54 \ .dl VX_CALL1_POS
+   .db 55 \ .dl VX_CALL0_POS
+   .db 55 \ .dl VX_CALL1_POS
+   .db 56 \ .dl VX_CALL0_POS
+   .db 56 \ .dl VX_CALL1_POS
+   .db 57 \ .dl VX_CALL0_POS
+   .db 57 \ .dl VX_CALL1_POS
+   .db 58 \ .dl VX_CALL0_POS
+   .db 58 \ .dl VX_CALL1_POS
+   .db 59 \ .dl VX_CALL0_POS
+   .db 59 \ .dl VX_CALL1_POS
+   .db 60 \ .dl VX_CALL0_POS
+   .db 60 \ .dl VX_CALL1_POS
+   .db 61 \ .dl VX_CALL0_POS
+   .db 61 \ .dl VX_CALL1_POS
+   .db 62 \ .dl VX_CALL0_POS
+   .db 62 \ .dl VX_CALL1_POS
+   .db 63 \ .dl VX_CALL0_POS
+   .db 63 \ .dl VX_CALL1_POS
+   .db 64 \ .dl VX_CALL0_POS
+   .db 64 \ .dl VX_CALL1_POS
+   .db 65 \ .dl VX_CALL0_POS
+   .db 65 \ .dl VX_CALL1_POS
+   .db 66 \ .dl VX_CALL0_POS
+   .db 66 \ .dl VX_CALL1_POS
+   .db 67 \ .dl VX_CALL0_POS
+   .db 67 \ .dl VX_CALL1_POS
+   .db 68 \ .dl VX_CALL0_POS
+   .db 68 \ .dl VX_CALL1_POS
+   .db 69 \ .dl VX_CALL0_POS
+   .db 69 \ .dl VX_CALL1_POS
+   .db 70 \ .dl VX_CALL0_POS
+   .db 70 \ .dl VX_CALL1_POS
+   .db 71 \ .dl VX_CALL0_POS
+   .db 71 \ .dl VX_CALL1_POS
+   .db 72 \ .dl VX_CALL0_POS
+   .db 72 \ .dl VX_CALL1_POS
+   .db 73 \ .dl VX_CALL0_POS
+   .db 73 \ .dl VX_CALL1_POS
+   .db 74 \ .dl VX_CALL0_POS
+   .db 74 \ .dl VX_CALL1_POS
+   .db 75 \ .dl VX_CALL0_POS
+   .db 75 \ .dl VX_CALL1_POS
+   .db 76 \ .dl VX_CALL0_POS
+   .db 76 \ .dl VX_CALL1_POS
+   .db 77 \ .dl VX_CALL0_POS
+   .db 77 \ .dl VX_CALL1_POS
+   .db 78 \ .dl VX_CALL0_POS
+   .db 78 \ .dl VX_CALL1_POS
+   .db 79 \ .dl VX_CALL0_POS
+   .db 79 \ .dl VX_CALL1_POS
+   .db 80 \ .dl VX_CALL0_POS
+   .db 80 \ .dl VX_CALL1_POS
+   .db 81 \ .dl VX_CALL0_POS
+   .db 81 \ .dl VX_CALL1_POS
+   .db 82 \ .dl VX_CALL0_POS
+   .db 82 \ .dl VX_CALL1_POS
+   .db 83 \ .dl VX_CALL0_POS
+   .db 83 \ .dl VX_CALL1_POS
+   .db 84 \ .dl VX_CALL0_POS
+   .db 84 \ .dl VX_CALL1_POS
+   .db 85 \ .dl VX_CALL0_POS
+   .db 85 \ .dl VX_CALL1_POS
+   .db 86 \ .dl VX_CALL0_POS
+   .db 86 \ .dl VX_CALL1_POS
+   .db 87 \ .dl VX_CALL0_POS
+   .db 87 \ .dl VX_CALL1_POS
+   .db 88 \ .dl VX_CALL0_POS
+   .db 88 \ .dl VX_CALL1_POS
+   .db 89 \ .dl VX_CALL0_POS
+   .db 89 \ .dl VX_CALL1_POS
+   .db 90 \ .dl VX_CALL0_POS
+   .db 90 \ .dl VX_CALL1_POS
+   .db 91 \ .dl VX_CALL0_POS
+   .db 91 \ .dl VX_CALL1_POS
+   .db 92 \ .dl VX_CALL0_POS
+   .db 92 \ .dl VX_CALL1_POS
+   .db 93 \ .dl VX_CALL0_POS
+   .db 93 \ .dl VX_CALL1_POS
+   .db 94 \ .dl VX_CALL0_POS
+   .db 94 \ .dl VX_CALL1_POS
+   .db 95 \ .dl VX_CALL0_POS
+   .db 95 \ .dl VX_CALL1_POS
+   .db 96 \ .dl VX_CALL0_POS
+   .db 96 \ .dl VX_CALL1_POS
+   .db 97 \ .dl VX_CALL0_POS
+   .db 97 \ .dl VX_CALL1_POS
+   .db 98 \ .dl VX_CALL0_POS
+   .db 98 \ .dl VX_CALL1_POS
+   .db 99 \ .dl VX_CALL0_POS
+   .db 99 \ .dl VX_CALL1_POS
+   .db 100 \ .dl VX_CALL0_POS
+   .db 100 \ .dl VX_CALL1_POS
+   .db 101 \ .dl VX_CALL0_POS
+   .db 101 \ .dl VX_CALL1_POS
+   .db 102 \ .dl VX_CALL0_POS
+   .db 102 \ .dl VX_CALL1_POS
+   .db 103 \ .dl VX_CALL0_POS
+   .db 103 \ .dl VX_CALL1_POS
+   .db 104 \ .dl VX_CALL0_POS
+   .db 104 \ .dl VX_CALL1_POS
+   .db 105 \ .dl VX_CALL0_POS
+   .db 105 \ .dl VX_CALL1_POS
+   .db 106 \ .dl VX_CALL0_POS
+   .db 106 \ .dl VX_CALL1_POS
+   .db 107 \ .dl VX_CALL0_POS
+   .db 107 \ .dl VX_CALL1_POS
+   .db 108 \ .dl VX_CALL0_POS
+   .db 108 \ .dl VX_CALL1_POS
+   .db 109 \ .dl VX_CALL0_POS
+   .db 109 \ .dl VX_CALL1_POS
+   .db 110 \ .dl VX_CALL0_POS
+   .db 110 \ .dl VX_CALL1_POS
+   .db 111 \ .dl VX_CALL0_POS
+   .db 111 \ .dl VX_CALL1_POS
+   .db 112 \ .dl VX_CALL0_POS
+   .db 112 \ .dl VX_CALL1_POS
+   .db 113 \ .dl VX_CALL0_POS
+   .db 113 \ .dl VX_CALL1_POS
+   .db 114 \ .dl VX_CALL0_POS
+   .db 114 \ .dl VX_CALL1_POS
+   .db 115 \ .dl VX_CALL0_POS
+   .db 115 \ .dl VX_CALL1_POS
+   .db 116 \ .dl VX_CALL0_POS
+   .db 116 \ .dl VX_CALL1_POS
+   .db 117 \ .dl VX_CALL0_POS
+   .db 117 \ .dl VX_CALL1_POS
+   .db 118 \ .dl VX_CALL0_POS
+   .db 118 \ .dl VX_CALL1_POS
+   .db 119 \ .dl VX_CALL0_POS
+   .db 119 \ .dl VX_CALL1_POS
+   .db 120 \ .dl VX_CALL0_POS
+   .db 120 \ .dl VX_CALL1_POS
+   .db 121 \ .dl VX_CALL0_POS
+   .db 121 \ .dl VX_CALL1_POS
+   .db 122 \ .dl VX_CALL0_POS
+   .db 122 \ .dl VX_CALL1_POS
+   .db 123 \ .dl VX_CALL0_POS
+   .db 123 \ .dl VX_CALL1_POS
+   .db 124 \ .dl VX_CALL0_POS
+   .db 124 \ .dl VX_CALL1_POS
+   .db 125 \ .dl VX_CALL0_POS
+   .db 125 \ .dl VX_CALL1_POS
+   .db 126 \ .dl VX_CALL0_POS
+   .db 126 \ .dl VX_CALL1_POS
+   .db 127 \ .dl VX_CALL0_POS
+   .db 127 \ .dl VX_CALL1_POS
+   .db 128 \ .dl VX_CALL0_POS
+   .db 128 \ .dl VX_CALL1_POS
+   .db 129 \ .dl VX_CALL0_POS
+   .db 129 \ .dl VX_CALL1_POS
+   .db 130 \ .dl VX_CALL0_POS
+   .db 130 \ .dl VX_CALL1_POS
+   .db 131 \ .dl VX_CALL0_POS
+   .db 131 \ .dl VX_CALL1_POS
+   .db 132 \ .dl VX_CALL0_POS
+   .db 132 \ .dl VX_CALL1_POS
+   .db 133 \ .dl VX_CALL0_POS
+   .db 133 \ .dl VX_CALL1_POS
+   .db 134 \ .dl VX_CALL0_POS
+   .db 134 \ .dl VX_CALL1_POS
+   .db 135 \ .dl VX_CALL0_POS
+   .db 135 \ .dl VX_CALL1_POS
+   .db 136 \ .dl VX_CALL0_POS
+   .db 136 \ .dl VX_CALL1_POS
+   .db 137 \ .dl VX_CALL0_POS
+   .db 137 \ .dl VX_CALL1_POS
+   .db 138 \ .dl VX_CALL0_POS
+   .db 138 \ .dl VX_CALL1_POS
+   .db 139 \ .dl VX_CALL0_POS
+   .db 139 \ .dl VX_CALL1_POS
+   .db 140 \ .dl VX_CALL0_POS
+   .db 140 \ .dl VX_CALL1_POS
+   .db 141 \ .dl VX_CALL0_POS
+   .db 141 \ .dl VX_CALL1_POS
+   .db 142 \ .dl VX_CALL0_POS
+   .db 142 \ .dl VX_CALL1_POS
+   .db 143 \ .dl VX_CALL0_POS
+   .db 143 \ .dl VX_CALL1_POS
+   .db 144 \ .dl VX_CALL0_POS
+   .db 144 \ .dl VX_CALL1_POS
+   .db 145 \ .dl VX_CALL0_POS
+   .db 145 \ .dl VX_CALL1_POS
+   .db 146 \ .dl VX_CALL0_POS
+   .db 146 \ .dl VX_CALL1_POS
+   .db 147 \ .dl VX_CALL0_POS
+   .db 147 \ .dl VX_CALL1_POS
+   .db 148 \ .dl VX_CALL0_POS
+   .db 148 \ .dl VX_CALL1_POS
+   .db 149 \ .dl VX_CALL0_POS
+   .db 149 \ .dl VX_CALL1_POS
+   .db 150 \ .dl VX_CALL0_POS
+   .db 150 \ .dl VX_CALL1_POS
+   .db 151 \ .dl VX_CALL0_POS
+   .db 151 \ .dl VX_CALL1_POS
+   .db 152 \ .dl VX_CALL0_POS
+   .db 152 \ .dl VX_CALL1_POS
+   .db 153 \ .dl VX_CALL0_POS
+   .db 153 \ .dl VX_CALL1_POS
+   .db 154 \ .dl VX_CALL0_POS
+   .db 154 \ .dl VX_CALL1_POS
+   .db 155 \ .dl VX_CALL0_POS
+   .db 155 \ .dl VX_CALL1_POS
+   .db 156 \ .dl VX_CALL0_POS
+   .db 156 \ .dl VX_CALL1_POS
+   .db 157 \ .dl VX_CALL0_POS
+   .db 157 \ .dl VX_CALL1_POS
+   .db 158 \ .dl VX_CALL0_POS
+   .db 158 \ .dl VX_CALL1_POS
+   .db 159 \ .dl VX_CALL0_POS
+   .db 159 \ .dl VX_CALL1_POS
+   .db 160 \ .dl VX_CALL0_POS
+   .db 160 \ .dl VX_CALL1_POS
 vxPixelShaderExitLUT:
-   .db VX_CALL_EXIT, 0
+   .db 0 \ .dl VX_CALL_EXIT

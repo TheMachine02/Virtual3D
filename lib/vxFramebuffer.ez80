@@ -21,6 +21,8 @@
 
 #define vxFramebuffer       $E30014
 
+#define WAIT_VSYNC ld	hl, VX_LCD_ICR \ set	2, (hl) \ 	ld l, VX_LCD_ISR&$FF \ bit 2, (hl) \ jr z, $-2
+
 vxResetPalette:
 ; load palette :
 ; color is 3-3-2 format, RGB
@@ -72,14 +74,16 @@ vxFlushLCD:
 	ld	de, (vxFramebuffer)
 	ld	(vxFramebuffer), hl
 	ld	(VX_LCD_BUFFER), de
-vxWaitLCD:
+;vxWaitLCD:
 ; wait until the LCD finish displaying the frame
-	ld	hl, VX_LCD_ICR
-	set	2, (hl)
-	ld	l, VX_LCD_ISR&$FF
-vxWaitLoop:
-	bit	2, (hl)
-	jr	z, vxWaitLoop
+;	ld	hl, VX_LCD_ICR
+;	set	2, (hl)
+;	ld	l, VX_LCD_ISR&$FF
+;vxWaitLoop:
+;	bit	2, (hl)
+;	jr	z, vxWaitLoop
+;	ret
+	WAIT_VSYNC
 	ret
 vxSwapLCD:
 ; swap buffer without LCD acknowledge
@@ -94,3 +98,35 @@ vxLitRBG:
 	ld	h, a
 	ld	a, (hl)
 	ret
+
+vxSpiParam:
+ scf ; First bit is set for data
+ .db 030h ; jr nc,? ; skips over one byte
+vxSpiCmd:
+ or a,a ; First bit is clear for commands
+ ld hl,0F80818h
+ call vxSpiWrite
+ ld l,h
+ ld (hl),001h
+vxSpiWait:
+ ld l,00Dh
+vxSpiWait1:
+ ld a,(hl)
+ and a,0F0h
+ jr nz,vxSpiWait1
+ dec l
+vxSpiWait2:
+ bit 2,(hl)
+ jr nz,vxSpiWait2
+ ld l,h
+ ld (hl),a
+ ret
+vxSpiWrite:
+ ld b,3
+vxSpiWriteLoop:
+ rla
+ rla
+ rla
+ ld (hl),a ; send 3 bits
+ djnz vxSpiWriteLoop
+ ret

@@ -11,6 +11,11 @@ vxIdentityMatrix:
 .db	0,64,0
 .db	0,0,64
 .dl	0,0,0
+vxProjectionMatrix:
+.db	77,0,0
+.db	0,102,0
+.db	0,0,64
+.dl	0,0,0
 vxTmpVector:
 .dw	0,0,0
 .db	0	; pad

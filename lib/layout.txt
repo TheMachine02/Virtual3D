@@ -1,0 +1,53 @@
+; README : this layout isn't in place yet, but give an idea on how RAM will be used
+
+
+$D00000 - $D02000 : color table   | copied, uncompressed
+$D02000 - $D02200 : sin table
+
+$D03200 - $D03400 : depth bucket  | memset(0)
+$D03400 - $D03500 : vertex pool   | memset(0)
+$D03500 - $D03600 : VX_BATCH_DATA  | memset(0)
+$D03600 - $D04000 : (2560 bytes free)
+$D04000 : VX_GEOMETRY_QUEUE
+$D04000 - $D08000 :               | memset(0)
+$D08000 : VX_VERTEX_BUFFER
+$D08000 - $D10000 :               | memset(0) (up to 64K of vertex)
+$D10000 - $D19880 : (32768 bytes free) (sps stack)
+$D1A87E : top of stack            | none
+$D1A881 : program code            | none
+$D2A881 : program end             | none
+$D2A881 - $D30000 : (22399 bytes free)
+$D30000 : texture page
+$D30000 - $D40000 : texture       | copied
+
+
+
+
+
+
+VX_LUT_CONVOLVE_DATA	: 4K
+
+/*
+VX_LUT_INVERSE : 640 bytes
+VX_LUT_SIN_DATA: 0.5K
+VX_REGISTER_DATA:
+	.fill	32, 0
+VX_PIXEL_SHADER_DATA:
+	.fill	2892, 0
+*/ 4K
+
+
+
+#define	VX_GEOMETRY_QUEUE		$D10000	; 4*4096 (16K)
+#define	VX_VERTEX_BUFFER		$D08000	; 16*2048 (32K)
+
+/*
+#define	VX_PATCH_INPUT		$D03480
+#define	VX_PATCH_OUTPUT		$D034C0
+#define	VX_VERTEX_POOL		$D03400
+#define	VX_DEPTH_BUCKET		$D03200 ; 512 bytes
+#define	VX_BATCH_DATA		$D03500 ; 256 bytes*/1K
+
+
+needed : aligned 4 bytes for pixelshader
+needed : texture space

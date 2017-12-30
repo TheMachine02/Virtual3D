@@ -2,14 +2,13 @@
 #include	"vxPipeline.ez80"
 #include	"vxImage.ez80"
 #include	"vxRasterFlat.ez80"
-#include	"vxRasterInterpolation.ez80"
+#include	"vxShaderEngine.ez80"
 #include	"vxTimer.ez80"
 #include	"vxMatrix.ez80"
 #include	"vxQuaternion.ez80"
 #include	"vxVector.ez80"
 #include	"vxFramebuffer.ez80"
 #include	"vxMemory.ez80"
-;#include	"vxPostProcessing.ez80"
 #include	"vxData.inc"
 
 ; functions
@@ -34,7 +33,7 @@ vxEngineInit:
 ; load vram buffer
 	ld	hl, VX_FRAMEBUFFER_AUX0
 	ld	(VX_LCD_BUFFER), hl
-	ld	hl, VX_FRAMEBUFFER_AUX1
+	ld	hl, VX_FRAMEBUFFER_AUX1	;used to be 1
 	ld	(vxFramebuffer), hl
 ; memory initialisation
 	call	vxMemoryUnlock

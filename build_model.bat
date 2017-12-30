@@ -12,10 +12,10 @@ tools\mdlconv  file\Suzanne.obj -C -N -S -B
 tools\spasm -I lib/ file\Suzanne0.inc bin\SUZAN0.8xv -E -S
 tools\spasm -I lib/ file\Suzanne1.inc bin\SUZAN1.8xv -E -S
 
-echo Converting Mateus.obj...
-tools\mdlconv  file\Mateus.obj -T -N -S -B
-tools\spasm -I lib/ file\Mateus0.inc bin\MATEUS0.8xv -E -S
-tools\spasm -I lib/ file\Mateus1.inc bin\MATEUS1.8xv -E -S
+echo Converting mateus.obj...
+tools\mdlconv  file\mateus.obj -T -N -S -B
+tools\spasm -I lib/ file\mateus0.inc bin\MATEUS0.8xv -E -S
+tools\spasm -I lib/ file\mateus1.inc bin\MATEUS1.8xv -E -S
 
 echo Converting Tonberry.obj...
 tools\mdlconv  file\Tonberry.obj -T -N -S -B
@@ -26,6 +26,26 @@ echo Converting London.obj
 tools\mdlconv  file\London.obj -T -N -S -B
 tools\spasm -I lib/ file\London0.inc bin\LONDON0.8xv -E -S
 tools\spasm -I lib/ file\London1.inc bin\LONDON1.8xv -E -S
+
+echo Converting Train.obj
+tools\mdlconv  file\Train.obj -T -N -S -B
+tools\spasm -I lib/ file\Train0.inc bin\TRAIN0.8xv -E -S
+tools\spasm -I lib/ file\Train1.inc bin\TRAIN1.8xv -E -S
+
+echo Converting m1034.obj
+tools\mdlconv  file\m1034.obj -T -N -S -B
+tools\spasm -I lib/ file\m10340.inc bin\FLUFFY0.8xv -E -S
+tools\spasm -I lib/ file\m10341.inc bin\FLUFFY1.8xv -E -S
+
+echo Converting fran.obj
+tools\mdlconv  file\fran.obj -T -N -S -B
+tools\spasm -I lib/ file\fran0.inc bin\FRAN0.8xv -E -S
+tools\spasm -I lib/ file\fran1.inc bin\FRAN1.8xv -E -S
+
+echo Converting chocobo.obj
+tools\mdlconv  file\chocobo.obj -T -N -S -B
+tools\spasm -I lib/ file\chocobo0.inc bin\CHOCOBO0.8xv -E -S
+tools\spasm -I lib/ file\chocobo1.inc bin\CHOCOBO1.8xv -E -S
 
 tools\xmlconv
 pause

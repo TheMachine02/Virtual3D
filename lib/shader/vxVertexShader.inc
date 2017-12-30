@@ -367,6 +367,7 @@ vxVertexSkipC1:
 	bit	7, b \ jr z, $+3 \ sub a,c
 	mlt	bc
 	add	a, b
+
 ; max(a,0)
 	jp	p, $+5
 	xor	a, a
@@ -378,9 +379,10 @@ vxVertexSkipC1:
 ; ambiant lightning=12
 	adc	a, (ix+VX_LIGHT0_AMBIANT)
 ; min(a,31)
-	cp	32
+	cp	16
 	jr	c, $+4
-	ld	a, 31
+	ld	a, 15
+
 	pop	bc
 	pop	de
 	pop	iy
@@ -471,6 +473,7 @@ vxPerspectiveNext1:
 	ret
 vxPerspectiveCode:
 	xor	a, a
+; Z<0
 	bit	7,(iy+VX_VERTEX_RZ+2)
 	jr	z, $+4
 vxPerspectiveClipZ:
@@ -479,6 +482,7 @@ vxPerspectiveClip0:
 	ld	hl, (iy+VX_VERTEX_RY)
 	or	a, a
 	sbc	hl, bc
+; X<Z. If X=Z, r=p, fail
 	jp	m, vxPerspectiveClip1
 	or	%00100000
 vxPerspectiveClip1:

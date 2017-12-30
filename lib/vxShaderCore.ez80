@@ -1,0 +1,28 @@
+vxShaderLoad:
+	ld	bc, 0
+	ld	c, (ix+1)	; load size
+	lea	hl, ix+4	; load shader
+	ld	de, VX_PIXEL_SHADER_CODE
+	ldir			; copy first part
+	ld	hl, vxShaderGeneralInterpolation
+	ld	c, 26
+	ldir			; copy constant part
+; TODO : generation of the shading table
+
+	ret
+vxShaderGeneralInterpolation:
+	ld	hl, (iy+VX_REGISTER1)
+	ld	de, (iy+VX_REGISTER0)
+	add	hl, de
+	add	hl, hl
+	add	hl, hl
+	ld	b, (hl)
+	inc	hl
+	ld	ix, (hl)
+	ld	hl, (iy+VX_REGISTER2)	; v
+	exx
+	ld	hl, (iy+VX_REGISTER3)	; u
+	exx
+	lea	iy, iy+VX_REGISTER_SIZE
+	jp	(ix)
+; exactly 26 bytes

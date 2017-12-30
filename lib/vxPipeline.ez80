@@ -129,7 +129,7 @@ vxRenderColor:
 	add	ix, bc
 	add	a, (ix+VX_VERTEX_UNIFORM)
 	ld	b, a
-	ld	c, 83
+	ld	c, 86
 	mlt	bc
 	ld	a, b
 	ld	bc, VX_LUT_CONVOLVE
@@ -172,7 +172,7 @@ vxRenderTexture:
 	add	a, (hl)
 
 	ld	b, a
-	ld	c, 83
+	ld	c, 86
 	mlt	bc
 	ld	a, b
 	ld	(vxShaderUniform0+1), a
@@ -181,37 +181,6 @@ vxRenderTexture:
 	lea	de, ix+2
 	pop	hl
 
-#comment
-	ld	ix, (iy+VX_INDEX0)
-	add	ix, bc
-	ld	hl, (iy+VX_INDEX_UV0)
-	ld	(ix+VX_VERTEX_GPR0), l
-	ld	(ix+VX_VERTEX_GPR1), h
-	ld	a, (ix+VX_VERTEX_UNIFORM)
-	lea	hl, ix+0
-
-	ld	ix, (iy+VX_INDEX1)
-	add	ix, bc
-	ld	de, (iy+VX_INDEX_UV1)
-	ld	(ix+VX_VERTEX_GPR0), e
-	ld	(ix+VX_VERTEX_GPR1), d
-	add	a, (ix+VX_VERTEX_UNIFORM)
-	lea	de, ix+0
-
-	ld	ix, (iy+VX_INDEX2)
-	add	ix, bc
-	ld	bc, (iy+VX_INDEX_UV2)
-	ld	(ix+VX_VERTEX_GPR0), c
-	ld	(ix+VX_VERTEX_GPR1), b
-	add	a, (ix+VX_VERTEX_UNIFORM)
-; compute uniform value
-	ld	b, a
-	ld	c, 83
-	mlt	bc
-	ld	a, b
-	ld	(vxShaderUniform0+1), a
-	lea	bc, ix+0
-#endcomment
 	call	vxTextureTriangle
 	pop	iy
 	pop	bc

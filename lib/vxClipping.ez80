@@ -126,7 +126,7 @@ vxClipSutherHodgmanLoop:
 	and	(hl)
 vxMM0=$+1
 	and	0
-	jp	nz, vxClipContinueX
+	jp	nz, vxNoEdge
 	ld	a, (de)
 	or	(hl)
 vxMM1=$+1
@@ -137,7 +137,7 @@ vxMM1=$+1
 	ld	a, (vxNewSize)
 	inc	a
 	ld	(vxNewSize), a
-	jp	vxClipContinueX
+	jp	vxNoEdge
 vxClipCheck0:
 	ld	a, (de)
 	call	vxClipDistance	; compute distance 1
@@ -157,32 +157,68 @@ vxMM2=$+1
 	ld	ix, (iy+0)
 	ld	iy, (iy+3)
 ; ix = iy+0 (p0) , iy = iy+3 (p1)
-	call	vxParametricCompute
-	pop	iy
+vxParametricCompute:
+; compute (p1-p0)*t+p0, for 24 bits vertex
+; t = bc, p0 = ix, p1 = iy, output = clip_vertex0
+; vertex coordinate rx
+	ld	hl, (iy+VX_VERTEX_RX)
+	ld	de, (ix+VX_VERTEX_RX)
+	call	vxParametricExtendMlt
+	ld	(VX_CLIP_VERTEX0+VX_VERTEX_RX), hl
+; vertex coordinate ry
+	ld	hl, (iy+VX_VERTEX_RY)
+	ld	de, (ix+VX_VERTEX_RY)
+	call	vxParametricExtendMlt
+	ld	(VX_CLIP_VERTEX0+VX_VERTEX_RY), hl
+; vertex coordinate rz
+	ld	hl, (iy+VX_VERTEX_RZ)
+	ld	de, (ix+VX_VERTEX_RZ)
+	call	vxParametricExtendMlt
+	ld	(VX_CLIP_VERTEX0+VX_VERTEX_RZ), hl
+; now, other vertex parameters
+	ld	hl, VX_CLIP_VERTEX0 + VX_VERTEX_GPR0
+; parameter 0
+	ld	a, (iy+VX_VERTEX_GPR0); a = p1
+	ld	d, (ix+VX_VERTEX_GPR0); d = p0
+	sub	a, d				; a = p1-p0
+	ld	e, a				; e = p1-p0
+	ld	a, d				; a = p0
+	jr	nc, $+3			; sign correction
+	sub	a, b				; 
+	ld	d, b				; 
+	mlt	de				; de = (unsigned)(p1-p0)*b
+	add	a, d				; a = (signed)(p1-p0)*b/256+p0
+	ld	(hl), a			; and write result
+	inc	hl				; next parameter
+; parameter 1
+	ld	a, (iy+VX_VERTEX_GPR1)
+	ld	d, (ix+VX_VERTEX_GPR1)
+	sub	a, d
+	ld	e, a
+	ld	a, d
+	jr	nc, $+3
+	sub	a, b
+	ld	d, b
+	mlt	de
+	add	a, d
+	ld	(hl), a
 ; compute the new outcode for intersection point
 	ld	ix, VX_CLIP_VERTEX0+0
 	call	vxClipFrustrumCode
 	or	a, $01
 	ld	(ix+0), a
+	pop	iy
 	pop	ix
 ; do specific edge shift here
 	pop	af
+	ld	a, (vxNewSize)
 	jp	nz, vxEdgeRentring
 ; edge leaving
 ; copy clip vertex, output both v0 and intersection
 	ld	hl, (iy+0)
 	ld	(ix+0), hl
-	ld	hl, VX_CLIP_VERTEX0
-	ld	de, (vxVertexAdress)
-	ld	(ix+3), de
-	ld	bc, 16
-	ldir
-	ld	(vxVertexAdress), de
-	lea	ix, ix+6
-	ld	a, (vxNewSize)
-	add	a, 2
-	ld	(vxNewSize), a
-	jr	vxClipContinueX
+	lea	ix, ix+3
+	inc	a
 vxEdgeRentring:
 ; copy clip vertex, output intersection
 	ld	hl, VX_CLIP_VERTEX0
@@ -192,10 +228,9 @@ vxEdgeRentring:
 	ldir
 	ld	(vxVertexAdress), de
 	lea	ix, ix+3
-	ld	a, (vxNewSize)
 	inc	a
 	ld	(vxNewSize), a
-vxClipContinueX:
+vxNoEdge:
 	lea	iy, iy+3
 	pop	bc
 	dec	b
@@ -384,53 +419,6 @@ vxClipError3:
 	bit	7, (ix+VX_VERTEX_RZ+2)
 	ret	z
 	or	%00001000
-	ret
-
-vxParametricCompute:
-; compute (p1-p0)*t+p0, for 24 bits vertex
-; t = bc, p0 = ix, p1 = iy, output = clip_vertex0
-; vertex coordinate rx
-	ld	hl, (iy+VX_VERTEX_RX)
-	ld	de, (ix+VX_VERTEX_RX)
-	call	vxParametricExtendMlt
-	ld	(VX_CLIP_VERTEX0+VX_VERTEX_RX), hl
-; vertex coordinate ry
-	ld	hl, (iy+VX_VERTEX_RY)
-	ld	de, (ix+VX_VERTEX_RY)
-	call	vxParametricExtendMlt
-	ld	(VX_CLIP_VERTEX0+VX_VERTEX_RY), hl
-; vertex coordinate rz
-	ld	hl, (iy+VX_VERTEX_RZ)
-	ld	de, (ix+VX_VERTEX_RZ)
-	call	vxParametricExtendMlt
-	ld	(VX_CLIP_VERTEX0+VX_VERTEX_RZ), hl
-; now, other vertex parameters
-	ld	hl, VX_CLIP_VERTEX0 + VX_VERTEX_GPR0
-; parameter 0
-	ld	a, (iy+VX_VERTEX_GPR0); a = p1
-	ld	d, (ix+VX_VERTEX_GPR0); d = p0
-	sub	a, d				; a = p1-p0
-	ld	e, a				; e = p1-p0
-	ld	a, d				; a = p0
-	jr	nc, $+3			; sign correction
-	sub	a, b				; 
-	ld	d, b				; 
-	mlt	de				; de = (unsigned)(p1-p0)*b
-	add	a, d				; a = (signed)(p1-p0)*b/256+p0
-	ld	(hl), a			; and write result
-	inc	hl				; next parameter
-; parameter 1
-	ld	a, (iy+VX_VERTEX_GPR1)
-	ld	d, (ix+VX_VERTEX_GPR1)
-	sub	a, d
-	ld	e, a
-	ld	a, d
-	jr	nc, $+3
-	sub	a, b
-	ld	d, b
-	mlt	de
-	add	a, d
-	ld	(hl), a
 	ret
 vxParametricExtendMlt:
 ; (p1-p0)*f/65536+p0

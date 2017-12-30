@@ -6,9 +6,6 @@
 .db tExtTok, tAsm84CeCmp
 .assume ADL=1
 
-; init the virtual 3d library
-	call	vxEngineInit
-	ret	c		; quit if error at init
 
 	ld	hl, VertexName
 	call	vxMemoryFind
@@ -25,8 +22,13 @@
 	ret	c
 	ld	(Texture), hl
 
+; init the virtual 3d library
+	call	vxEngineInit
+	ret	c		; quit if error at init
+
+	ld	hl, (Texture)
 	ld	a, VX_ZX7_COMPRESSED
-	ld	de, $D30000-2
+	ld	de, $D30000
 	call	vxImageCopy
 
 ; setup global variable for rendering, euler angle and the translation of WorldMatrix
@@ -49,11 +51,11 @@
 MainLoop:
 	call	vxTimerStart
 
-	call	Random
-	ld	a, l
-	and	31
-	add	a, 224
-	ld	(vxLightUniform+4), a
+;	call	Random
+;	ld	a, l
+;	and	31
+;	add	a, 224
+;	ld	(vxLightUniform+4), a
 
 	ld	hl, (EulerAngle)
 	ld	iy, Quaternion
@@ -65,6 +67,7 @@ MainLoop:
 	ld	ix, ScaleMatrix
 	ld	hl, WorldMatrix
 	call	vxMatrixMlt
+
 
 	ld	a, VX_GEOMETRY_TI9
 	ld	ix, WorldMatrix
@@ -79,10 +82,9 @@ MainLoop:
 
 	call	vxCmdDepthSort
 
-	ld	c, %00000000
+	ld	c, $00
 	call	vxClearBuffer
 	call	vxRenderStream
-
 ; timer & counter
 
 	ld	bc, 320*8-1
@@ -130,6 +132,19 @@ triangle_count=$+1
 	pop	hl
 
 	call	vxFlushLCD
+
+;	call	vxWaitVsync
+;	ld	a, $2A
+;	call	vxSpiCmd
+;	ld	a, $0
+;	call	vxSpiParam
+;	ld	a, $0
+;	call	vxSpiParam
+;	ld	a, $01
+;	call	vxSpiParam
+;	ld	a, $3F
+;	call	vxSpiParam
+;	call	vxWaitVsync
 
 KeyboardTest:
 	ld hl,$F50000
@@ -246,20 +261,20 @@ Temp:
 ; choose mateus or tonberry
 
 VertexName:
-	.db	AppVarObj, "TONB0",0
+	.db	AppVarObj, "FRAN0",0
 Vertex:
 	.dl	0
 TriangleName:
-	.db	AppVarObj, "TONB1", 0
+	.db	AppVarObj, "FRAN1", 0
 Triangle:
 	.dl	0
 TextureName:
-	.db	AppVarObj, "TONB3", 0
+	.db	AppVarObj, "FRAN3", 0
 Texture:
 	.dl	0
 Light:
 	.db	0,0,-64
-	.db	12
+	.db	2
 	.db	255
 	.dw	0,0,0
 

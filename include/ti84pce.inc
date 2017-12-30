@@ -6,7 +6,6 @@
 ;- tr1p1ea
 ;- MateoConLechuga
 ;- Texas Instruments (ti83plus.inc)
-.nolist
 
 #ifndef TI84PCE
 #define TI84PCE
@@ -5332,4 +5331,3 @@ USBFlag4		equ 43h
 usbTimeoutError		equ 0		;1 = USB timeout error (crystal timer expired)
 ;----------------------------------------------------------------------
 #endif
-.list

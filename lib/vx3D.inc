@@ -1,7 +1,3 @@
-#define dbgbreak   scf \ sbc hl, hl \ ld (hl), 2
-#define dbgstart0 	push hl \ ld hl,$F20030 \ set 0,(hl) \ pop hl
-#define dbgstop0	push hl \ ld hl,$F20030 \ res 0,(hl) \ pop hl
-
 ; Virtual-3D library, version 1.0
 ;
 ; Copyright (c) 2017 TheMachine02
@@ -23,16 +19,16 @@
 ; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
+.nolist
 
 #ifndef VX_3D_GUARD
 #define VX_3D_GUARD
 
-.nolist
+
 #define OS__FLAGS           $D00080
 #ifndef TI84PCE
 #include "ti84pce.inc"
 #include "relocate.inc"
-.nolist
 #endif
 #include	"vxModel.inc"
 
@@ -152,17 +148,22 @@
 	.fill bound-($%bound)
 #endmacro
 
-.list
 
 ; global compilation variable ;
 
-#define	VX_PS_1.0	$10
-#define	VX_VS_1.x	$1F
-#define	VX_GS_1.0	$10
+#define	VX_PS_1.0
+#define	VX_VS_1.0
+#define	VX_VS_1.x
+#define	VX_GS_1.0
 
 .echo "vxLib API version 0.9 alpha"
 .echo "vertex shader version   : vs_1.x"
 .echo "geometry shader version : gs_1.0"
 .echo "pixel shader version    : ps_1.0"
 
+#define dbreak   scf \ sbc hl, hl \ ld (hl), 2
+#define dstm 	 push hl \ ld hl,$F20030 \ set 0,(hl) \ pop hl
+#define drtm	 push hl \ ld hl,$F20030 \ res 0,(hl) \ pop hl
+
 #endif
+.list

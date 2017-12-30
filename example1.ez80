@@ -33,7 +33,7 @@
 	ld	hl, 65536
 	ld	(ix+15), hl		; Z translation of the matrix
 
-	ld	a, 12
+	ld	a, 6
 	ld	(vxLightUniform+3), a
 	ld	a, 255
 	ld	(vxLightUniform+4), a

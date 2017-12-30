@@ -1,0 +1,47 @@
+#include	"vxVSL.inc"
+
+shaderType:
+	.db	VX_PIXEL_SHADER
+shaderSize:
+	.db	shaderEnd-shaderCode
+shaderPerPixelCount:
+	.db	2	; two pixel are written per loop
+shaderPerPixelSize:
+	.db	18	; total size of per pixel code
+.relocate	VX_PIXEL_SHADER_CODE
+shaderCode:
+	add	hl, sp
+	ld	a, h
+	exx
+	adc	hl, bc
+	ld	h, a
+	ld	d, (hl)
+	exx
+	ld	a, (de)
+	exx
+	ld	e, a
+	ld	a, (de)
+	set	7, h
+	add	a, (hl)
+	exx
+	ld	(de), a
+	inc	de
+	add	hl, sp
+	ld	a, h
+	exx
+	adc	hl, bc
+	ld	h, a
+	ld	d, (hl)
+	exx
+	ld	a, (de)
+	exx
+	ld	e, a
+	ld	a, (de)
+	set	7, h
+	add	a, (hl)
+	exx
+	ld	(de), a
+	inc	de
+	djnz	shaderCode
+shaderEnd:
+.endrelocate
