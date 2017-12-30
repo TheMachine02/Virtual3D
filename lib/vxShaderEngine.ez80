@@ -205,7 +205,7 @@ vxRegister11Interpolation:
 	push	de
 	add	hl, de
 	ex	de, hl
-	or	a, a
+	xor	a, a
 	sbc	hl, hl
 	sbc	hl, de
 	ex	de, hl
@@ -214,8 +214,7 @@ vxRegister11Interpolation:
 	add	ix, de
 	pop	de
 	ex.s	de, hl
-	ld	a, $23	; dec ix
-	or	a, a
+	add	a, $23	; dec ix
 	sbc	hl, de	; hl = x2-x1
 	jr	nc, vxRegister11Direction
 	add	hl, de	;
