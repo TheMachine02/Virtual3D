@@ -39,7 +39,7 @@ vxClipTriangle:
 
 	ld	b, 3
 
-	tst	a, %10000000
+	bit	7,a
 	jr	z, vxNextPlane0
 	push	af
 	ld	a, %10000000
@@ -47,7 +47,7 @@ vxClipTriangle:
 	call	vxClipPlanePolygon
 	pop	af
 vxNextPlane0:
-	tst	a, %00010000
+	bit	4,a
 	jr	z, vxNextPlane1
 	push	af
 	ld	a, %00010000
@@ -55,7 +55,7 @@ vxNextPlane0:
 	call	vxClipPlanePolygon
 	pop	af
 vxNextPlane1:
-	tst	a, %01000000
+	bit	6,a
 	jr	z, vxNextPlane2
 	push	af
 	ld	a, %01000000
@@ -63,7 +63,7 @@ vxNextPlane1:
 	call	vxClipPlanePolygon
 	pop	af
 vxNextPlane2:
-	tst	a, %00100000
+	bit	5,a
 	jr	z, vxClipEnd
 	push	af
 	ld	a, %00100000
