@@ -41,35 +41,33 @@ vxClipTriangle:
 
 	bit	7,a
 	jr	z, vxNextPlane0
-	push	af
+	ex	af,af'
 	ld	a, %10000000
 	ld	ix, vxRightDistance
 	call	vxClipPlanePolygon
-	pop	af
+	ex	af,af'
 vxNextPlane0:
 	bit	4,a
 	jr	z, vxNextPlane1
-	push	af
+	ex	af,af'
 	ld	a, %00010000
 	ld	ix, vxUpDistance
 	call	vxClipPlanePolygon
-	pop	af
+	ex	af,af'
 vxNextPlane1:
 	bit	6,a
 	jr	z, vxNextPlane2
-	push	af
+	ex	af,af'
 	ld	a, %01000000
 	ld	ix, vxLeftDistance
 	call	vxClipPlanePolygon
-	pop	af
+	ex	af,af'
 vxNextPlane2:
 	bit	5,a
 	jr	z, vxClipEnd
-	push	af
 	ld	a, %00100000
 	ld	ix, vxDownDistance
 	call	vxClipPlanePolygon
-	pop	af
 vxClipEnd:
 
 	ld	a, b
@@ -112,11 +110,11 @@ vxClipPlanePolygon:
 	ld	c, 3
 	mlt	bc	; size of copy
 	lea	hl, iy
-	ld	de, VX_PATCH_INPUT
+	ld	iy, VX_PATCH_INPUT
+	lea	de,iy+0
 	ldir
 ; parse through VX_PATCH_INPUT, output is VX_PATCH_OUTPUT
 	ld	b, a
-	ld	iy, VX_PATCH_INPUT
 	ld	ix, VX_PATCH_OUTPUT
 vxClipSutherHodgmanLoop:
 	push	bc
@@ -133,11 +131,8 @@ vxMM1=$+1
 	and	0
 	jr	nz, vxClipCheck0
 	ld	(ix+0), de		; both point out, copy v0
-	lea	ix, ix+3
 	ld	a, (vxNewSize)
-	inc	a
-	ld	(vxNewSize), a
-	jp	vxNoEdge
+	jp	PREvxNoEdge
 vxClipCheck0:
 	ld	a, (de)
 	call	vxClipDistance	; compute distance 1
@@ -227,6 +222,7 @@ vxEdgeRentring:
 	ld	bc, 16
 	ldir
 	ld	(vxVertexAdress), de
+PREvxNoEdge:	
 	lea	ix, ix+3
 	inc	a
 	ld	(vxNewSize), a
