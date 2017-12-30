@@ -50,8 +50,9 @@ vxEngineInit:
 	ldir
 	ld	hl, VX_DEPTH_BUCKET
 	ld	de, VX_DEPTH_BUCKET+1
-	ld	bc, 511
-	ld	(hl), $00
+	ld	(hl), c
+	inc	b
+	dec	c
 	ldir
 ; various other data
 	ld	hl, VX_FRAMEBUFFER_AUX1
