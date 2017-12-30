@@ -3,6 +3,7 @@
 #include	"vxImage.ez80"
 #include	"vxRasterFlat.ez80"
 #include	"vxShaderEngine.ez80"
+#include	"vxShaderCore.ez80"
 #include	"vxTimer.ez80"
 #include	"vxMatrix.ez80"
 #include	"vxQuaternion.ez80"

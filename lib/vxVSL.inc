@@ -93,6 +93,4 @@
 #define	VX_LIGHT_POW		4
 #define	VX_LIGHT_POSITION	5
 
-	.org	$0
-
 .list

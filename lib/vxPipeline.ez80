@@ -83,10 +83,17 @@ vxRenderStream:
 	ld	de, VX_REGISTER_INTERPOLATION_CODE
 	ld	bc, VX_REGISTER_INTERPOLATION_SIZE
 	ldir
-	ld	hl, VX_PIXEL_SHADER_COPY
-	ld	de, VX_PIXEL_SHADER_CODE
-	ld	bc, VX_PIXEL_SHADER_SIZE
-	ldir
+	ld	hl, (vxShaderJump)
+	ld	(vxShaderJumpWrite), hl
+	ld	hl, (vxShaderAdress0)
+	ld	(vxShaderAdress0Write), hl
+	ld	hl, (vxShaderAdress1)
+	ld	(vxShaderAdress1Write), hl
+
+;	ld	hl, VX_PIXEL_SHADER_COPY
+;	ld	de, VX_PIXEL_SHADER_CODE
+;	ld	bc, VX_PIXEL_SHADER_SIZE
+;	ldir
 
 	ld	hl, (vxTexturePage)
 	ld	(vxShaderUniform1), hl

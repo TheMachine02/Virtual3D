@@ -48,6 +48,9 @@
 	ld	a, 0
 	ld	(vxLightUniform+4), a
 
+	ld	ix, SHADER
+	call	vxShaderLoad
+
 MainLoop:
 
 	call	vxTimerStart
@@ -486,3 +489,6 @@ RoomMap:
 
 ;#include "XML.ez80"
 ;#include "XML-1.ez80"
+
+SHADER:
+#include "light.vsl"

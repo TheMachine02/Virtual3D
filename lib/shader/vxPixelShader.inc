@@ -81,7 +81,6 @@ vxPixelShader:
 	exx
 	ld	(de), a
 	inc	de
-#endcomment
 	djnz	vxPixelShader
 vxShaderGeneralInterpolation:
 	ld	hl, (iy+VX_REGISTER1)
@@ -110,7 +109,7 @@ vxShaderGeneralInterpolation:
 #define	VX_CALL_EXIT	vxPixelShaderExit
 ; pad to four bytes
    .align  4
-   .db 161 \ .dl VX_CALL1_NEG
+ ;  .db 161 \ .dl VX_CALL1_NEG
    .db 160 \ .dl VX_CALL0_NEG
    .db 160 \ .dl VX_CALL1_NEG
    .db 159 \ .dl VX_CALL0_NEG
@@ -752,5 +751,6 @@ VX_LUT_PIXEL_LENGTH:
    .db 159 \ .dl VX_CALL1_POS
    .db 160 \ .dl VX_CALL0_POS
    .db 160 \ .dl VX_CALL1_POS
+   .db 161 \ .dl VX_CALL0_POS
 vxPixelShaderExitLUT:
    .db 0 \ .dl VX_CALL_EXIT

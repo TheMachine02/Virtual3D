@@ -32,6 +32,13 @@
 VX_REGISTER_DATA:
 	.fill	2892, 0
 
+vxShaderJump:
+	.dl	0
+vxShaderAdress0:
+	.dl	0
+vxShaderAdress1:
+	.dl	0
+
 VX_REGISTER_INTERPOLATION_COPY:
 
 .relocate VX_REGISTER_INTERPOLATION_CODE
@@ -382,7 +389,9 @@ vxRegisterDerivativeNull:
 	sbc	hl, de
 vxRegisterDerivativeAbs:
 ; write inc/dec
+vxShaderAdress0Write=$+1
 	ld	(VX_PIXEL_SHADER_SUBSIZE-1+VX_PIXEL_SHADER_CODE), a
+vxShaderAdress1Write=$+1
 	ld	(VX_PIXEL_SHADER_SUBSIZE*2-1+VX_PIXEL_SHADER_CODE), a
 ; small hack to force a slighty bigger X span to be sure only the in triangle texel will actually be mapped. In worst case, it miss a few one, but it is okayish engouh.
 	inc	hl
@@ -600,7 +609,9 @@ vxShaderUniform0=$+1
 	ld	sp, hl
 	ld	bc, (iy+VX_FDUDX+1)
 	exx
-	jp	vxShaderGeneralInterpolation
+vxShaderJumpWrite=$+1
+;	jp	vxShaderGeneralInterpolation
+	jp	$000000
 vxPixelShaderExit:
 	ld	sp, $000000
 	ret
