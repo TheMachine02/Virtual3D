@@ -31,7 +31,7 @@
 #include "relocate.inc"
 #endif
 #include	"vxModel.inc"
-
+#include	"vxVSL.inc"
 ; standard defines ;
 
 #define VX_VERSION        $10

@@ -1,4 +1,4 @@
-#include "shader/vxPixelShader.inc"
+;;#include "shader/vxPixelShader.inc"
 
 #define	VX_REGISTER_Y0	-32+0
 #define	VX_REGISTER_X0	-32+1
@@ -390,9 +390,9 @@ vxRegisterDerivativeNull:
 vxRegisterDerivativeAbs:
 ; write inc/dec
 vxShaderAdress0Write=$+1
-	ld	(VX_PIXEL_SHADER_SUBSIZE-1+VX_PIXEL_SHADER_CODE), a
+	ld	($D00000), a
 vxShaderAdress1Write=$+1
-	ld	(VX_PIXEL_SHADER_SUBSIZE*2-1+VX_PIXEL_SHADER_CODE), a
+	ld	($D00000), a
 ; small hack to force a slighty bigger X span to be sure only the in triangle texel will actually be mapped. In worst case, it miss a few one, but it is okayish engouh.
 	inc	hl
 	add	hl, hl

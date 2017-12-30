@@ -63,6 +63,9 @@ vxEngineInit:
 	ld	(vxGeometrySize), hl
 	ld	hl, $D30000
 	ld	(vxTexturePage), hl
+; load shader
+	ld	ix, vxTextureShader
+	call	vxShaderLoad
 ; insert stack position
 	ld	hl, vxEngineQuit
 	ex	(sp), hl
