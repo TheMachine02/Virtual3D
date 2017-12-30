@@ -1,5 +1,7 @@
 #include	"vxVSL.inc"
 
+alphavsl:
+
 shaderType:
 	.db	VX_PIXEL_SHADER
 shaderSize:

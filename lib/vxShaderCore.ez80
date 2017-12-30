@@ -1,5 +1,5 @@
 ; include standard shader
-#include "shader/vxTexture.vsl"
+#include "shader/vxPixelShader.vsl"
 
 vxShaderLoad:
 	ld	bc, 0

@@ -1,23 +1,15 @@
-#include	"vxVSL.inc"
-
-lightvsl:
-
-shaderType:
+vxPixelShader:
 	.db	VX_PIXEL_SHADER
-shaderSize:
-	.db	shaderEnd-shaderCode
-shaderPerPixelCount:
+	.db	vxPixelEnd-vxPixelCode
 	.db	2	; two pixel are written per loop
-shaderPerPixelSize:
-	.db	11	; total size of per pixel code
+	.db	10	; total size of per pixel code
 .relocate	VX_PIXEL_SHADER_CODE
-shaderCode:
+vxPixelCode:
 	ld  a, h    ; get v to pass to next part
 	add hl, sp  ; v=v+dv (du on high)
 	exx		 ; swap
 	ld  h, a    ; paste v on high byte
-	ld  e, (hl) ; fetch texture, and get index to color table in same time
-	ld  a, (de) ; fetch lighted color
+	ld  a, (hl) ; fetch texture
 	adc hl, bc  ; u=u+du (on low)
 	exx		 ; swap
 	ld  (de), a ; write pixel
@@ -26,12 +18,11 @@ shaderCode:
 	add	hl, sp
 	exx
 	ld	h, a
-	ld	e, (hl)
-	ld	a, (de)
+	ld	a, (hl)
 	adc	hl, bc
 	exx
 	ld	(de), a
 	inc	de
-	djnz	shaderCode
-shaderEnd:
+	djnz	vxPixelCode
+vxPixelEnd:
 .endrelocate

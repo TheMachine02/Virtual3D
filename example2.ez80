@@ -48,7 +48,7 @@
 	ld	bc, VX_LIGHT_SIZE
 	ldir
 
-	ld	ix, SHADER
+	ld	ix, alphavsl
 	call	vxShaderLoad
 
 MainLoop:
@@ -85,7 +85,7 @@ MainLoop:
 
 	call	vxCmdDepthSort
 
-	ld	c, $00
+	ld	c, $FF
 	call	vxClearBuffer
 	call	vxRenderStream
 ; timer & counter
@@ -303,6 +303,4 @@ EulerAngle:
 LightAngle:
 	.dl	0,0,0
 
-
-SHADER:
 #include	"alpha.vsl"
