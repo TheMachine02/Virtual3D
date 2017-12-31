@@ -422,23 +422,15 @@ vxCmdRestoreBucketLoop0:
 	ld	(hl), e
 ; and copy to the correct position
 	lea	ix, ix-8
-; reset bcu
-	inc.sil	bc
-	ld	b, d
-	ld	c, e
-
 	ld	bc, (vxGeometrySize)
-
 	ld	a, c
 	dec	bc
 	inc	b
 	ld	c, a
-
 	push	bc
 	push	bc
 	push	bc
 	push	bc
-
 	ld	a, c
 vxCmdFillBucketOuter0:
 	push	bc
