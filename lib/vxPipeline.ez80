@@ -283,7 +283,7 @@ vxVertexStream:
 	ld	iy, vxLightUniform
 	call	vxMatrixLightning
 ; load up shader data
-	ld	ix, VX_VERTEX_SHADER_DATA
+;;	ld	ix, VX_VERTEX_SHADER_DATA
 	pop	iy
 ; iy = source, ix = matrix
 	ld	a, (iy+0)
@@ -352,7 +352,7 @@ vxVertexLoadBone:
 	add	iy, de
 	pop	de
 	pop	bc
-	ld	ix, VX_VERTEX_SHADER_DATA
+;;	ld	ix, VX_VERTEX_SHADER_DATA
 	jr	vxVertexStreamLoop
 vxVertexStreamBox:
 	push	bc

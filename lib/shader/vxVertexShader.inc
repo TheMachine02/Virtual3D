@@ -102,7 +102,7 @@ vxVertexShader:
 ; de = de + VX_VERTEX_SIZE
 ; iy = iy + VX_VERTEX_DATA_SIZE
 ; data copied to memory
-	pea	iy+VX_VERTEX_DATA_SIZE
+	ld	ix, VX_VERTEX_SHADER_DATA
 	push	de
 ; X coordinate
 ;	ld	bc, (iy+0)
@@ -385,14 +385,14 @@ vxVertexSkipC1:
 
 	pop	bc
 	pop	de
-	pop	iy
-	ld	(iy+VX_VERTEX_UNIFORM), a
-	ld	(iy+VX_VERTEX_RX), de
-	ld	(iy+VX_VERTEX_RY), hl
-	ld	(iy+VX_VERTEX_RZ), bc
+	pop	ix
+	ld	(ix+VX_VERTEX_UNIFORM), a
+	ld	(ix+VX_VERTEX_RX), de
+	ld	(ix+VX_VERTEX_RY), hl
+	ld	(ix+VX_VERTEX_RZ), bc
 
 vxPerspectiveDivide:
-	ld	a, (iy+VX_VERTEX_RZ+2)
+	ld	a, (ix+VX_VERTEX_RZ+2)
 	rla
 	jp	c, vxPerspectiveClipZ
 	xor	a, a
@@ -428,7 +428,7 @@ vxPerspectiveNext0:
    	jr   nc, $+3
    	cpl
    	adc	a, VX_SCREEN_HCENTER
-	ld	(iy+VX_VERTEX_SY), a
+	ld	(ix+VX_VERTEX_SY), a
 	ex	de, hl
 	xor	a, a
 	add	hl, hl
@@ -465,21 +465,21 @@ vxPerspectiveNext1:
    	ld   l, a
 	ld   de, VX_SCREEN_WCENTER
 	adc   hl, de
-	ld	(iy+VX_VERTEX_SX), hl
+	ld	(ix+VX_VERTEX_SX), hl
 	xor	a, a
-	ld	(iy+VX_VERTEX_CODE), a
-	lea	de, iy+VX_VERTEX_SIZE
-	pop	iy
+	ld	(ix+VX_VERTEX_CODE), a
+	lea	de, ix+VX_VERTEX_SIZE
+	lea	iy, iy+VX_VERTEX_DATA_SIZE
 	ret
 vxPerspectiveCode:
 	xor	a, a
 ; Z<0
-	bit	7,(iy+VX_VERTEX_RZ+2)
+	bit	7,(ix+VX_VERTEX_RZ+2)
 	jr	z, $+4
 vxPerspectiveClipZ:
 	ld	a, %00001000
 vxPerspectiveClip0:
-	ld	hl, (iy+VX_VERTEX_RY)
+	ld	hl, (ix+VX_VERTEX_RY)
 	or	a, a
 	sbc	hl, bc
 ; X<Z. If X=Z, r=p, fail
@@ -493,7 +493,7 @@ vxPerspectiveClip1:
 	or	%00010000
 vxPerspectiveClip2:
 ; y cliping was handled
-	ld	hl, (iy+VX_VERTEX_RX)
+	ld	hl, (ix+VX_VERTEX_RX)
 	or	a, a
 	sbc	hl, bc
 	jp	m, vxPerspectiveClip3
@@ -507,8 +507,8 @@ vxPerspectiveClip3:
 vxPerspectiveClip4:
 ; x clipping handled
 	and	%11111000
-	ld	(iy+VX_VERTEX_CODE), a
-	lea	de, iy+VX_VERTEX_SIZE
-	pop	iy
+	ld	(ix+VX_VERTEX_CODE), a
+	lea	de, ix+VX_VERTEX_SIZE
+	lea	iy, iy+VX_VERTEX_DATA_SIZE
 	ret
 .endrelocate

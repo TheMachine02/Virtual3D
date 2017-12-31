@@ -1,3 +1,6 @@
+@echo off
+color 0F
+
 tools\TextureConvert -A file\fran.png
 tools\TextureConvert -D file\train.png
 tools\TextureConvert -A -D file\bombo.png
