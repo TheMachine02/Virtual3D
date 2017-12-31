@@ -143,13 +143,13 @@ IRasterEdge0:
     ld	ixh, d
     ld	ixl, e
 
-	pop	hl
-	ld	l, 160
-	mlt	hl
-	add	hl, hl
-	add	hl, bc
-	ld	de, (vxFramebuffer)
+	pop	de
+	ld	e, 160
+	mlt	de
+	ld	hl, (vxFramebuffer)
 	add	hl, de
+	add	hl, de
+	add	hl, bc
 	ex	de, hl
 	sbc	hl, hl
 	add	hl, de
@@ -200,12 +200,13 @@ IRasterEdge2:
 	ld	iyl, e
 
 IValueY1=$+1
-	ld	l, $00
-	ld	h, 160
-	mlt	hl
-	add	hl, hl
+	ld	e, $00
+	ld	d, 160
+	mlt	de
+	ld	hl, (vxFramebuffer)
+	add	hl, de
+	add	hl, de
 	add	hl, bc
-	ld	de, (vxFramebuffer)
 	add	hl, de
 	ex	de, hl
 	pop	hl
