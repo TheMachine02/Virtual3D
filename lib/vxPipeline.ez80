@@ -152,43 +152,7 @@ vxRenderColor:
 	jp	nz, vxRenderLoop
 	ret
 vxRenderTexture:
-
-	lea	hl, iy+VX_INDEX_UV0
-
-	ld	ix, (iy+VX_INDEX0)
-	add	ix, bc
-	lea	de, ix+VX_VERTEX_GPR0
-	ldi
-	ldi
-	ld	a, (de)
-	pea	ix+0
-	ld	ix, (iy+VX_INDEX1)
-	add	ix, bc
-	lea	de, ix+VX_VERTEX_GPR0+2
-	ldi
-	ldi
-	ex	de, hl
-	add	a, (hl)
-	ex	de, hl
-	ld	iy, (iy+VX_INDEX2)
-	add	iy, bc
-	lea	de, iy+VX_VERTEX_GPR0+4
-	ldi
-	ldi
-	ex	de, hl
-	add	a, (hl)
-
-	ld	b, a
-	ld	c, 86
-	mlt	bc
-	ld	a, b
-	ld	(vxShaderUniform0+1), a
-
-	lea	bc, iy+4
-	lea	de, ix+2
-	pop	hl
-
-	call	vxTextureTriangle
+	call	vxTexturePrimitive
 	pop	iy
 	pop	bc
 	dec	b
