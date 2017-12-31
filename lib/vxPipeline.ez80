@@ -424,10 +424,10 @@ vxCmdRestoreBucketLoop0:
 	lea	ix, ix-8
 ; reset bcu
 	inc.sil	bc
-	ld	b, d
-	ld	c, e
+	ld	b, d			; ?
+	ld	c, e			; ?
 
-	ld	bc, (vxGeometrySize)
+	ld	bc, (vxGeometrySize)	; ?
 
 	ld	a, c
 	dec	bc
