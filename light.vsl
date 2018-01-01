@@ -1,17 +1,13 @@
 #include	"vxVSL.inc"
 
-lightvsl:
+lightShader:
 
-shaderType:
 	.db	VX_PIXEL_SHADER
-shaderSize:
-	.db	shaderEnd-shaderCode
-shaderPerPixelCount:
+	.db	lightEnd-lightCode
 	.db	2	; two pixel are written per loop
-shaderPerPixelSize:
 	.db	11	; total size of per pixel code
 .relocate	VX_PIXEL_SHADER_CODE
-shaderCode:
+lightCode:
 	ld  a, h    ; get v to pass to next part
 	add hl, sp  ; v=v+dv (du on high)
 	exx		 ; swap
@@ -32,6 +28,6 @@ shaderCode:
 	exx
 	ld	(de), a
 	inc	de
-	djnz	shaderCode
-shaderEnd:
+	djnz	lightCode
+lightEnd:
 .endrelocate

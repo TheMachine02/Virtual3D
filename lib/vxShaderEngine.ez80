@@ -1,5 +1,3 @@
-;;#include "shader/vxPixelShader.inc"
-
 #define	VX_REGISTER_Y0	-32+0
 #define	VX_REGISTER_X0	-32+1
 #define	VX_REGISTER_U0	-32+3

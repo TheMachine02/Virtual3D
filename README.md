@@ -21,6 +21,8 @@ Feel free to ask for a new feature
 # Planned feature
 
 1. Mipmap
+2. Bloom and godray with a 2D shaderized sprite engine
+3. Antialiasing
 
 # Screen
 
@@ -37,7 +39,7 @@ Screen of the examples :
 # Converters
 
 Virtual3D also feature an .obj converter to a .inc file which can be compiled into an .8xv or directly included in assembly source.
-To convert texture, please use convpng from the C CE toolchain.
+To convert texture, please use the texture converter provided.
 
 # Notes
 

@@ -124,27 +124,7 @@ vxRenderLoop:
 ; switch(format)
 	jr	z, vxRenderTexture
 vxRenderColor:
-	ld	ix, (iy+VX_INDEX0)
-	add	ix, bc
-	ld	a, (ix+VX_VERTEX_UNIFORM)
-	lea	hl, ix+0
-	ld	ix, (iy+VX_INDEX1)
-	add	ix, bc
-	add	a, (ix+VX_VERTEX_UNIFORM)
-	lea	de, ix+0
-	ld	ix, (iy+VX_INDEX2)
-	add	ix, bc
-	add	a, (ix+VX_VERTEX_UNIFORM)
-	ld	b, a
-	ld	c, 86
-	mlt	bc
-	ld	a, b
-	ld	bc, VX_LUT_CONVOLVE
-	ld	c, (iy+VX_INDEX_COLOR)
-	ld	b, a
-	ld	a, (bc)
-	lea	bc, ix+0
-	call	vxFlatTriangle
+	call	vxColorPrimitive
 	pop	iy
 	pop	bc
 	djnz	vxRenderLoop
@@ -155,8 +135,7 @@ vxRenderTexture:
 	call	vxTexturePrimitive
 	pop	iy
 	pop	bc
-	dec	b
-	jp	nz, vxRenderLoop
+	djnz vxRenderLoop
 	dec	c
 	jp	nz, vxRenderLoop
 	ret

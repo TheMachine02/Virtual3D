@@ -1,12 +1,12 @@
 @echo off
 color 0F
 
-tools\TextureConvert -A file\fran.png
-tools\TextureConvert -D file\train.png
-tools\TextureConvert -A file\bombo.png
-tools\TextureConvert -A file\m1034.png
-tools\TextureConvert -A file\mateus.png
-tools\TextureConvert -A file\chocobo.png
+tools\texconv -A file\fran.png
+tools\texconv -D file\train.png
+tools\texconv -A file\bombo.png
+tools\texconv -A file\m1034.png
+tools\texconv -A file\mateus.png
+tools\texconv -A file\chocobo.png
 
 tools\spasm -I lib/ file\m1034.inc bin\FLUFFY3.8xv -E -S
 tools\spasm -I lib/ file\fran.inc bin\FRAN3.8xv -E -S

@@ -48,7 +48,7 @@
 	ld	bc, VX_LIGHT_SIZE
 	ldir
 
-	ld	ix, alphavsl
+	ld	ix, alphaShader
 	call	vxShaderLoad
 
 MainLoop:

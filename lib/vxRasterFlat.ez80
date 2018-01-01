@@ -1,8 +1,8 @@
-vxFlatPolygon:
+vxColorPolygon:
 	sub	a, 2
 	ld	b, a
 	ld	hl, (iy+0)
-vxFlatCyclicLoop:
+vxColorCyclicLoop:
 	push	bc
 	ld	de, (iy+3)
 	ld	bc, (iy+6)
@@ -15,44 +15,64 @@ vxFlatCyclicLoop:
 	pop	de
 	pop	bc
 	pop	hl
-	call	nc,vxFlatTriangleNoClip
+	call	nc,vxColorTriangleNoClip
 	pop	iy
 	pop	hl
 	pop	bc
-	djnz vxFlatCyclicLoop
+	djnz vxColorCyclicLoop
 	ret
-
-vxFlatTriangle:
+vxColorPrimitive:
+	ld	ix, (iy+VX_INDEX0)
+	add	ix, bc
+	ld	a, (ix+VX_VERTEX_UNIFORM)
+	lea	hl, ix+0
+	ld	ix, (iy+VX_INDEX1)
+	add	ix, bc
+	add	a, (ix+VX_VERTEX_UNIFORM)
+	lea	de, ix+0
+	ld	ix, (iy+VX_INDEX2)
+	add	ix, bc
+	add	a, (ix+VX_VERTEX_UNIFORM)
+	ld	b, a
+	ld	c, 86
+	mlt	bc
+	ld	a, b
+	ld	bc, VX_LUT_CONVOLVE
+	ld	c, (iy+VX_INDEX_COLOR)
+	ld	b, a
+	ld	a, (bc)
+	lea	bc, ix+0
+vxColorTriangle:
     ld	(IRasterRBG8), a
 
 	ld	a, (bc)
 	or	(hl)
 	ex	de, hl
 	or	(hl)
-	ld	iy, vxFlatPolygon
+	ld	iy, vxColorPolygon
 	jp	nz, vxClipTriangle
-vxFlatTriangleNoClip:
+vxColorTriangleNoClip:
 	inc	hl \ inc de \ inc bc
 	
     ld	a, (de)
     sub	a, (hl)
-    jr	c, IRasterSwap0
+    jr	c, vxColorSwap0
     ex	de, hl
-IRasterSwap0:
+vxColorSwap0:
     ld	a, (bc)
     sub	a, (hl)
-    jr	nc, IRasterSwap1
+    jr	nc, vxColorSwap1
     push	hl
     or	a, a
     sbc	hl, hl
     add	hl, bc
     pop	bc
-IRasterSwap1:
+vxColorSwap1:
     ld	a, (de)
     sub	a, (hl)
-    jr	nc, IRasterSwap2
+    jr	nc, vxColorSwap2
     ex	de, hl
-IRasterSwap2:
+vxColorSwap2:
 
     ld	a, (bc)
     sub	(hl)
@@ -143,13 +163,13 @@ IRasterEdge0:
     ld	ixh, d
     ld	ixl, e
 
-	pop	hl
-	ld	l, 160
-	mlt	hl
-	add	hl, hl
-	add	hl, bc
-	ld	de, (vxFramebuffer)
+	pop	de
+	ld	e, 160
+	mlt	de
+	ld	hl, (vxFramebuffer)
 	add	hl, de
+	add	hl, de
+	add	hl, bc
 	ex	de, hl
 	sbc	hl, hl
 	add	hl, de
@@ -200,18 +220,16 @@ IRasterEdge2:
 	ld	iyl, e
 
 IValueY1=$+1
-	ld	l, $00
-	ld	h, 160
-	mlt	hl
-	add	hl, hl
-	add	hl, bc
-	ld	de, (vxFramebuffer)
+	ld	e, $00
+	ld	d, 160
+	mlt	de
+	ld	hl, (vxFramebuffer)
 	add	hl, de
+	add	hl, de
+	add	hl, bc
 	ex	de, hl
 	pop	hl
 
-;	ld	a, (IDeltaY1)
-;	neg
 	pop	af
 IRasterTriangleInner:
 IDeltaX0=$+1
