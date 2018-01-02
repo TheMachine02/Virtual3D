@@ -664,3 +664,4 @@ vxTextureLOD:
 ;   1x  1 : 8
 	ret
 .endrelocate
+
