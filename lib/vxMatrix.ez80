@@ -140,7 +140,7 @@ vxMatrixMlt:
 vxMatrixColLoop:
 	push	bc
 	ld	b, 3
-	lc	c, b
+	ld	c, b
 vxMatrixRowLoop:
 	push	bc
 	ld	h, (ix+0)
