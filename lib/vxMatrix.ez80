@@ -32,7 +32,8 @@ vxMatrixLoadIdentity:
 	ld	bc, VX_MATRIX_SIZE
 	ldir
 	ex	de, hl
-	ld	bc, -VX_MATRIX_SIZE
+	dec	bc
+	ld	c, -VX_MATRIX_SIZE
 	add	hl, bc
 	ret
 vxMatrixRotationX:
@@ -50,8 +51,7 @@ vxMatrixRotationX:
 	ld	c, (hl)
 	ld	(ix+4), c
 	ld	(ix+8), c
-	ld	a, 64
-	ld	(ix+0), a
+	ld	(ix+0), 64
 	xor	a, a
 	ld	(ix+1), a
 	ld	(ix+2), a
@@ -68,8 +68,7 @@ vxMatrixRotationX:
 	call	vxCos
 	ld	(ix+4), h
 	ld	(ix+8), h
-	ld	a, 64
-	ld	(ix+0), a
+	ld	(ix+0), 64
 	xor	a, a
 	ld	(ix+1), a
 	ld	(ix+2), a
@@ -91,8 +90,7 @@ vxMatrixRotationZ:
 	ld	c, (hl)
 	ld	(ix+0), c
 	ld	(ix+4), c
-	ld	a, 64
-	ld	(ix+8), a
+	ld	(ix+8), 64
 	xor	a, a
 	ld	(ix+2), a
 	ld	(ix+6), a
@@ -109,8 +107,7 @@ vxMatrixRotationZ:
 	call	vxCos
 	ld	(ix+0), h
 	ld	(ix+4), h
-	ld	a, 64
-	ld	(ix+8), a
+	ld	(ix+8), 64
 	xor	a, a
 	ld	(ix+2), a
 	ld	(ix+6), a
@@ -128,8 +125,7 @@ vxMatrixRotationY:
 	call	vxCos
 	ld	(ix+0), h
 	ld	(ix+8), h
-	ld	a, 64
-	ld	(ix+4), a
+	ld	(ix+4), 64
 	xor	a, a
 	ld	(ix+1), a
 	ld	(ix+3), a
@@ -144,6 +140,7 @@ vxMatrixMlt:
 vxMatrixColLoop:
 	push	bc
 	ld	b, 3
+	lc	c, b
 vxMatrixRowLoop:
 	push	bc
 	ld	h, (ix+0)
@@ -176,13 +173,14 @@ vxMatrixRowLoop:
 	inc	iy
 	pop	bc
 	djnz	vxMatrixRowLoop
-	lea	ix, ix+3
+	add	ix, bc
 	lea	iy, iy-3
 	pop	bc
 	djnz	vxMatrixColLoop
-	lea	ix, ix-9
+	dec	bc
+	ld	c,-9
+	add	ix, bc
 	ex	de, hl
-	ld	bc, -9
 	add	hl, bc
 	ret
 vxMatrixTransform:
@@ -291,7 +289,7 @@ vxMatrixLightLoop:
 	add	hl, hl
 	ex	de, hl
 	ld	(hl), de
-; AMBIANT_VALUE was writed with bad value.
+; AMBIANT_VALUE was written with bad value.
 vxMatrixLightEarlyOut:
 	inc	hl
 	ld	a, (iy+VX_LIGHT_POW)
