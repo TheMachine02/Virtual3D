@@ -406,7 +406,14 @@ vxSqAbsSkp:
 	ld	e, l
 	ld	l, h
 	mlt	hl
-	slhl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
 	ld	a, e
 	mlt	de
 	add	hl, de
@@ -433,7 +440,14 @@ vxMltFP8:
 	jr	z, $+5
 	or	a, a
 	sbc	hl, bc
-	slhl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
 ; now need to do (CxD+BxE+ExC/256)
 	ld	a, c
 	ld	c, e

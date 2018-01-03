@@ -64,7 +64,6 @@
 ; static variables ;
 
 #define madd                  __imadd_src_()
-#define slhl                 __islhl_src_()
 #define .align               align(
 .addinstr  ld a,hlu 3BF133E5 4
 .addinstr  ld a,deu 3BF133D5 4
@@ -133,17 +132,6 @@
 #endmacro
 #define	madd.f	madd2()
 
-#macro  __islhl_src_()
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-#endmacro
-
 #macro align(bound)
 	.fill bound-($%bound)
 #endmacro
@@ -156,10 +144,10 @@
 #define	VX_VS_1.x
 #define	VX_GS_1.0
 
-.echo "vxLib API version 0.9 alpha"
-.echo "vertex shader version   : vs_1.x"
-.echo "geometry shader version : gs_1.0"
-.echo "pixel shader version    : ps_1.0"
+;.echo "vxLib API version 0.9 alpha"
+;.echo "vertex shader version   : vs_1.x"
+;.echo "geometry shader version : gs_1.0"
+;.echo "pixel shader version    : ps_1.0"
 
 #define dbreak   scf \ sbc hl, hl \ ld (hl), 2
 #define dstm 	 push hl \ ld hl,$F20030 \ set 0,(hl) \ pop hl

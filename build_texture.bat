@@ -1,5 +1,6 @@
 @echo off
 color 0F
+echo Converting...
 
 tools\texconv -A file\fran.png
 tools\texconv -D file\train.png
