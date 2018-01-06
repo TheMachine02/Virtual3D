@@ -1,7 +1,0 @@
-*.lab
-*.lst
-*.o
-*.depend
-*.layout
-*.cbp
-convhex.exe

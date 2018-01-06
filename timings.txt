@@ -1,9 +1,0 @@
-TEST2 :
-ms      routine
-47	vxGeometryStream ::
- 28	vxVertexStream   :: 584 vertices, 2300 cycles/vertex
- 19	vxGeometryShader :: 1108 triangles, 825 cycles avg/triangle
-9	vxDepthSort      :: 483 triangles, 900 cycles avg/triangle
-11	vxBufferClear    :: constant
-58	vxRenderStream   :: 483 triangles, 5800 cycles avg/triangle
-125	tot
