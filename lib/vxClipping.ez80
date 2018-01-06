@@ -1,0 +1,523 @@
+#define  vxPlaneBit0             %10000000
+#define  vxPlaneBit1             %01000000
+#define  vxPlaneBit2             %00100000
+#define  vxPlaneBit3             %00010000
+#define  vxPlaneBit4             %00001000
+#define  vxVertexDirty           %11111111
+#define  VX_SCREEN_WIDTH         320
+#define  VX_SCREEN_HEIGHT        240
+#define  VX_SCREEN_WCENTER       160
+#define  VX_SCREEN_HCENTER       120
+
+
+#define 	VX_MAX_TMP_VERTEX    	8
+#define 	VX_MAX_PATCH_SIZE    	16
+#define	VX_PATCH_INPUT		$D03480
+#define	VX_PATCH_OUTPUT		$D034C0
+#define	VX_VERTEX_POOL		$D03400
+
+vxNewSize:
+	.db	0
+vxVertexAdress:
+	.dl	0
+VX_CLIP_VERTEX0:
+	.dl	0,0,0,0,0,0
+VX_CLIP_VERTEX1:
+	.dl	0,0,0,0,0,0
+vxMixWrite:
+	.db	0,0,0,0
+
+vxClipTriangle:
+	ld	(vxClipDraw), iy
+	ld	iy, VX_PATCH_OUTPUT
+	ld	(iy+0), de
+	ld	(iy+3), hl
+	ld	(iy+6), bc
+	ld	(iy+9), de
+	ld	hl, VX_VERTEX_POOL
+	ld	(vxVertexAdress), hl
+
+	ld	b, 3
+
+	bit	7,a
+	jr	z, vxNextPlane0
+	ex	af,af'
+	ld	a, %10000000
+	ld	ix, vxRightDistance
+	call	vxClipPlanePolygon
+	ex	af,af'
+vxNextPlane0:
+	bit	4,a
+	jr	z, vxNextPlane1
+	ex	af,af'
+	ld	a, %00010000
+	ld	ix, vxUpDistance
+	call	vxClipPlanePolygon
+	ex	af,af'
+vxNextPlane1:
+	bit	6,a
+	jr	z, vxNextPlane2
+	ex	af,af'
+	ld	a, %01000000
+	ld	ix, vxLeftDistance
+	call	vxClipPlanePolygon
+	ex	af,af'
+vxNextPlane2:
+	bit	5,a
+	jr	z, vxClipEnd
+	ld	a, %00100000
+	ld	ix, vxDownDistance
+	call	vxClipPlanePolygon
+vxClipEnd:
+
+	ld	a, b
+	cp	a, 3
+	ret	c	; preventive quit
+	push	af
+	push	iy
+	lea	ix, iy+0
+vxClipLoop:
+	push	bc
+	ld	iy, (ix+0)
+	ld	a, (iy+0)
+	and	$01
+	call	nz, vxClipDivide
+	pop	bc
+	lea	ix, ix+3
+	djnz	vxClipLoop
+	pop	iy
+	pop	af
+vxClipDraw=$+1
+	jp	$000000
+vxClipDistance:
+CALL=$+1
+	jp	$000000
+vxClipPlanePolygon:
+; don't destroy bc
+; input : iy list, b:size,ix:dcall, a:mask
+; ouput : iy newlist, b:newsize
+	ld	(vxMM0), a
+	ld	(vxMM1), a
+	ld	(vxMM2), a
+	xor	a
+	ld	(vxNewSize), a
+	ld	a, b
+	or	a, a
+	ret	z
+	ld	(CALL), ix
+
+	inc	b
+	ld	c, 3
+	mlt	bc	; size of copy
+	lea	hl, iy
+	ld	iy, VX_PATCH_INPUT
+	lea	de,iy+0
+	ldir
+; parse through VX_PATCH_INPUT, output is VX_PATCH_OUTPUT
+	ld	b, a
+	ld	ix, VX_PATCH_OUTPUT
+vxClipSutherHodgmanLoop:
+	push	bc
+	ld	hl, (iy+3)
+	ld	de, (iy+0)
+	ld	a, (de)
+	and	(hl)
+vxMM0=$+1
+	and	0
+	jp	nz, vxNoEdge
+	ld	a, (de)
+	or	(hl)
+vxMM1=$+1
+	and	0
+	jr	nz, vxClipCheck0
+	ld	(ix+0), de		; both point out, copy v0
+	ld	a, (vxNewSize)
+	jp	PREvxNoEdge
+vxClipCheck0:
+	ld	a, (de)
+	call	vxClipDistance	; compute distance 1
+	ex	de, hl
+	call	vxClipDistance	; compute distance 0
+vxMM2=$+1
+	and	0
+	push	af	; is edge leaving
+
+; hl = d0, de = d1
+; compute f=d0/(d0-d1)
+	call	vxParametricFactor
+
+; ~1600 cycles vs old ~1850 cycles
+	push	ix
+	push	iy
+	ld	ix, (iy+0)
+	ld	iy, (iy+3)
+; ix = iy+0 (p0) , iy = iy+3 (p1)
+vxParametricCompute:
+; compute (p1-p0)*t+p0, for 24 bits vertex
+; t = bc, p0 = ix, p1 = iy, output = clip_vertex0
+; vertex coordinate rx
+	ld	hl, (iy+VX_VERTEX_RX)
+	ld	de, (ix+VX_VERTEX_RX)
+	call	vxParametricExtendMlt
+	ld	(VX_CLIP_VERTEX0+VX_VERTEX_RX), hl
+; vertex coordinate ry
+	ld	hl, (iy+VX_VERTEX_RY)
+	ld	de, (ix+VX_VERTEX_RY)
+	call	vxParametricExtendMlt
+	ld	(VX_CLIP_VERTEX0+VX_VERTEX_RY), hl
+; vertex coordinate rz
+	ld	hl, (iy+VX_VERTEX_RZ)
+	ld	de, (ix+VX_VERTEX_RZ)
+	call	vxParametricExtendMlt
+	ld	(VX_CLIP_VERTEX0+VX_VERTEX_RZ), hl
+; now, other vertex parameters
+	ld	hl, VX_CLIP_VERTEX0 + VX_VERTEX_GPR0
+; parameter 0
+	ld	a, (iy+VX_VERTEX_GPR0); a = p1
+	ld	d, (ix+VX_VERTEX_GPR0); d = p0
+	sub	a, d				; a = p1-p0
+	ld	e, a				; e = p1-p0
+	ld	a, d				; a = p0
+	jr	nc, $+3			; sign correction
+	sub	a, b				; 
+	ld	d, b				; 
+	mlt	de				; de = (unsigned)(p1-p0)*b
+	add	a, d				; a = (signed)(p1-p0)*b/256+p0
+	ld	(hl), a			; and write result
+	inc	hl				; next parameter
+; parameter 1
+	ld	a, (iy+VX_VERTEX_GPR1)
+	ld	d, (ix+VX_VERTEX_GPR1)
+	sub	a, d
+	ld	e, a
+	ld	a, d
+	jr	nc, $+3
+	sub	a, b
+	ld	d, b
+	mlt	de
+	add	a, d
+	ld	(hl), a
+; compute the new outcode for intersection point
+	ld	ix, VX_CLIP_VERTEX0+0
+	call	vxClipFrustrumCode
+	or	a, $01
+	ld	(ix+0), a
+	pop	iy
+	pop	ix
+; do specific edge shift here
+	pop	af
+	ld	a, (vxNewSize)
+	jp	nz, vxEdgeRentring
+; edge leaving
+; copy clip vertex, output both v0 and intersection
+	ld	hl, (iy+0)
+	ld	(ix+0), hl
+	lea	ix, ix+3
+	inc	a
+vxEdgeRentring:
+; copy clip vertex, output intersection
+	ld	hl, VX_CLIP_VERTEX0
+	ld	de, (vxVertexAdress)
+	ld	(ix+0), de
+	ld	bc, 16
+	ldir
+	ld	(vxVertexAdress), de
+PREvxNoEdge:	
+	lea	ix, ix+3
+	inc	a
+	ld	(vxNewSize), a
+vxNoEdge:
+	lea	iy, iy+3
+	pop	bc
+	dec	b
+	jp	nz, vxClipSutherHodgmanLoop
+	ld	a, (vxNewSize)
+	ld	b, a
+	ld	iy, VX_PATCH_OUTPUT
+; make output cyclic
+	ld	hl, (iy+0)
+	ld	(ix+0), hl
+; important is iy = new patch
+	ret
+vxZDistance:
+	ld	bc, VX_VERTEX_RZ
+	add	hl, bc
+	ld	hl, (hl)
+	dec	hl
+	ret
+vxRightDistance:
+tRT:
+;1000
+; input hl, test for X>Z
+	ld	bc, VX_VERTEX_RX
+	add	hl, bc
+	ld	bc, (hl)
+	inc	hl \ inc hl \ inc hl
+	inc	hl \ inc hl \ inc hl
+	ld	hl, (hl)
+	or	a, a
+	sbc	hl, bc	;Z-X, if > ; R<0
+	ret
+vxLeftDistance:
+ttLT:
+; 0100
+	ld	bc, VX_VERTEX_RX
+	add	hl, bc
+	ld	bc, (hl)
+	inc	hl \ inc hl \ inc hl
+	inc	hl \ inc hl \ inc hl
+	ld	hl, (hl)
+	add	hl, bc
+	ret
+vxDownDistance:
+tDWP:
+	ld	bc, VX_VERTEX_RY
+	add	hl, bc
+	ld	bc, (hl)
+	inc	hl \ inc hl \ inc hl
+	ld	hl, (hl)
+	or	a, a
+	sbc	hl, bc
+	ret
+vxUpDistance:
+tUPP:
+	ld	bc, VX_VERTEX_RY
+	add	hl, bc
+	ld	bc, (hl)
+	inc	hl \ inc hl \ inc hl
+	ld	hl, (hl)
+	add	hl, bc
+	ret
+vxClipDivide:
+	ld	bc, (iy+VX_VERTEX_RZ)
+	bit	7, (iy+VX_VERTEX_RZ+2)
+	jr	z, vxClampZ
+	ld	bc, 2
+vxClampZ:
+	ld	hl, (iy+VX_VERTEX_RY)
+	xor	a, a
+	add	hl, hl
+	jr	nc, $+8
+	rla
+	ex   de, hl
+	sbc   hl, hl
+	sbc   hl, de
+
+	sbc	hl, bc \ jp m, vxClipNextY
+	or	a, a
+; potential clipping issue
+	sbc	hl, bc
+	jp	m, vxClipNextYCarry
+	rra
+	ld	a, VX_SCREEN_HCENTER-(VX_SCREEN_HEIGHT/2)
+	jr	nc, vxClipWriteY
+	ld	a, VX_SCREEN_HCENTER+(VX_SCREEN_HEIGHT/2)
+	jr	vxClipWriteY
+vxClipNextYCarry:
+	or	a, a
+vxClipNextY:
+   adc a,a \ add hl,bc
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ adc a,a
+   cpl
+
+   add   a, a
+   ld   l, VX_SCREEN_HEIGHT/2+1 ;precision stuffs
+   ld   h, a
+   mlt   hl
+   ld   a, h
+   jr   nc, $+3
+   cpl
+   adc   a, VX_SCREEN_HCENTER
+vxClipWriteY:
+	ld	(iy+VX_VERTEX_SY), a
+
+	ld	hl, (iy+VX_VERTEX_RX)
+	xor	a, a
+	add	hl, hl
+	jr	nc, $+8
+	rla
+	ex   de, hl
+	sbc   hl, hl
+	sbc   hl, de
+
+	sbc	hl, bc \ jp m, vxClipNextX
+	or	a, a
+; potential clipping issue
+	sbc	hl, bc
+	jp	m, vxClipNextXCarry
+	rra
+	ld	hl, VX_SCREEN_WCENTER-(VX_SCREEN_WIDTH/2)
+	jr	c, vxClipWriteX
+	ld	hl, VX_SCREEN_WCENTER+(VX_SCREEN_WIDTH/2)
+	jr	vxClipWriteX
+vxClipNextXCarry:
+	or	a, a
+vxClipNextX:
+   adc a,a \ add hl,bc
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
+   add hl,hl \ sbc hl,bc \ adc a,a
+   cpl
+   ld   e, a
+   ld   d, VX_SCREEN_WIDTH/2+1
+   mlt   de
+   ld    a, d
+   sbc   hl, hl
+   jr   nc, $+3
+   cpl
+   ld   l, a
+   ld   de, VX_SCREEN_WCENTER
+   adc   hl, de
+vxClipWriteX:
+	ld	(iy+VX_VERTEX_SX), l
+	ld	(iy+VX_VERTEX_SX+1), h
+	xor	a, a
+	ld	(iy+VX_VERTEX_CODE), a
+	ret
+
+vxClipFrustrumCode:
+	ld	hl, (ix+VX_VERTEX_RY)
+	ld	de, (ix+VX_VERTEX_RX)
+	ld	bc, (ix+VX_VERTEX_RZ)
+	xor	a, a
+	sbc	hl, bc
+	jp	m, vxClipError0
+	or	%00100000
+vxClipError0:
+	add	hl, bc
+	or	a, a
+	adc	hl, bc
+	jp	p, vxClipError1
+	or	%00010000
+vxClipError1:
+; y cliping was handled
+	ex	de, hl
+	sbc	hl, bc
+	jp	m, vxClipError2
+	or	a, %10000000
+vxClipError2:
+	add	hl, bc
+	or	a, a
+	adc	hl, bc
+	jp	p, vxClipError3
+	or	a, %01000000
+vxClipError3:
+; x clipping handled
+	bit	7, (ix+VX_VERTEX_RZ+2)
+	ret	z
+	or	%00001000
+	ret
+vxParametricExtendMlt:
+; (p1-p0)*f/65536+p0
+; p1 = hl (24bits), p0 = de (24bits), f = bc (16bits)
+	or	a, a
+	sbc	hl, de	; hl = p1-p0
+	push	de
+	ld	a, l
+	push	af
+; grab hlu in a
+	push	hl
+	inc	sp
+	pop	af
+	dec	sp
+	ld	d, h
+; hlu x b x 256
+	ld	l, a
+	bit	7, a
+	ld	h, b
+	mlt	hl
+	jr	z, vxParametricSignAdjust
+	or	a, a
+	sbc	hl, bc
+vxParametricSignAdjust:
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+; hlu x c
+	ld	e, a
+	ld	a, d
+	ld	d, c
+	mlt	de
+	add	hl, de
+; h x b
+	ld	e, a
+	ld	d, b
+	mlt	de
+	add	hl, de
+; h x c / 256
+	ld	e, a
+	ld	d, c
+	mlt	de
+	ld	e, d
+	ld	d, 0
+	add	hl, de
+	pop	de
+; l x b /256
+	ld	e, b
+	mlt	de
+	ld	e, d
+	ld	d, 0
+	add	hl, de
+	pop	de
+	add	hl, de	; add up p0
+	ret
+vxParametricFactor:
+; bc (16bits) = hl*65536/(hl-de)
+; if hl-de < 0 then hl is < 0, else both are >0
+	ex	de, hl
+	or	a, a
+	sbc	hl, de
+	push	de
+; abs(de-hl), if >0 then de <0
+	jp	p, vxParametricDeltaAbs
+	add	hl, de
+	ex	de, hl
+	or	a, a
+	sbc	hl, de
+vxParametricDeltaAbs:
+	pop	de
+	ex	de, hl
+	add	hl, hl
+	jr	nc, vxParametricValueAbs
+	push	de
+	ex	de, hl
+	or	a, a
+	sbc	hl, hl
+	sbc	hl, de
+	pop	de
+vxParametricValueAbs:
+	sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	cpl
+	ld   b, a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+	add   hl,hl \ sbc hl,de \ adc a,a
+	cpl
+	ld   c, a
+	ret

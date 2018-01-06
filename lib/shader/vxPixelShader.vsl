@@ -1,0 +1,28 @@
+vxPixelShader:
+	.db	VX_PIXEL_SHADER
+	.db	vxPixelEnd-vxPixelCode
+	.db	2	; two pixel are written per loop
+	.db	10	; total size of per pixel code
+.relocate	VX_PIXEL_SHADER_CODE
+vxPixelCode:
+	ld  a, h    ; get v to pass to next part
+	add hl, sp  ; v=v+dv (du on high)
+	exx		 ; swap
+	ld  h, a    ; paste v on high byte
+	ld  a, (hl) ; fetch texture
+	adc hl, bc  ; u=u+du (on low)
+	exx		 ; swap
+	ld  (de), a ; write pixel
+	inc de      ; next pixel
+	ld	a, h
+	add	hl, sp
+	exx
+	ld	h, a
+	ld	a, (hl)
+	adc	hl, bc
+	exx
+	ld	(de), a
+	inc	de
+	djnz	vxPixelCode
+vxPixelEnd:
+.endrelocate

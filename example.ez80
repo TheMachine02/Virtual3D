@@ -1,0 +1,482 @@
+#include	"vx3D.inc"
+
+.org userMem - 2
+.db tExtTok, tAsm84CeCmp
+.assume ADL=1
+
+; init the virtual 3d library
+	call	vxEngineInit
+	ret	c		; quit if error at init
+
+	ld	hl, VertexName
+	call	vxMemoryFind
+	ret	c
+	ld	(Vertex), hl
+
+	ld	hl, TriangleName
+	call	vxMemoryFind
+	ret	c
+	ld	(Triangle), hl
+
+
+	ld	hl, TextName
+	call	vxMemoryFind
+	ret	c
+	ld	(Texture), hl
+
+	ld	a, VX_ZX7_COMPRESSED
+	ld	de, $D30000
+	call	vxImageCopy
+
+; about vertex coordinate :
+; the format inputed in glib is pure integer 16 bits coordinates, ]-32768,32768[
+; A 1.0 coordinate in blender is equivalent to 256 in glib
+
+; setup global variable for rendering, euler angle and the translation of WorldMatrix
+
+; about translation :
+; translation are added post transformation. So they carry the multiplication with the matrice, which aren't divided by the fixed point value of 1.0 (the matrix equivalent or 64). To have a translation of 1.0 in worldview matrix, the translation need to be 256*64 = 16384.
+; However, there is two type of matrix in glib : the model matrix, which is in MODELSPACE and the world type matrix in WORLDSPACE. Modelspace matrix have only a 16 bits translation and doesn't have the 64 factor described previously.
+
+	ld	hl, 0
+	ld	(EulerAngle), hl
+	ld	hl, WorldMatrix
+	call	vxMatrixLoadIdentity
+
+	ld	a, 15
+	ld	(vxLightUniform+3), a
+	ld	a, 0
+	ld	(vxLightUniform+4), a
+
+	ld	ix, alphaShader
+	call	vxShaderLoad
+
+MainLoop:
+
+	call	vxTimerStart
+	
+	call	Camera
+	ret	nz
+
+	ld	a, (vxAnimationKey)
+	inc a
+	cp	13
+	jr	nz, $+3
+	xor	a, a
+	ld	(vxAnimationKey), a
+#comment
+; animate the texture
+	ld	a, (texture_frame)
+	inc	a
+	cp	4
+	jr	nz, $+3
+	xor	a, a
+	ld	(texture_frame), a
+; texture_frame*16
+	ld	l, a
+	ld	h, 16
+	mlt	hl
+	ld	a, l
+	add	a, 160+16
+	ld	h, a
+	ld	l, 0
+
+	ld	de, 160*256+0
+	ld	bc, 16*256+64
+	
+	call	vxImageSubCopy
+#endcomment
+	ld	a, VX_GEOMETRY_TI9
+	ld	ix, WorldMatrix
+	ld	iy, ModelMatrix
+	ld	bc, VX_VERTEX_BUFFER
+	ld	hl, (Vertex)
+	ld	de, (Triangle)
+	call	vxGeometryStream
+
+;	ld	a, VX_GEOMETRY_TI9
+;	ld	ix, WorldMatrix
+;	ld	iy, BossMatrix
+;	ld	bc, VX_VERTEX_BUFFER+(1024*16)
+;	ld	hl, VERTEXDATA
+;	ld	de, TRIDATA
+;	call	vxGeometryStream
+
+;	ld	a, VX_GEOMETRY_TI9
+;	ld	ix, WorldMatrix
+;	ld	iy, LaraMatrix
+;	ld	bc, VX_VERTEX_BUFFER+(1536*16)
+;	ld	hl, VERTEXDATA1
+;	ld	de, TRIDATA1
+;	call	vxGeometryStream
+
+	ld	hl, (vxGeometrySize)
+	ld	(triangle_count), hl
+
+	call	vxCmdDepthSort
+
+	ld	c, %00000000
+	call	vxClearBuffer
+	call	vxRenderStream
+
+; timer & counter
+
+	ld	bc, 320*8-1
+	ld	de, (vxFramebuffer)
+	or	a, a
+	sbc	hl, hl
+	add	hl, de
+	inc	de
+	ld	(hl), 0
+	ldir
+
+	ld	hl, 0
+	ld	(TextXPos_SMC), hl
+	ld	a, 0
+	ld	(TextYPos_SMC), a
+
+	call	vxTimerRead
+; do (ade/256)/187
+	ld	(Temp), de
+	ld	(Temp+3), a
+	ld	de, (Temp+1)
+; divide de by 187
+	ex	de, hl
+	ld	bc, 187
+	call	__idivs_ASM
+	ld	de, 4
+	push	de
+	push	hl
+	call	_PrintUInt
+	pop	de
+	pop	hl
+
+	ld	hl, (TextXPos_SMC)
+	ld	de, 8
+	add	hl, de
+	ld	(TextXPos_SMC), hl
+
+triangle_count=$+1
+	ld	hl, 0
+	ld	de, 4
+	push	de
+	push	hl
+	call	_PrintUInt
+	pop	de
+	pop	hl
+	ld	hl, (TextXPos_SMC)
+	ld	de, 8
+	add	hl, de
+	ld	(TextXPos_SMC), hl
+
+	ld	hl, 0
+	ld	a, (posX+1)
+	neg
+	ld	l, a
+	ld	de, 4
+	push	de
+	push	hl
+	call	_PrintUInt
+	pop	de
+	pop	hl
+	ld	hl, (TextXPos_SMC)
+	ld	de, 8
+	add	hl, de
+	ld	(TextXPos_SMC), hl
+
+	ld	a, (posZ+1)
+	neg
+	ld	l, a
+	ld	de, 4
+	push	de
+	push	hl
+	call	_PrintUInt
+	pop	de
+	pop	hl
+
+
+	call	vxFlushLCD
+
+	jp	 MainLoop
+	ret
+
+#include	"vxMain.ez80"
+#include	"graphics_lib.asm"
+
+posX:
+	.dw	-3*256
+posY:
+	.dw	-1*256
+posZ:
+	.dw	-3*256
+
+posXt:
+	.dw	-3*256
+posYt:
+	.dw	-1*256
+posZt:
+	.dw	-3*256
+
+Temp:
+	.dl	0,0
+
+VertexName:
+	.db	AppVarObj, "POOL0",0
+Vertex:
+	.dl	0
+TriangleName:
+	.db	AppVarObj, "POOL1", 0
+Triangle:
+	.dl	0
+TextName:
+	.db	AppVarObj, "POOL2",0
+Texture:
+	.dl	0
+UnitVector:
+	.dl	0,16384,0
+Quaternion:
+	.dl	0,0,0,0
+QuatMatrix:
+	.dl	0,0,0,0,0,0
+WorldMatrix:
+	.dl	0,0,0,0,0,0
+ModelMatrix:
+	.db	64,0,0
+	.db	0,64,0
+	.db	0,0,64
+	.dw	0,0,0
+BossMatrix:
+	.db	64,0,0
+	.db	0,64,0
+	.db	0,0,64
+	.dw	128,64,128
+LaraMatrix:
+	.db	-64,0,0
+	.db	0,64,0
+	.db	0,0,-64
+	.dw	-1024,64,128
+EulerAngle:
+	.dl	0,0,0
+texture_frame:
+	.dl	0
+
+Camera:
+	ld hl,$F50000 
+	ld (hl),2
+	xor a,a
+kwait:
+	cp a,(hl)
+	jr nz,kwait
+
+	ld	de, 8
+	ld	a, ($F5001E)
+	bit	1, a
+	jr	z, _kskip
+	ld	hl, (EulerAngle)
+	add	hl, de
+	ld	(EulerAngle), hl
+_kskip:
+	ld	de, -8
+	ld	a, ($F5001E)
+	bit	2, a
+	jr	z, _kskip2
+	ld	hl, (EulerAngle)
+	add	hl, de
+	ld	(EulerAngle), hl
+_kskip2:
+
+	ld	hl, WorldMatrix
+	call	vxMatrixLoadIdentity
+
+	ld	hl, (EulerAngle)
+	ld	iy, Quaternion
+	ld	ix, UnitVector
+	call	vxQuaternionRotationAxis
+	ld	ix, WorldMatrix
+	call	vxQuaternionGetMatrix
+	ld	iy, WorldMatrix
+	ld	ix, vxProjectionMatrix
+	ld	hl, WorldMatrix
+	call	vxMatrixMlt
+
+	ld	a, ($F5001E)
+	bit	0, a
+	jr	z, _kskip3
+
+
+	ld	de, (posX)
+	ld	a, (WorldMatrix+6)
+	rla
+	sbc	hl, hl
+	rra
+	ld	l, a
+	add	hl, hl
+	or	a, a
+	add	hl, de
+	ld	de, (posY)
+;	ld	(posXt), hl
+	ld	(posX), hl
+	ld	a, (WorldMatrix+7)
+	rla
+	sbc	hl, hl
+	rra
+	ld	l, a
+	add	hl, hl
+	or	a, a
+	add	hl, de
+	ld	de, (posZ)
+;	ld	(posYt), hl
+	ld	(posY), hl
+	ld	a, (WorldMatrix+8)
+	rla
+	sbc	hl, hl
+	rra
+	ld	l, a
+	add	hl, hl
+	or	a, a
+	add	hl, de
+;	ld	(posZt), hl
+	ld	(posZ), hl
+_kskip3:
+
+	ld	a, ($F5001E)
+	bit	3, a
+	jr	z, _kskip4
+
+	ld	de, (posX)
+	ld	a, (WorldMatrix+6)
+	neg
+	rla
+	sbc	hl, hl
+	rra
+	ld	l, a
+	add	hl, hl
+	or	a, a
+	add	hl, de
+	ld	de, (posY)
+;	ld	(posXt), hl
+	ld	(posX), hl
+	ld	a, (WorldMatrix+7)
+	neg
+	rla
+	sbc	hl, hl
+	rra
+	ld	l, a
+	add	hl, hl
+	or	a, a
+	add	hl, de
+	ld	de, (posZ)
+;	ld	(posYt), hl
+	ld	(posY), hl
+	ld	a, (WorldMatrix+8)
+	neg
+	rla
+	sbc	hl, hl
+	rra
+	ld	l, a
+	add	hl, hl
+	or	a, a
+	add	hl, de
+;	ld	(posZt), hl
+	ld	(posZ), hl
+_kskip4:
+
+
+	ld	hl, (posY)
+	ld	de, 32
+	ld	a, ($F50012)
+	bit	0, a
+	jr	z, _kskip6
+	add	hl, de
+_kskip6:	
+
+	bit	4, a
+	jr	z, _kskip7
+	or	a, a
+	sbc	hl, de
+_kskip7:
+	
+	ld	a, l
+	ld	(posY), a
+	ld	a, h
+	ld	(posY+1), a
+
+#comment
+	call	GetHeightMap
+
+	ld	(smc_write), hl
+	ld	de, (posY)
+	or	a, a
+	sbc.s	hl, de
+	jp	p, _change
+	ld.s	bc, 129
+	or	a, a
+	adc.s	hl, bc
+	jp	m, _nochange
+_change:
+	ld	hl, posXt
+	ld	de, posX
+	ld	bc, 6
+	ldir
+smc_write=$+1
+	ld	hl, 0
+	ld	a, l
+	ld	(posY), a
+	ld	a, h
+	ld	(posY+1), a
+_nochange:
+#endcomment
+	ld	ix, WorldMatrix
+	ld	iy, posX
+	call	vxfTransform
+	ld	hl, vxPosition
+	ld	de, WorldMatrix+9
+	ld	bc, 9
+	ldir
+
+	ld a,($F5001C)
+	bit 6,a
+	ret
+
+GetHeightMap:
+; posY, pos, posZ
+	ld	a, (posZt+1)
+	cpl
+	ld	l, a
+	ld	h, 24
+	mlt	hl
+	ld	de, RoomMap
+	add	hl, de
+	ld	a, (posXt+1)
+	cpl
+	ld	de, 0
+	ld	e, a
+	add	hl, de
+	add	hl, de
+	ld	bc, (hl)
+	ld	hl, -256
+	sbc.s	hl, bc
+	ret
+RoomMap:
+;;	.db	12,15
+	.dw	4096,4096,4096,4096,4096,4096,4096,4096,4096,4096,4096,4096
+	.dw	4096,4096,4096,4096,4096,64,4096,4096,4096,4096,4096,4096
+	.dw	4096,4096,0,0,0,0,0,0,0,0,64,4096
+	.dw	4096,192,0,128,64,0,256,192,64,0,64,4096
+	.dw	4096,192,0,192,0,0,0,0,0,0,4096,4096
+	.dw	4096,4096,0,256,0,0,0,0,4096,64,4096,4096
+	.dw	4096,4096,0,0,0,0,0,0,0,32,4096,4096
+	.dw	4096,192,0,0,0,0,0,0,0,0,4096,4096
+	.dw	4096,192,0,256,0,256,256,0,0,0,4096,4096
+	.dw	4096,4096,0,256,0,192,0,0,0,128,4096,4096
+	.dw	4096,4096,0,0,0,64,0,0,4096,0,4096,4096
+	.dw	4096,4096,0,0,0,0,0,0,0,0,4096,4096
+	.dw	4096,4096,0,256,0,0,256,0,0,0,4096,4096
+	.dw	4096,4096,0,0,0,0,0,0,0,128,4096,4096
+	.dw	4096,4096,4096,4096,4096,4096,4096,4096,4096,4096,4096,4096
+
+
+;#include "XML.ez80"
+;#include "XML-1.ez80"
+
+#include "alpha.vsl"
