@@ -25,6 +25,7 @@ Feel free to ask for a new feature
 3. Antialiasing
 4. Per material shader
 5. 2D shaderized sprite engine
+6. Better lightning
 
 # Screen
 

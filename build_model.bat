@@ -42,10 +42,10 @@ tools\mdlconv  file\fran.obj -T -N -S -B
 spasm -I lib/ file\fran0.inc bin\FRAN0.8xv -E -S
 spasm -I lib/ file\fran1.inc bin\FRAN1.8xv -E -S
 
-echo Converting chocobo.obj
-tools\mdlconv  file\chocobo.obj -T -N -S -B
-spasm -I lib/ file\chocobo0.inc bin\CHOCOBO0.8xv -E -S
-spasm -I lib/ file\chocobo1.inc bin\CHOCOBO1.8xv -E -S
+echo Converting Pool.obj
+tools\mdlconv  file\Pool.obj -T -N -S -B
+spasm -I lib/ file\Pool0.inc bin\POOL0.8xv -E -S
+spasm -I lib/ file\Pool1.inc bin\POOL1.8xv -E -S
 
 tools\xmlconv
 pause

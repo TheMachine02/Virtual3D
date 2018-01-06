@@ -48,6 +48,9 @@
 	ld	a, 0
 	ld	(vxLightUniform+4), a
 
+;	ld	ix, alphaShader
+;	call	vxShaderLoad
+
 MainLoop:
 
 	call	vxTimerStart
@@ -218,15 +221,15 @@ Temp:
 	.dl	0,0
 
 VertexName:
-	.db	AppVarObj, "TRAIN0",0
+	.db	AppVarObj, "POOL0",0
 Vertex:
 	.dl	0
 TriangleName:
-	.db	AppVarObj, "TRAIN1", 0
+	.db	AppVarObj, "POOL1", 0
 Triangle:
 	.dl	0
 TextName:
-	.db	AppVarObj, "TRAIN2",0
+	.db	AppVarObj, "POOL2",0
 Texture:
 	.dl	0
 UnitVector:
@@ -311,7 +314,8 @@ _kskip2:
 	or	a, a
 	add	hl, de
 	ld	de, (posY)
-	ld	(posXt), hl
+;	ld	(posXt), hl
+	ld	(posX), hl
 	ld	a, (WorldMatrix+7)
 	rla
 	sbc	hl, hl
@@ -321,7 +325,8 @@ _kskip2:
 	or	a, a
 	add	hl, de
 	ld	de, (posZ)
-	ld	(posYt), hl
+;	ld	(posYt), hl
+	ld	(posY), hl
 	ld	a, (WorldMatrix+8)
 	rla
 	sbc	hl, hl
@@ -330,7 +335,8 @@ _kskip2:
 	add	hl, hl
 	or	a, a
 	add	hl, de
-	ld	(posZt), hl
+;	ld	(posZt), hl
+	ld	(posZ), hl
 _kskip3:
 
 	ld	a, ($F5001E)
@@ -348,7 +354,8 @@ _kskip3:
 	or	a, a
 	add	hl, de
 	ld	de, (posY)
-	ld	(posXt), hl
+;	ld	(posXt), hl
+	ld	(posX), hl
 	ld	a, (WorldMatrix+7)
 	neg
 	rla
@@ -359,7 +366,8 @@ _kskip3:
 	or	a, a
 	add	hl, de
 	ld	de, (posZ)
-	ld	(posYt), hl
+;	ld	(posYt), hl
+	ld	(posY), hl
 	ld	a, (WorldMatrix+8)
 	neg
 	rla
@@ -369,48 +377,32 @@ _kskip3:
 	add	hl, hl
 	or	a, a
 	add	hl, de
-	ld	(posZt), hl
+;	ld	(posZt), hl
+	ld	(posZ), hl
 _kskip4:
 
 
-;	ld	hl, (posY)
-;	ld	de, 32
-;	ld	a, ($F50012)
-;	bit	0, a
-;	jr	z, _kskip6
-;	add	hl, de
-;_kskip6:	
-;
-;	bit	4, a
-;	jr	z, _kskip7
-;	or	a, a
-;	sbc	hl, de
-;_kskip7:
-	
-;	ld	a, l
-;	ld	(posY), a
-;	ld	a, h
-;	ld	(posY+1), a
+	ld	hl, (posY)
+	ld	de, 32
+	ld	a, ($F50012)
+	bit	0, a
+	jr	z, _kskip6
+	add	hl, de
+_kskip6:	
 
-	call	GetHeightMap
+	bit	4, a
+	jr	z, _kskip7
+	or	a, a
+	sbc	hl, de
+_kskip7:
+	
+	ld	a, l
+	ld	(posY), a
+	ld	a, h
+	ld	(posY+1), a
+
 #comment
-; compare posY to the value in map.
-	push	hl
-	ld	de, (posY)	
-	ex.s	de, hl
-	or	a, a
-	sbc.s hl,de
-	jp	p, _skipabs
-	add.s	hl, de
-	ex.s	de, hl
-	or	a, a
-	sbc.s	hl, de
-_skipabs:
-	ld.s	bc, 128
-	scf	
-	sbc.s	hl, bc	; difference height=<128
-	pop	hl
-#endcomment
+	call	GetHeightMap
 
 	ld	(smc_write), hl
 	ld	de, (posY)
@@ -433,7 +425,7 @@ smc_write=$+1
 	ld	a, h
 	ld	(posY+1), a
 _nochange:
-
+#endcomment
 	ld	ix, WorldMatrix
 	ld	iy, posX
 	call	vxfTransform
@@ -486,3 +478,5 @@ RoomMap:
 
 ;#include "XML.ez80"
 ;#include "XML-1.ez80"
+
+#include "alpha.vsl"

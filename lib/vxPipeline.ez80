@@ -112,7 +112,6 @@ vxRenderStream:
 	ld	b, a
 vxRenderLoop:
 	push	bc
-
 	ld	hl, VX_BATCH_DATA + VX_GEOMETRY_TI9
 	ld	a, l
 	ld	l, (iy+VX_GEOMETRY_ID)
@@ -129,7 +128,7 @@ vxRenderColor:
 	pop	bc
 	djnz	vxRenderLoop
 	dec	c
-	jp	nz, vxRenderLoop
+	jr	nz, vxRenderLoop
 	ret
 vxRenderTexture:
 	call	vxTexturePrimitive
@@ -137,7 +136,7 @@ vxRenderTexture:
 	pop	bc
 	djnz vxRenderLoop
 	dec	c
-	jp	nz, vxRenderLoop
+	jr	nz, vxRenderLoop
 	ret
 
 vxGeometryStream:
