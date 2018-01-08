@@ -3,7 +3,7 @@
 alphaShader:
 
 	.db	VX_PIXEL_SHADER	; shader type
-	.db	alphaEnd-alphaCode	; shader size
+	.dl	alphaEnd-alphaCode	; shader size
 	.db	2	; two pixel are written per loop
 	.db	18	; total size of per pixel code
 .relocate	VX_PIXEL_SHADER_CODE

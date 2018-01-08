@@ -3,7 +3,7 @@
 lightShader:
 
 	.db	VX_PIXEL_SHADER
-	.db	lightEnd-lightCode
+	.dl	lightEnd-lightCode
 	.db	2	; two pixel are written per loop
 	.db	11	; total size of per pixel code
 .relocate	VX_PIXEL_SHADER_CODE

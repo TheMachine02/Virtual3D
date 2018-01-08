@@ -16,6 +16,12 @@
 #define	VX_VERTEX_SHADER_SIZE		1024
 #define	VX_VERTEX_SHADER_MAX_SIZE	1024
 
+#define	VX_SHADER_TYPE			0
+#define	VX_SHADER_SIZE			1
+#define	VX_SHADER_DATA0			4
+#define	VX_SHADER_DATA1			5
+#define	VX_SHADER_CODE			6
+
 ; pixel shader register ;
 
 #define	VX_REGISTER_SIZE			12

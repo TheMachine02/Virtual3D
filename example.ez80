@@ -48,8 +48,8 @@
 	ld	a, 0
 	ld	(vxLightUniform+4), a
 
-	ld	ix, alphaShader
-	call	vxShaderLoad
+;	ld	ix, alphaShader
+;	call	vxShaderLoad
 
 MainLoop:
 
@@ -221,15 +221,15 @@ Temp:
 	.dl	0,0
 
 VertexName:
-	.db	AppVarObj, "POOL0",0
+	.db	AppVarObj, "LONDON0",0
 Vertex:
 	.dl	0
 TriangleName:
-	.db	AppVarObj, "POOL1", 0
+	.db	AppVarObj, "LONDON1", 0
 Triangle:
 	.dl	0
 TextName:
-	.db	AppVarObj, "POOL2",0
+	.db	AppVarObj, "LONDON2",0
 Texture:
 	.dl	0
 UnitVector:

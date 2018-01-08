@@ -1,6 +1,6 @@
 vxPixelShader:
 	.db	VX_PIXEL_SHADER
-	.db	vxPixelEnd-vxPixelCode
+	.dl	vxPixelEnd-vxPixelCode
 	.db	2	; two pixel are written per loop
 	.db	10	; total size of per pixel code
 .relocate	VX_PIXEL_SHADER_CODE

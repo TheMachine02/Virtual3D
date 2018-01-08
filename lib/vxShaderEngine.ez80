@@ -30,12 +30,6 @@
 VX_REGISTER_DATA:
 	.fill	2892, 0
 
-vxShaderJump:
-	.dl	0
-vxShaderAdress0:
-	.dl	0
-vxShaderAdress1:
-	.dl	0
 
 VX_REGISTER_INTERPOLATION_COPY:
 

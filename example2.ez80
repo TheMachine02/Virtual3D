@@ -48,8 +48,8 @@
 	ld	bc, VX_LIGHT_SIZE
 	ldir
 
-;	ld	ix, alphaShader
-;	call	vxShaderLoad
+	ld	ix, alphaShader
+	call	vxShaderLoad
 
 MainLoop:
 	call	vxTimerStart
@@ -264,15 +264,15 @@ Temp:
 ; choose mateus or tonberry
 
 VertexName:
-	.db	AppVarObj, "LONDON0",0
+	.db	AppVarObj, "FRAN0",0
 Vertex:
 	.dl	0
 TriangleName:
-	.db	AppVarObj, "LONDON1", 0
+	.db	AppVarObj, "FRAN1", 0
 Triangle:
 	.dl	0
 TextureName:
-	.db	AppVarObj, "LONDON2", 0
+	.db	AppVarObj, "FRAN2", 0
 Texture:
 	.dl	0
 Light:

@@ -1,10 +1,16 @@
 ; include standard shader
 #include "shader/vxPixelShader.vsl"
 
+vxShaderJump:
+	.dl	0		; actual adress where pixel shader is
+vxShaderAdress0:
+	.dl	0		; sub adress to change inc/dec
+vxShaderAdress1:
+	.dl	0		; second sub adress
+
 vxShaderLoad:
-	ld	bc, 0
-	ld	c, (ix+1)	; load size
-	lea	hl, ix+4	; load shader
+	ld	bc, (ix+VX_SHADER_SIZE)	; load size
+	lea	hl, ix+VX_SHADER_CODE		; load shader
 	ld	de, VX_PIXEL_SHADER_CODE
 	ldir			; copy first part
 	ld	hl, vxShaderGeneralInterpolation0
@@ -12,7 +18,7 @@ vxShaderLoad:
 	ldir			; copy constant part
 ; TODO : generation of the shading table
 ; VX_CALL1_NEG
-	ld	c, (ix+3)
+	ld	c, (ix+VX_SHADER_DATA1)
 	ld	hl, VX_PIXEL_SHADER_CODE
 	add	hl, bc
 ; VX_CALL0_NEG	
@@ -25,7 +31,7 @@ vxShaderCreate0:
 	lea	iy, iy+8
 	djnz vxShaderCreate0
 
-	ld	a, (ix+3)
+	ld	a, (ix+VX_SHADER_DATA1)
 	inc	a
 	add	a, a
 	add	a, VX_PIXEL_SHADER_CODE%256
@@ -35,8 +41,7 @@ vxShaderCreate0:
 	lea	iy, iy+4
 
 ; de = VX_CALL1_POS
-	ld	bc, 0
-	ld	c, (ix+3)
+	ld	c, (ix+VX_SHADER_DATA1)
 	dec	bc
 	ld	hl, VX_PIXEL_SHADER_CODE
 	add	hl, bc

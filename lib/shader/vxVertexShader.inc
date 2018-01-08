@@ -378,7 +378,7 @@ vxVertexSkipC1:
 	rl	c
 ; ambiant lightning=12
 	adc	a, (ix+VX_LIGHT0_AMBIANT)
-; min(a,31)
+; min(a,15)
 	cp	16
 	jr	c, $+4
 	ld	a, 15
