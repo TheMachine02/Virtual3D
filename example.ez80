@@ -479,4 +479,4 @@ RoomMap:
 ;#include "XML.ez80"
 ;#include "XML-1.ez80"
 
-#include "alpha.vsl"
+#include "shaderpack\alpha.vsl"

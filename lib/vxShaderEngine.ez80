@@ -28,7 +28,7 @@
 
 	.fill	32, 0
 VX_REGISTER_DATA:
-	.fill	2892, 0
+	.fill	2892, $D3
 
 
 VX_REGISTER_INTERPOLATION_COPY:
@@ -603,6 +603,33 @@ vxShaderOffset=$+2
 	ld	de, (iy+VX_FDUDY+1)
 ; ready to interpolate
 	pop	af
+
+	push	de
+	push	bc
+	push	bc
+	ld	c, e
+	pop	de
+	ld	b, a
+	ld	a, l
+	lea	hl, ix+0
+vxRegisterGradientLoop:
+	ld	(iy+VX_REGISTER2), hl
+	ld	(iy+VX_REGISTER3), a
+	add	hl, de
+	adc	a, c
+	dec	b
+	jr	z, vxRegisterGradientEnd
+	ld	(iy+VX_REGISTER2+VX_REGISTER_SIZE), hl
+	ld	(iy+VX_REGISTER3+VX_REGISTER_SIZE), a
+	add	hl, de
+	adc	a, c
+	lea	iy, iy+(VX_REGISTER_SIZE*2)
+	djnz	vxRegisterGradientLoop
+vxRegisterGradientEnd:
+	pop	bc
+	pop	de
+
+#comment
 vxRegisterGradientLoop:
 	ld	(iy+VX_REGISTER2), ix
 	ld	(iy+VX_REGISTER3), hl
@@ -618,6 +645,8 @@ vxRegisterGradientLoop:
 	dec	a
 	jr	nz, vxRegisterGradientLoop
 vxRegisterGradientEnd:
+#endcomment
+
 ; initialise drawing
 ;;	ld	ix, VX_PIXEL_SHADER_CODE ; this init is now useless
 	ld	iy, VX_REGISTER_DATA

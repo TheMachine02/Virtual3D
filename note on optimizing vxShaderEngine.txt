@@ -1,0 +1,17 @@
+-find a way to supress zero length span. If on the first triangle half, skip it, no writing in edge buffer, advance normally
+If on second triangle half, STOP it. Exact same behaviour for u/v interpolation
+-Use edge tracing to get gradient information rather than compute it
+-faster loop for tracing edge / uv edge. Maybe push data rather than ld (ix), reg ; combine both edge tracing & put always RIGHT, output width as adress to jump buffer.
+
+So, compute edge, edge have adress in VRAM. How retrieve directly jump table ?
+
+add hl,de \ add hl,hl \ add hl,hl method
+
+Secondly, copy some edge tracing loop to sha256 ?
+
+
+GPR0 should be V
+GPR1 should be U
+
+that way, gpr0 is interpolated in the non exx area
+gpr1 is interpolated on the shadow reg

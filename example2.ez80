@@ -85,7 +85,7 @@ MainLoop:
 
 	call	vxCmdDepthSort
 
-	ld	c, $FF
+	ld	c, $00
 	call	vxClearBuffer
 	call	vxRenderStream
 ; timer & counter
@@ -272,12 +272,12 @@ TriangleName:
 Triangle:
 	.dl	0
 TextureName:
-	.db	AppVarObj, "FRAN2", 0
+	.db	AppVarObj, "FRAN3", 0
 Texture:
 	.dl	0
 Light:
 	.db	0,0,-64
-	.db	2
+	.db	8
 	.db	255
 	.dw	0,0,0
 
@@ -303,4 +303,5 @@ EulerAngle:
 LightAngle:
 	.dl	0,0,0
 
-#include	"alpha.vsl"
+#include	"shaderpack\alpha.vsl"
+#include	"shaderpack\light.vsl"

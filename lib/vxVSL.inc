@@ -1,4 +1,7 @@
 .nolist
+#ifndef	VX_VSL_GUARD
+#define	VX_VSL_GUARD
+
 #include "ti84pce.inc"
 #include "relocate.inc"
 
@@ -99,4 +102,5 @@
 #define	VX_LIGHT_POW		4
 #define	VX_LIGHT_POSITION	5
 
+#endif
 .list

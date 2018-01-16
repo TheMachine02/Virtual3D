@@ -47,5 +47,10 @@ tools\mdlconv  file\Pool.obj -T -N -S -B
 spasm -I lib/ file\Pool0.inc bin\POOL0.8xv -E -S
 spasm -I lib/ file\Pool1.inc bin\POOL1.8xv -E -S
 
+echo Converting midna.obj
+tools\mdlconv  file\midna.obj -T -N -S -B
+spasm -I lib/ file\midna0.inc bin\MIDNA0.8xv -E -S
+spasm -I lib/ file\midna1.inc bin\MIDNA1.8xv -E -S
+
 tools\xmlconv
 pause

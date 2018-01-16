@@ -1,0 +1,30 @@
+#include	"vxVSL.inc"
+
+gouraudShader:
+
+	.db	VX_PIXEL_SHADER
+	.dl	gouraudEnd-gouraudCode
+	.db	2	; two pixel are written per loop
+	.db	8	; total size of per pixel code
+.relocate	VX_PIXEL_SHADER_CODE
+gouraudCode:
+	ld	a, h
+	add	hl, sp
+	exx
+	ld	d, a
+	ld	a, (de)
+	exx
+	ld	(de), a
+	inc	de
+	ld	a, h
+	add	hl, sp
+	exx
+	ld	d, a
+	ld	a, (de)
+	exx
+	ld	(de), a
+	inc	de
+	djnz	gouraudCode
+gouraudEnd:
+.endrelocate
+
