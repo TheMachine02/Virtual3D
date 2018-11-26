@@ -11,6 +11,7 @@
 #include	"vxFramebuffer.ez80"
 #include	"vxMemory.ez80"
 #include	"vxData.inc"
+;;#include	"vxConvolution.ez80"
 
 ; functions
 

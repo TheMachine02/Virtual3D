@@ -7,11 +7,7 @@
 ;#define	VX_GEOMETRY_N3CI9		%00001101	; 13
 #define	VX_GEOMETRY_CI9			%00001010	; 10
 
-#define	VX_ANIMATION_MATRIX_SIZE	15
-#define	VX_ANIMATION_BONE		32768
-
 #define	VX_VERTEX_BUFFER		$D08000	; 16*2048 (32K)
-#define	VX_VERTEX_BOX			8
 
 #define	vxDepthSortTemp		$E30014
 
@@ -55,7 +51,7 @@ vxTModelWorld:
 	.dl	0,0,0
 vxLightUniform:
 	.db	0,0,0
-	.db	0,0
+	.db	0,0,0
 	.dw	0,0,0
 vxAnimationKey:
 	.db	0
@@ -94,9 +90,6 @@ vxRenderStream:
 ;	ld	de, VX_PIXEL_SHADER_CODE
 ;	ld	bc, VX_PIXEL_SHADER_SIZE
 ;	ldir
-
-	ld	hl, (vxTexturePage)
-	ld	(vxShaderUniform1), hl
 
 	ld	bc, (vxGeometrySize)
 	or	a, a
@@ -166,13 +159,14 @@ vxGeometryStream:
 	ld	bc, VX_GEOMETRY_SHADER_SIZE
 	ldir
 ; continue processing
-	ld	bc, (iy+1)
+	ld	bc, (iy+VX_STREAM_HEADER_COUNT)
 	ld	a, c
 	dec	bc
 	inc	b
 	ld	c, b
 	ld	b, a
-	lea iy, iy+3
+	lea iy, iy+VX_STREAM_HEADER_SIZE 
+;would be nice to encode the format within 
 	call	vxGeometryShader
 ; need to update count & queue position
 ; simple : new-previous / 8
@@ -190,7 +184,7 @@ vxGeometryStream:
 	ret
 
 vxVertexStream:
-; hl - vertex source, bc - vertex cache, ix worldview matrix, iy modelworld matrix (should be an model matrix)
+; hl - vertex source, bc - vertex cache, ix worldview0 matrix, iy modelworld0 matrix (should be an model matrix)
 ; vertex source have size at the begining
 ; support animation
 	push	bc
@@ -201,14 +195,14 @@ vxVertexStream:
 	ld	bc, VX_VERTEX_SHADER_SIZE
 	ldir
 ; transform the worldview with the modelworld matrix to have the global modelview matrix
-; modelviewcache = modelworld * worldview
+; modelviewcache = modelworld0 * worldview0
 	ld	hl, vxModelViewCache
 	call	vxMatrixTransform		; (hl) = (iy)*(ix)
 ; modelview=modelviewcache
 	ld	de, vxModelView
 	ld	bc, VX_MATRIX_SIZE
 	ldir
-; modelworld=modelworld
+; modelworld=modelworld0
 ; tmodelworld=transpose(modelworld)
 	lea	hl, iy+0
 	ld	de, vxModelWorld
@@ -228,11 +222,11 @@ vxVertexStream:
 ;;	ld	ix, VX_VERTEX_SHADER_DATA
 	pop	iy
 ; iy = source, ix = matrix
-	ld	a, (iy+0)
-	ld	bc, (iy+1)
-	lea	iy, iy+3
+	ld	a, (iy+VX_STREAM_HEADER_OPTION)
+	ld	bc, (iy+VX_STREAM_HEADER_COUNT)
+	lea	iy, iy+VX_STREAM_HEADER_SIZE 
 ; iy+0 are options, so check those. Here, only bounding box is interesting.
-	and	VX_VERTEX_BOX
+	and	VX_STREAM_HEADER_BBOX
 	call	nz, vxVertexStreamBox
 	pop	de
 	ret	c
@@ -264,7 +258,7 @@ vxVertexLoadBone:
 ; more complex stuff here. Need to restore initial matrix & do a multiplication with the correct bone key matrix
 ; once done, only advance in the source, not the cache
 	push	de
-	lea	iy, iy+3
+	lea	iy, iy+VX_ANIMATION_HEADER_SIZE
 	push	iy
 	ld	a, (vxAnimationKey)
 	ld	e, a
@@ -294,7 +288,6 @@ vxVertexLoadBone:
 	add	iy, de
 	pop	de
 	pop	bc
-;;	ld	ix, VX_VERTEX_SHADER_DATA
 	jr	vxVertexStreamLoop
 vxVertexStreamBox:
 	push	bc

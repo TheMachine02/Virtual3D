@@ -1,22 +1,4 @@
-#define	VX_INDEX0	0
-#define	VX_INDEX1	3
-#define	VX_INDEX2	6
-#define	VX_INDEX_UV0	10
-#define	VX_INDEX_UV1	12
-#define	VX_INDEX_UV2	14
-#define	VX_INDEX_COLOR	9
-
-#define	VX_GEOMETRY_DEPTH	4
-#define	VX_GEOMETRY_INDEX	1
-#define	VX_GEOMETRY_ID		0
-#define	VX_GEOMETRY_SIZE		8
-
-#define	VX_GEOMETRY_FORMAT	0
-#define	VX_GEOMETRY_BUFFER	1
-
-#define	VX_GEOMETRY_SHADER_SIZE		1024
-#define	VX_GEOMETRY_SHADER_DATA		$E30800
-#define	VX_GEOMETRY_SHADER_CODE		$E30800
+#include "vxVSL.inc"
 
 VX_GEOMETRY_SHADER_COPY:
 
@@ -43,13 +25,13 @@ vxGeometryLoop:
 vxGeometryBuffer=$+1
 	ld	de, $000000
 
-	ld	hl, (iy+VX_INDEX2)
+	ld	hl, (iy+VX_TRIANGLE_I2)
 	add	hl, de
 	push	hl
-	ld	hl, (iy+VX_INDEX1)
+	ld	hl, (iy+VX_TRIANGLE_I1)
 	add	hl, de
 	ex	de, hl
-	ld	bc, (iy+VX_INDEX0)
+	ld	bc, (iy+VX_TRIANGLE_I0)
 	add	hl, bc
 	pop	bc
 
@@ -69,17 +51,17 @@ vxGeometryNext:
 vxGeometryBufferRZ=$+1
 	ld	bc, $000000
 ; index 0 - rz
-	ld	hl, (iy+VX_INDEX0)
+	ld	hl, (iy+VX_TRIANGLE_I0)
 	add	hl, bc
 	ld	de, (hl)
 ; index 1 - rz	
-	ld	hl, (iy+VX_INDEX1)
+	ld	hl, (iy+VX_TRIANGLE_I1)
 	add	hl, bc
 	ld	hl, (hl)
 	add	hl, de
 	ex	de, hl
 ; index 2 - re
-	ld	hl, (iy+VX_INDEX2)
+	ld	hl, (iy+VX_TRIANGLE_I2)
 	add	hl, bc
 	ld	hl, (hl)
 	adc	hl, de
@@ -161,4 +143,5 @@ vxGeometryNClip:
 	add	a, h
 	rla
 	jp	vxGeometryNext
+
 .endrelocate

@@ -2,24 +2,40 @@
 color 0F
 echo Converting...
 
-tools\texconv -A file\fran.png
-tools\texconv -D file\train.png
-tools\texconv -A file\bombo.png
-tools\texconv -A file\m1034.png
-tools\texconv -A file\mateus.png
-tools\texconv -A file\chocobo.png
-tools\texconv -D file\Tonberry.png
-tools\texconv -D file\Pool.png
-tools\texconv -D file\LONDON.png
-tools\texconv -D file\midna.png
+tools\texconv -D file\CavesOfKaliyaTRIII.png
+tools\texconv -D file\CityTRIII.png
+tools\texconv -D file\TrainRoomTRIII.png
+tools\texconv -A file\PoolTRIII.png
 
-spasm -I lib/ file\m1034.inc bin\FLUFFY3.8xv -E -S
-spasm -I lib/ file\fran.inc bin\FRAN3.8xv -E -S
-spasm -I lib/ file\train.inc bin\TRAIN2.8xv -E -S
-spasm -I lib/ file\bombo.inc bin\BOMBO3.8xv -E -S
-spasm -I lib/ file\mateus.inc bin\MATEUS2.8xv -E -S
-spasm -I lib/ file\chocobo.inc bin\CHOCOBO3.8xv -E -S
-spasm -I lib/ file\Tonberry.inc bin\TONB3.8xv -E -S
-spasm -I lib/ file\Pool.inc bin\POOL2.8xv -E -S
-spasm -I lib/ file\LONDON.inc bin\LONDON2.8xv -E -S
-spasm -I lib/ file\midna.inc bin\MIDNA2.8xv -E -S
+tools\texconv -A file\FranFFXII.png
+tools\texconv -A file\BunnyFFXII.png
+tools\texconv -A file\MateusFFXII.png
+tools\texconv -D file\VieraSceneFFXII.png
+
+tools\texconv -D file\LuluFFX.png
+
+tools\texconv -D file\TonberryFFVIII.png
+tools\texconv -D file\UltimeciaFFVIII.png
+
+tools\texconv -D file\MidnaZelda.png
+tools\texconv -D file\NabooruZelda.png
+
+spasm -I lib/ file\CavesOfKaliyaTRIII.inc bin\KALIYA2.8xv -E -S
+spasm -I lib/ file\CityTRIII.inc bin\CITY2.8xv -E -S
+spasm -I lib/ file\TrainRoomTRIII.inc bin\TRAIN2.8xv -E -S
+spasm -I lib/ file\PoolTRIII.inc bin\POOL2.8xv -E -S
+
+spasm -I lib/ file\FranFFXII.inc bin\FRAN2.8xv -E -S
+spasm -I lib/ file\BunnyFFXII.inc bin\FLUFFY2.8xv -E -S
+spasm -I lib/ file\MateusFFXII.inc bin\MATEUS2.8xv -E -S
+spasm -I lib/ file\VieraSceneFFXII.inc bin\VIERA2.8xv -E -S
+
+spasm -I lib/ file\LuluFFX.inc bin\LULU2.8xv -E -S
+
+spasm -I lib/ file\TonberryFFVIII.inc bin\TONB2.8xv -E -S
+spasm -I lib/ file\UltimeciaFFVIII.inc bin\ULTIM2.8xv -E -S
+
+spasm -I lib/ file\MidnaZelda.inc bin\MIDNA2.8xv -E -S
+spasm -I lib/ file\NabooruZelda.inc bin\NABOORU2.8xv -E -S
+
+pause

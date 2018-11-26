@@ -2,6 +2,7 @@
 #define	VX_MODELGUARD
 
 VX_VERTEX_BASE=0
+#define	VX_ANIMATION_BONE		32768
 
 #macro  vxVertex(x,y,z)
 .dw x,y,z 

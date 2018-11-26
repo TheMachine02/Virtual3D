@@ -1,77 +1,4 @@
-; cache data register (de) ;
-
-#define	VX_VERTEX_CODE		0
-#define	VX_VERTEX_SY		1
-#define	VX_VERTEX_SX		2
-#define	VX_VERTEX_GPR0		4
-#define	VX_VERTEX_GPR1		5
-#define	VX_VERTEX_UNIFORM	6
-#define	VX_VERTEX_RX		7
-#define	VX_VERTEX_RY		10
-#define	VX_VERTEX_RZ		13
-
-; vertex input register (iy) ;
-
-#define	VX_VERTEX_POSITION	0
-#define	VX_VERTEX_VX		0
-#define	VX_VERTEX_VY		2
-#define	VX_VERTEX_VZ		4
-#define	VX_VERTEX_NORMAL		6
-#define	VX_VERTEX_NX		6
-#define	VX_VERTEX_NY		7
-#define	VX_VERTEX_NZ		8
-
-; global data input register (ix) ;
-
-#define	VX_MATRIX0			0
-#define	VX_MATRIX0_C0		0
-#define	VX_MATRIX0_C1		1
-#define	VX_MATRIX0_C2		2
-#define	VX_MATRIX0_C3		3
-#define	VX_MATRIX0_C4		4
-#define	VX_MATRIX0_C5		5
-#define	VX_MATRIX0_C6		6
-#define	VX_MATRIX0_C7		7
-#define	VX_MATRIX0_C8		8
-#define	VX_MATRIX0_TX		9
-#define	VX_MATRIX0_TY		12
-#define	VX_MATRIX0_TZ		15
-
-#define	VX_LIGHT0_VECTOR	18
-#define	VX_LIGHT0_AMBIANT	21
-#define	VX_LIGHT0_POW		22
-#define	VX_LIGHT0_POSITION	23
-
-; constant ;
-
-#define	VX_MATRIX_SIZE		18
-#define	VX_MATRIX_C0		0
-#define	VX_MATRIX_C1		1
-#define	VX_MATRIX_C2		2
-#define	VX_MATRIX_C3		3
-#define	VX_MATRIX_C4		4
-#define	VX_MATRIX_C5		5
-#define	VX_MATRIX_C6		6
-#define	VX_MATRIX_C7		7
-#define	VX_MATRIX_C8		8
-#define	VX_MATRIX_TX		9
-#define	VX_MATRIX_TY		12
-#define	VX_MATRIX_TZ		15
-
-#define	VX_LIGHT_SIZE		11
-#define	VX_LIGHT_VECTOR		0
-#define	VX_LIGHT_AMBIANT	3
-#define	VX_LIGHT_POW		4
-#define	VX_LIGHT_POSITION	5
-
-#define	VX_VERTEX_SIZE		16	; per vertex data in pipeline
-#define	VX_VERTEX_DATA_SIZE	9	; this should be changed if you suppress vertex normal data
-
-#define	VX_VERTEX_SHADER_SIZE		1024	; allowed shader size
-#define	VX_VERTEX_SHADER_DATA		$E30800
-#define	VX_VERTEX_SHADER_CODE		$E30800
-
-; return shader ;
+#include "vxVSL.inc"
 
 ; shader will copy 1024 bytes from global_data to VX_VRAM. This load occurs at begin of stream instruction, to ensure maximum vertex throughput. About 2200 cycles per vertex are needed.
 
@@ -88,7 +15,7 @@ vxModelView:
 	.dl	0,0,0
 vxLight:
 	.db	0,0,0
-	.db	0,0
+	.db	0,0,0
 	.dw	0,0,0
 
 ; global shader call
@@ -377,7 +304,7 @@ vxVertexSkipC1:
 	ld	a, b
 	rl	c
 ; ambiant lightning=12
-	adc	a, (ix+VX_LIGHT0_AMBIANT)
+	adc	a, (ix+VX_LIGHT0_AMBIENT)
 ; min(a,15)
 	cp	16
 	jr	c, $+4
@@ -399,12 +326,11 @@ vxPerspectiveDivide:
 	add	hl, hl
 	jr	nc, vxPerspectiveAbs0
 	rla
-	push	de
 	ex   de, hl
 	sbc   hl, hl
 	sbc   hl, de
-	pop	de
 	or	a, a
+	ld	de, (ix+VX_VERTEX_RX)
 vxPerspectiveAbs0:
 	sbc	hl, bc
 	jr	c, vxPerspectiveNext0

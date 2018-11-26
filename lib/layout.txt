@@ -1,6 +1,5 @@
 ; README : this layout isn't in place yet, but give an idea on how RAM will be used
 
-
 $D00000 - $D02000 : color table   | copied, uncompressed
 $D02000 - $D02200 : sin table
 

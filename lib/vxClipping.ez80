@@ -24,8 +24,6 @@ VX_CLIP_VERTEX0:
 	.dl	0,0,0,0,0,0
 VX_CLIP_VERTEX1:
 	.dl	0,0,0,0,0,0
-vxMixWrite:
-	.db	0,0,0,0
 
 vxClipTriangle:
 	ld	(vxClipDraw), iy

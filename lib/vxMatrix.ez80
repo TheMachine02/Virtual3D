@@ -1,11 +1,3 @@
-#define	VX_MATRIX_SIZE	18
-#define	VX_VECTOR16X	0
-#define	VX_VECTOR16Y	2
-#define	VX_VECTOR16Z	4
-#define	VX_VECTOR8X	0
-#define	VX_VECTOR8Y	1
-#define	VX_VECTOR8Z	2
-
 vxIdentityMatrix:
 .db	64,0,0
 .db	0,64,0
@@ -249,55 +241,56 @@ vxMatrixLightLoop:
 	pop	bc
 	djnz	vxMatrixLightLoop
 	lea	ix, ix-9
-	push	de
-	ld	hl, (iy+VX_LIGHT_POSITION)
-	ld	de, (iy+VX_LIGHT_POSITION+3)
-	or	a, a
-	sbc	hl, de
-	pop	hl
-	jr	z, vxMatrixLightEarlyOut
-	dec	hl \ dec hl \ dec hl
+; ix = matrix, light = de, initial light = iy
+	ex	de, hl
+	ld	de, (iy+VX_LIGHT_AMBIENT)
+	ld	(hl), de	; copy the three important bytes.
+	ld	a, (iy+VX_LIGHT_PARAM)
+	bit	VX_LIGHT_POINT_BIT, a
+	ret	z
+; we need to transform the light vector with the matrix
+	inc	hl
+	inc	hl
+	inc	hl
 	push	hl
-; transform lightning position
+	lea	iy, iy+VX_LIGHT_POSITION
 	call	vxfTransform
-; fetch value and divide them
-; value should be copied to (hl)	
-	pop	hl
-	ld	bc, VX_LIGHT_POSITION+3
-	add	hl, bc
-	ex	de, hl
-; de = adress of position.
-	ld	hl, (vxPosition+6)
-	add	hl, hl
-	add	hl, hl
-; copy hlu, h to (de)
-	ex	de, hl
-	ld	(hl), de
-	dec	hl
-	dec	hl	
-	ex	de, hl
-	ld	hl, (vxPosition+3)
-	add	hl, hl
-	add	hl, hl
-	ex	de, hl
-	ld	(hl), de
-	dec	hl
-	dec	hl
-	ex	de, hl
+; now copy back to my light !
+; I need to divide the position by 64
+	pop	de
 	ld	hl, (vxPosition)
 	add	hl, hl
 	add	hl, hl
+	ld	(vxPosition), hl
+	ld	hl, (vxPosition+1)
 	ex	de, hl
-	ld	(hl), de
-; AMBIANT_VALUE was written with bad value.
-vxMatrixLightEarlyOut:
+	ld	(hl), e
 	inc	hl
-	ld	a, (iy+VX_LIGHT_POW)
-	ld	(hl), a
-	dec	hl
-	ld	a, (iy+VX_LIGHT_AMBIANT)
-	ld	(hl), a
-	dec	hl \ dec hl \ dec hl
+	ld	(hl), d
+	inc	hl
+	ex	de, hl
+
+	ld	hl, (vxPosition+3)
+	add	hl, hl
+	add	hl, hl
+	ld	(vxPosition+3), hl
+	ld	hl, (vxPosition+4)
+	ex	de, hl
+	ld	(hl), e
+	inc	hl
+	ld	(hl), d
+	inc	hl
+	ex	de, hl
+
+	ld	hl, (vxPosition+6)
+	add	hl, hl
+	add	hl, hl
+	ld	(vxPosition+6), hl
+	ld	hl, (vxPosition+7)
+	ex	de, hl
+	ld	(hl), e
+	inc	hl
+	ld	(hl), d
 	ret
 vxfTransform:
 ; input : iy vector, ix matrix
@@ -310,35 +303,35 @@ vxfTransform:
 	ld	bc, (iy+0)
 	ld	hl, (ix+9)
 	ld	a, (ix+0)
-	madd
+	fma
 	ld	a, (ix+1)
 	ld	bc, (iy+2)
-	madd
+	fma
 	ld	a, (ix+2)
 	ld	bc, (iy+4)
-	madd.f
+	fma.f
 	ld	(vxPosition), hl
 ; Y coordinate
 	ld	hl, (ix+12)
 	ld	a, (ix+5)
-	madd
+	fma
 	ld	a, (ix+4)
 	ld	bc, (iy+2)
-	madd
+	fma
 	ld	a, (ix+3)
 	ld	bc, (iy+0)
-	madd.f
+	fma.f
 	ld	(vxPosition+3), hl
 ; Z coordinate
 	ld	hl, (ix+15)
 	ld	a, (ix+6)
-	madd
+	fma
 	ld	a, (ix+7)
 	ld	bc, (iy+2)
-	madd
+	fma
 	ld	a, (ix+8)
 	ld	bc, (iy+4)
-	madd
+	fma.f
 	ld	(vxPosition+6), hl
 	ret
 vxMatrixLookAt:
@@ -350,25 +343,25 @@ vxMatrixLookAt:
 ; zaxis.x           zaxis.y           zaxis.z          0
 ;-dot(xaxis, eye)  -dot(yaxis, eye)  -dot(zaxis, eye)  l
 ; ix is eye, iy is At, bc is Up
-	ld	de, (ix+VX_VECTOR16X)
-	ld	hl, (iy+VX_VECTOR16X)
+	ld	de, (ix+VX_VECTOR_WX)
+	ld	hl, (iy+VX_VECTOR_WX)
 	or	a, a
 	sbc	hl, de
-	ld	(vxTmpVector+VX_VECTOR16X), hl
+	ld	(vxTmpVector+VX_VECTOR_WX), hl
 
-	ld	de, (ix+VX_VECTOR16Y)
-	ld	hl, (iy+VX_VECTOR16Y)
+	ld	de, (ix+VX_VECTOR_WY)
+	ld	hl, (iy+VX_VECTOR_WY)
 	or	a, a
 	sbc	hl, de
-	ld	(vxTmpVector+VX_VECTOR16Y), hl
+	ld	(vxTmpVector+VX_VECTOR_WY), hl
 
-	ld	de, (ix+VX_VECTOR16Z)
-	ld	hl, (iy+VX_VECTOR16Z)
+	ld	de, (ix+VX_VECTOR_WZ)
+	ld	hl, (iy+VX_VECTOR_WZ)
 	or	a, a
 	sbc	hl, de
-	ld	(vxTmpVector+VX_VECTOR16Z), hl
+	ld	(vxTmpVector+VX_VECTOR_WZ), hl
 
-	ld	iy, vxTmpVector+VX_VECTOR16X
+	ld	iy, vxTmpVector
 	ld	hl, vxLookAtMatrix+VX_MATRIX_C6
 	call	vxNormalize
 
@@ -387,13 +380,13 @@ vxMatrixLookAt:
 	ld	ix, vxLookAtMatrix
 	call	vxfTransform
 ; here we copy negated value to translation part of the matrix
-	ld	de, (vxPosition+VX_VECTOR16X)
+	ld	de, (vxPosition+VX_VECTOR_LX)
 	or	a, a \ sbc hl,hl \ sbc hl, de
 	ld	(ix+VX_MATRIX_TX), hl
-	ld	de, (vxPosition+VX_VECTOR16Y)
+	ld	de, (vxPosition+VX_VECTOR_LY)
 	or	a, a \ sbc hl,hl \ sbc hl, de
 	ld	(ix+VX_MATRIX_TY), hl
-	ld	de, (vxPosition+VX_VECTOR16Z)
+	ld	de, (vxPosition+VX_VECTOR_LZ)
 	or	a, a \ sbc hl,hl \ sbc hl, de
 	ld	(ix+VX_MATRIX_TZ), hl
 	ret

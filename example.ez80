@@ -1,4 +1,5 @@
 #include	"vx3D.inc"
+#include "ti84pce.inc"
 
 .org userMem - 2
 .db tExtTok, tAsm84CeCmp

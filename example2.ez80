@@ -1,4 +1,5 @@
 #include	"vx3D.inc"
+#include "ti84pce.inc"
 
 #define	DELTA	4096
 
@@ -48,7 +49,7 @@
 	ld	bc, VX_LIGHT_SIZE
 	ldir
 
-	ld	ix, alphaShader
+	ld	ix, lightShader
 	call	vxShaderLoad
 
 MainLoop:
@@ -59,6 +60,13 @@ MainLoop:
 ;	and	31
 ;	add	a, 224
 ;	ld	(vxLightUniform+4), a
+
+	ld	a, (vxAnimationKey)
+	inc	a
+	cp	a, 20
+	jr	nz, $+3
+	xor	a, a
+	ld	(vxAnimationKey), a
 
 	ld	hl, (EulerAngle)
 	ld	iy, Quaternion
@@ -264,15 +272,15 @@ Temp:
 ; choose mateus or tonberry
 
 VertexName:
-	.db	AppVarObj, "FRAN0",0
+	.db	AppVarObj, "ULTIM0",0
 Vertex:
 	.dl	0
 TriangleName:
-	.db	AppVarObj, "FRAN1", 0
+	.db	AppVarObj, "ULTIM1", 0
 Triangle:
 	.dl	0
 TextureName:
-	.db	AppVarObj, "FRAN3", 0
+	.db	AppVarObj, "ULTIM2", 0
 Texture:
 	.dl	0
 Light:
@@ -305,3 +313,4 @@ LightAngle:
 
 #include	"shaderpack\alpha.vsl"
 #include	"shaderpack\light.vsl"
+#include	"shaderpack\gouraud.vsl"

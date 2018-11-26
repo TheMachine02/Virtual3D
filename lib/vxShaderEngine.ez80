@@ -1,3 +1,4 @@
+#define	VX_REGISTER_TMP	-36+0
 #define	VX_REGISTER_Y0	-32+0
 #define	VX_REGISTER_X0	-32+1
 #define	VX_REGISTER_U0	-32+3
@@ -22,11 +23,7 @@
 #define	VX_REGISTER_INTERPOLATION_CODE	$E30800
 #define	VX_REGISTER_INTERPOLATION_SIZE	1024
 
-	.addinstr ld deu,0 13521B52 4 NOP 0
-	.addinstr ld hlu,0 23522B52 4 NOP 0
-	.addinstr ld bcu,0 03520B52 4 NOP 0
-
-	.fill	32, 0
+	.fill	36, 0
 VX_REGISTER_DATA:
 	.fill	2892, $D3
 
@@ -53,6 +50,7 @@ vxTextureCyclicLoop:
 	pop	bc
 	pop	hl
 	call	nc,vxTextureTriangleNoClip
+;;	call	vxTextureTriangleNoClip
 	pop	iy
 	pop	hl
 	pop	bc
@@ -60,15 +58,15 @@ vxTextureCyclicLoop:
 	ret
 vxTexturePrimitive:
 ; take iy as input, bc as vertex
-	lea	hl, iy+VX_INDEX_UV0
-	ld	ix, (iy+VX_INDEX0)
+	lea	hl, iy+VX_TRIANGLE_UV0
+	ld	ix, (iy+VX_TRIANGLE_I0)
 	add	ix, bc
 	lea	de, ix+VX_VERTEX_GPR0
 	ldi
 	ldi
 	ld	a, (de)
 	pea	ix+0
-	ld	ix, (iy+VX_INDEX1)
+	ld	ix, (iy+VX_TRIANGLE_I1)
 	add	ix, bc
 	lea	de, ix+VX_VERTEX_GPR0+2
 	ldi
@@ -76,7 +74,7 @@ vxTexturePrimitive:
 	ex	de, hl
 	add	a, (hl)
 	ex	de, hl
-	ld	iy, (iy+VX_INDEX2)
+	ld	iy, (iy+VX_TRIANGLE_I2)
 	add	iy, bc
 	lea	de, iy+VX_VERTEX_GPR0+4
 	ldi
@@ -228,7 +226,8 @@ vxRegister11Interpolation:
 	ld	de, (vxFramebuffer)
 	add	hl, de
 	ld	de, (ix+VX_REGISTER_X1)
-	ld	deu, 0
+	inc.s	de
+	dec.s	de
 	push	de
 	add	hl, de
 	ex	de, hl
@@ -548,70 +547,36 @@ vxDerivateZero1:
 	dec.s	hl
 	ld	(iy+VX_FDUDX), hl
 ; interpolate u,v register2 and register3, and initialise drawing
-#comment
-; hl = u0*256+(dudy+dudx)/2, ix=v0*256+(dvdy+dvdx)/2
-	ld	hl, (iy+VX_FDVDY)
-	ld	de, (iy+VX_FDVDX)
-	add	hl, de
-	sra	h \ rr l
-	ex	de, hl
-	ld	hl, (iy+VX_FDUDY)
-	ld	bc, (iy+VX_FDUDX)
-	add	hl, bc
-	sra	h \ rr  l
-	ld	a, l
-	ld	(vxShaderOffset+2), a
-	ld	a, h
 
-vxShaderUniform1=$+1
-	ld	hl, $D30000
-	ld	l, (iy+VX_REGISTER_U0)
-	add	a, l
-	ld	l, a
-vxShaderOffset=$+2
-	ld	ix, $000000
-	ld	a, (iy+VX_REGISTER_V0)
-	add	a, d
-	ld	ixh, a
-	ld	ixl, e
-; load de and bc
-	ld	bc, (iy+VX_FDVDY)
-	ld	de, (iy+VX_FDUDY+1)
-#endcomment
-	ld	bc, (iy+VX_FDUDY)
-	add	hl, bc
-	sra	h \ rr l
-	ld	a, l
-	ld	(vxShaderOffset+2), a
-	ld	a, (iy+VX_REGISTER_U0)
-	add	a, h
-vxShaderUniform1=$+1
-	ld	hl, $D30000
-	ld	l, a
-	ex	de, hl
-vxShaderOffset=$+2
-	ld	ix, $000000
+; hl = u0*256+(dudy/2) + 65536*(v0*256+(dvdy/2))%256
+; a=(v0*256+(dvdy/2))/256
+; de = dudy + 65536*(dvdy%256)
+; c = dvdy/256
+; b = size
+	pop	bc
+
+	ld	de, (iy+VX_FDVDY)
 	ld	hl, (iy+VX_FDVDX)
-	ld	bc, (iy+VX_FDVDY)
-	add	hl, bc
+	add	hl, de	; de = delta's
 	sra	h \ rr l
 	ld	a, (iy+VX_REGISTER_V0)
 	add	a, h
-	ex	de, hl
-	ld	ixh, a
-	ld	ixl, e
-	ld	de, (iy+VX_FDUDY+1)
-; ready to interpolate
-	pop	af
-
-	push	de
-	push	bc
-	push	bc
-	ld	c, e
-	pop	de
+	ld	h, a
+	ld	(iy+VX_REGISTER_TMP), hl
+	ld	hl, (iy+VX_FDUDY)
+; ld c, h
+	ld	a, b
+	ld	bc, (iy+VX_FDUDY)
+	ld	hl, (iy+VX_FDUDX)
+	add	hl, bc
+	ld	c, b
 	ld	b, a
-	ld	a, l
-	lea	hl, ix+0
+	sra	h \ rr l
+	ld	(iy+VX_REGISTER_TMP+2), l
+	ld	a, (iy+VX_REGISTER_U0)
+	add	a, h   				; now, restore hl
+	ld	hl, (iy+VX_REGISTER_TMP)	; ready to interpolate uv
+
 vxRegisterGradientLoop:
 	ld	(iy+VX_REGISTER2), hl
 	ld	(iy+VX_REGISTER3), a
@@ -626,26 +591,6 @@ vxRegisterGradientLoop:
 	lea	iy, iy+(VX_REGISTER_SIZE*2)
 	djnz	vxRegisterGradientLoop
 vxRegisterGradientEnd:
-	pop	bc
-	pop	de
-
-#comment
-vxRegisterGradientLoop:
-	ld	(iy+VX_REGISTER2), ix
-	ld	(iy+VX_REGISTER3), hl
-	add	ix, bc	; v interpolation on y
-	adc	hl, de	; u interpolation on y
-	dec	a
-	jr	z, vxRegisterGradientEnd
-	ld	(iy+VX_REGISTER2+VX_REGISTER_SIZE), ix
-	ld	(iy+VX_REGISTER3+VX_REGISTER_SIZE), hl
-	add	ix, bc	; v interpolation on y
-	adc	hl, de	; u interpolation on y
-	lea	iy, iy+(VX_REGISTER_SIZE*2)
-	dec	a
-	jr	nz, vxRegisterGradientLoop
-vxRegisterGradientEnd:
-#endcomment
 
 ; initialise drawing
 ;;	ld	ix, VX_PIXEL_SHADER_CODE ; this init is now useless
@@ -662,6 +607,7 @@ vxShaderUniform0=$+1
 	ld	de, VX_PIXEL_SHADER_DATA
 	ld	hl, (iy+VX_FDVDX)
 	ld	sp, hl
+	ld	hl, (vxTexturePage)
 	ld	bc, (iy+VX_FDUDX+1)
 	exx
 vxShaderJumpWrite=$+1

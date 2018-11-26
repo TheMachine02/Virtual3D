@@ -26,10 +26,8 @@
 
 
 #define OS__FLAGS           $D00080
-#ifndef TI84PCE
-#include "ti84pce.inc"
+
 #include "relocate.inc"
-#endif
 #include	"vxModel.inc"
 #include	"vxVSL.inc"
 ; standard defines ;
@@ -63,10 +61,9 @@
 
 ; static variables ;
 
-#define madd                  __imadd_src_()
+#define fma                  __imadd_src_()
 #define .align               align(
 .addinstr  ld a,hlu 3BF133E5 4
-.addinstr  ld a,deu 3BF133D5 4
 
 ; Fused multiply and add macro
 ; madd [bc,a,hl]
@@ -130,7 +127,7 @@
 	add	hl, de
 ; ok, that was fast !
 #endmacro
-#define	madd.f	madd2()
+#define	fma.f	madd2()
 
 #macro align(bound)
 	.fill bound-($%bound)

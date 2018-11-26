@@ -6,6 +6,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <algorithm>
+#include <iterator>
 #include "glm/glm.hpp"
 
 #define MAX_LINE_SIZE 16777216
@@ -14,12 +16,16 @@
 using namespace std;
 using namespace glm;
 vector <mat4x4> applyMul(vector <mat4x4> right,vector <mat4x4> left);
+void display_vector(const vector<int> &v);
 ivec2 UVMap(vec2 t);
 
 int main()
 {
     mat4 mswap(1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1);
     double skip;
+    int fstart=0;
+    int fend=0;
+
     vec4 scale4(1,1,1,1);
     vec3 scale3(1,1,1);
 
@@ -32,7 +38,7 @@ int main()
     vector <vec2> texture;
     vector <vec3> normal;
     vector <ivec3> triangle;
-    vector <vec2> link;
+    vector <pair <int, int> > link;
     vector <mat4> mbind;
 
     vector < vector <mat4x4> > matrixTable;
@@ -48,6 +54,7 @@ int main()
 
     while(std::getline(xml, line))
     {
+
         if(line.find("<vertex>")!=string::npos)
         {
             //read the whole line of vertex \o/
@@ -86,6 +93,7 @@ int main()
                 line=line.substr(line.find(" ")+1,line.size());
 
                 triangle.push_back(v);
+
             }
             continue;
         }
@@ -195,8 +203,12 @@ int main()
                 line=line.substr(line.find(" ")+1,line.size());
                 p[1]=strtof(line.c_str(),NULL);
                 line=line.substr(line.find(" ")+1,line.size());
-                link.push_back(p);
+                link.push_back(make_pair(p[0],p[1]));
             }
+
+            // now we need to sort the list based on bone value.
+            sort(link.begin(),link.end());
+
             continue;
         }
 
@@ -258,21 +270,6 @@ int main()
         if(line.find("<skeleton>")!=string::npos)
         {
 
-            mat4x4 m=matrixTable[8][0];
-
-            vec4 v=m[0];
-            printf("%f %f %f %f\n", v[0],v[1],v[2],v[3]);
-            v=m[1];
-            printf("%f %f %f %f\n", v[0],v[1],v[2],v[3]);
-            v=m[2];
-            printf("%f %f %f %f\n", v[0],v[1],v[2],v[3]);
-            v=m[3];
-            printf("%f %f %f %f\n", v[0],v[1],v[2],v[3]);
-
-
-
-
-
             vector < vector <mat4x4> > mstack;
             vector <mat4x4> mcurr;
 
@@ -315,18 +312,6 @@ int main()
                 }
             }
 
-            m=matrixTable[8][0];
-
-            v=m[0];
-            printf("%f %f %f %f\n", v[0],v[1],v[2],v[3]);
-            v=m[1];
-            printf("%f %f %f %f\n", v[0],v[1],v[2],v[3]);
-            v=m[2];
-            printf("%f %f %f %f\n", v[0],v[1],v[2],v[3]);
-            v=m[3];
-            printf("%f %f %f %f\n", v[0],v[1],v[2],v[3]);
-
-
             continue;
         }
 
@@ -339,12 +324,29 @@ int main()
             continue;
         }
 
+        if(line.find("<framestart>")!=string::npos)
+        {
+            //<framestart>0
+            i=12;
+            line=line.substr(i,line.size());
+            fstart=strtod(line.c_str(),NULL);
+            continue;
+        }
+
+        if(line.find("<frameend>")!=string::npos)
+        {
+            //<frameend>0
+            i=10;
+            line=line.substr(i,line.size());
+            fend=strtod(line.c_str(),NULL);
+            continue;
+        }
+
         if(line.find("<scale>")!=string::npos)
         {
             //<scale>
             i=7;
             line=line.substr(i,line.size());
-            puts(line.c_str());
 
             scale4[0]=strtof(line.c_str(), NULL);
             line=line.substr(line.find(" ")+1,line.size());
@@ -360,28 +362,44 @@ int main()
             scale3[2]=scale4[2];
         }
     }
-    printf("%d", bcount);
+    printf("%d %d %d\n", bcount,fstart,fend);
 
     //output dataset to file.
     ofstream out("XML.ez80");
     vector <mat4> mset;
+    vector <int> rvlink;
+
+    rvlink.reserve(link.size());
+
     int prev=-1;
     int j=0;
 
-    out << "VERTEXDATA:\n";
+    out << "#include \"vxModel.inc\"" << '\n';
+    out << "VERTEXDATA:" << '\n';
     out << ".dl " << vertex.size()*256 << "\n";
+
+    int tsize=0;
 
     for(i=0; i<vertex.size(); i++)
     {
-        if(prev!=link[i][0])
+        if(prev!=link[i].first)
         {
-            prev=link[i][0];
+
+            prev=link[i].first;
             //write matrix data : FUN
             out << ".dw VX_ANIMATION_BONE\n";
             mset=matrixTable[prev];
-            out << ".db " << mset.size() << "\n";
-            for(j=0; j<mset.size(); j++)
+            out << ".db " << fend-fstart << "\n";
+            int s = mset.size();
+            //fend = std::min(fend,s);
+            //if(fend==0)
+            //    fend=(int)mset.size();
+
+            printf("%d %d %d\n", fend,s, prev);
+
+            for(j=fstart; j<fend; j++)
             {
+
                 mat4 m=mswap*mset[j]*mbind[prev];
 
                // vec4 col0=m[0];
@@ -410,23 +428,33 @@ int main()
                 out << (int)(col0[2]*64.0) <<  "," << (int)(col1[2]*64.0) <<  "," << (int)(col2[2]*64.0) << "\n";
                 out << ".dw ";
                 out << (int)(col3[0]*256.0) << "," << (int)(col3[1]*256.0) << "," << (int)(col3[2]*256.0) << "\n";
+                tsize +=15;
             }
         }
-        vec3 v=vertex[i]*scale3;
-        out << ".dw " << (int)(v[0]*256.0) << "," << (int)(v[1]*256.0) << "," << (int)(v[2]*256.0) << "\n";
+
+        int b = link[i].second; // vertex id
+        rvlink[b]=i;
+
+        vec3 v=vertex[b]*scale3;
+        out << ".v " << (int)(v[0]*256.0) << "," << (int)(v[1]*256.0) << "," << (int)(v[2]*256.0) << "\n";
         if(normal.size()!=0)
         {
-            vec3 n=normal[i];
+            vec3 n=normal[b];
             out << ".db " << (int)(n[0]*64.0) << "," << (int)(n[1]*64.0) << "," << (int)(n[2]*64.0) << "\n";
         }
+
+        tsize = tsize+9;
     }
+
+    printf("SIZE : %d\n", tsize);
 
     out << "TRIDATA:\n";
     out << ".dl " << (triangle.size()/3)*256 << "\n";
     for(i=0; i<triangle.size()/3; i++)
 {
-    out << ".f " << triangle[i*3].x << "," << triangle[i*3+1].x << "," << triangle[i*3+2].x << "\n";
+    out << ".f " << rvlink[triangle[i*3].x] << "," << rvlink[triangle[i*3+1].x] << "," << rvlink[triangle[i*3+2].x] << "\n";
     out << ".db 0\n";
+
     ivec2 tcoord=UVMap(texture[triangle[i*3].z]);
     out << ".db " << tcoord[0] << "," << tcoord[1] << "\n";
     tcoord=UVMap(texture[triangle[i*3+1].z]);
@@ -452,4 +480,10 @@ ivec2 UVMap(vec2 t)
 {
     ivec2 newcoord(clamp((int)(clamp(t[0],0.0f,1.0f)*256.0),0,255), clamp((int)(clamp(1.0f-t[1],0.0f,1.0f)*256.0),0,255));
     return newcoord;
+}
+
+void display_vector(const vector<int> &v)
+{
+    std::copy(v.begin(), v.end(),
+        std::ostream_iterator<int>(std::cout, " "));
 }

@@ -9,7 +9,7 @@ gouraudShader:
 .relocate	VX_PIXEL_SHADER_CODE
 gouraudCode:
 	ld	a, h
-	add	hl, sp
+	add	hl, sp	; grp1 (v)
 	exx
 	ld	d, a
 	ld	a, (de)
