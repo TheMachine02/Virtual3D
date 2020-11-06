@@ -12,12 +12,12 @@
 	ret	c		; qui if error at init
 
 	ld	hl, VertexName
-	call	vxMemoryFind
+	call	find
 	ret	c
 	ld	(Vertex), hl
 
 	ld	hl, TriangleName
-	call	vxMemoryFind
+	call	find
 	ret	c
 	ld	(Triangle), hl
 
@@ -196,7 +196,7 @@ _kskip4:
 	jp	z, MainLoop
 	ret
 
-#include	"vxMain.ez80"
+#include	"vxMain.asm"
 #include	"graphics_lib.asm"
 
 posX:
@@ -238,3 +238,25 @@ EulerAngle:
 	.dl	0,0,0
 LightAngle:
 	.dl	0,0,0
+	
+find:
+; load a file from an appv
+; hl : file name
+; hl = file adress
+; if error : c set, a = error code
+	call	_mov9toOP1
+	call	_ChkFindSym
+	ret	c
+	call	_ChkInRam
+	ex de,hl
+	jr	z, unarchived
+; 9 bytes - name size (1b), name string, appv size (2b)
+	ld	de, 9
+	add	hl, de
+	ld	e, (hl)
+	add	hl, de
+	inc	hl
+unarchived:
+	inc	hl
+	inc	hl
+	ret

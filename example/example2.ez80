@@ -8,17 +8,17 @@
 .assume ADL=1
 
 	ld	hl, VertexName
-	call	vxMemoryFind
+	call	find
 	ret	c
 	ld	(Vertex), hl
 
 	ld	hl, TriangleName
-	call	vxMemoryFind
+	call	find
 	ret	c
 	ld	(Triangle), hl
 
 	ld	hl, TextureName
-	call	vxMemoryFind
+	call	find
 	ret	c
 	ld	(Texture), hl
 
@@ -152,19 +152,6 @@ triangle_count=$+1
 
 	call	vxFlushLCD
 
-;	call	vxWaitVsync
-;	ld	a, $2A
-;	call	vxSpiCmd
-;	ld	a, $0
-;	call	vxSpiParam
-;	ld	a, $0
-;	call	vxSpiParam
-;	ld	a, $01
-;	call	vxSpiParam
-;	ld	a, $3F
-;	call	vxSpiParam
-;	call	vxWaitVsync
-
 KeyboardTest:
 	ld hl,$F50000
 	ld (hl),2
@@ -265,7 +252,7 @@ Random:
 rand1:
 .fill	12
 
-#include	"vxMain.ez80"
+#include	"vxMain.asm"
 #include	"graphics_lib.asm"
 
 posX:
@@ -324,3 +311,25 @@ EulerAngle:
 	.dl	0,0,0
 LightAngle:
 	.dl	0,0,0
+
+find:
+; load a file from an appv
+; hl : file name
+; hl = file adress
+; if error : c set, a = error code
+	call	_mov9toOP1
+	call	_ChkFindSym
+	ret	c
+	call	_ChkInRam
+	ex de,hl
+	jr	z, unarchived
+; 9 bytes - name size (1b), name string, appv size (2b)
+	ld	de, 9
+	add	hl, de
+	ld	e, (hl)
+	add	hl, de
+	inc	hl
+unarchived:
+	inc	hl
+	inc	hl
+	ret

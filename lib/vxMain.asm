@@ -1,21 +1,3 @@
-;;#include	"vxClipping.ez80"
-;;#include "vxPrimitiveClipping.asm"
-#include	"vxPipeline.ez80"
-#include	"vxImage.ez80"
-;;#include	"vxRasterFlat.ez80"
-#include	"vxShaderCore.ez80"
-;;#include	"vxShaderEngine.ez80"
-#include	"vxTimer.ez80"
-#include	"vxMatrix.ez80"
-#include	"vxQuaternion.ez80"
-#include	"vxVector.ez80"
-#include	"vxFramebuffer.ez80"
-#include	"vxMemory.ez80"
-#include	"vxData.inc"
-;;#include	"vxConvolution.ez80"
-
-#include "vxPrimitive.asm"
-
 ; functions
 
 vxEngineInit:
@@ -40,8 +22,8 @@ vxEngineInit:
 	ld	hl, VX_FRAMEBUFFER_AUX1	;used to be 1
 	ld	(vxFramebuffer), hl
 ; memory initialisation
-	call	__unlock
 	call	vxMemoryCreateDevice
+;	call	vxMemoryUnlockPrivilege
 ; data initialisation
 	ld	hl, VX_LUT_CONVOLVE_DATA
 	ld	de, VX_LUT_CONVOLVE
@@ -75,6 +57,7 @@ vxEngineInit:
 	ex	(sp), hl
 	jp	(hl)
 vxEngineQuit:
+;	call	vxMemoryLockPrivilege
 	ld	a, $D0
 	.db	$ED,$6D	; ld mb,a
 	ld hl,$F50000
@@ -95,7 +78,6 @@ vxEngineQuit:
 	ld	hl, VX_FRAMEBUFFER_AUX0
 	ld	(VX_LCD_BUFFER), hl
 	call	vxMemoryDestroyDevice
-	call	__lock
 	ld	hl, 0E00005h
 	ld	(hl), 4	; Set flash wait states to 5 + 4 = 9 (total access time = 10)
 	call _HomeUp
@@ -104,3 +86,94 @@ vxEngineQuit:
 	call _RunIndicon
 	ei
 	jp _DrawBatteryIndicator
+
+; memory backing function
+	
+vxMemoryCreateDevice:
+	call	vxMemoryUnlock
+	ld	a, $3F
+	call	vxMemorySafeErase
+	ld	a, $3E
+	call	vxMemorySafeErase
+	ld	a, $3D
+	call	vxMemorySafeErase
+	ld	a, $3C
+	call	vxMemorySafeErase
+	ld	hl, $D00001
+	ld	(hl), $A5
+	dec	hl
+	ld	(hl), $5A
+	ld	de, $3C0000
+	ld	bc, $40000
+	jp	__WriteFlash
+; 	jp	vxMemoryLock
+vxMemorySafeErase:
+	ld	bc,$0000F8
+	push	bc
+	jp	__EraseFlashPage
+
+vxMemoryDestroyDevice:
+; restore RAM state
+	ld	hl, $3C0000
+	ld	de, $D00000
+	ld	bc, $01887C
+	ldir
+; sps, spl stack aren't copied obviously
+	ld	hl, $3DA881
+	ld	de, $D1A881
+	ld	bc, $02577F
+	ldir
+	ret
+
+vxMemoryUnlock:
+	ld	bc, $24
+	ld	a, $8c
+	call	_inner_write
+	ld	bc, $06
+	call	_inner_read
+	or	a, 4
+	call	_inner_write
+	ld	bc, $28
+	ld	a, $4
+	jp	_inner_write
+vxMemoryLock:
+	ld	bc, $28
+	xor	a, a
+	call	_inner_write
+	ld	bc, $06
+	call	_inner_read
+	res	2, a
+	call	_inner_write
+	ld	bc, $24
+	ld	a, $88
+	jp	_inner_write	
+vxMemoryUnlockPrivilege:
+	ld	bc, $28
+	ld	a, $4
+	jp	_inner_write
+vxMemoryLockPrivilege:
+	ld	bc, $28
+	xor	a, a
+_inner_write:
+	ld	de, $C979ED
+	ld	hl, $D1887C - 3
+	ld	(hl), de
+	jp	(hl)
+_inner_read:
+	ld	de, $C978ED
+	ld	hl, $0D1887C - 3
+	ld	(hl), de
+	jp	(hl)
+
+; include texture, clipping, color
+#include	"vxPrimitive.asm"
+#include	"vxPipeline.asm"
+#include	"vxImage.asm"
+#include	"vxShaderCore.asm"
+#include	"vxTimer.asm"
+#include	"vxMatrix.asm"
+#include	"vxQuaternion.asm"
+#include	"vxVector.asm"
+#include	"vxFramebuffer.asm"
+; various LUT
+#include	"vxData.inc"
