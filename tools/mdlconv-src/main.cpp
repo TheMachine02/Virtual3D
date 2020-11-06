@@ -296,12 +296,12 @@ bool loadOBJ(const char * path, unsigned short option)
 
     string newfile=path;
     i=newfile.find('.');
-    const char * newpath=newfile.substr(0,i).append("0.inc").c_str();
+    string newpath=newfile.substr(0,i).append("0.inc");
 
-    ofstream out(newpath,std::ios::out);
+    ofstream out(newpath.c_str(),std::ios::out);
     if(!out)
     {
-        cerr << "Cannot open " << newpath << endl;
+        cerr << "Cannot open " << newpath.c_str() << endl;
         exit(EXIT_FAILURE);
     }
 

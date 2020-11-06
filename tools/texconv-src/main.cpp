@@ -789,3 +789,5 @@ void generateConvolve()
         intensity+=17;
     }
 }
+
+#include "lodepng.cpp"
