@@ -51,9 +51,9 @@
 	ldir
 
 ;	ld	ix, lightShader
-;	ld	ix, alphaShader
+	ld	ix, alphaShader
 ;	ld	ix, gouraudShader
-;	call	vxShaderLoad
+	call	vxShaderLoad
 
 	ld	a, 0
 	ld	(vxAnimationKey), a
@@ -280,15 +280,15 @@ Temp:
 ; choose mateus or tonberry
 
 VertexName:
-	.db	AppVarObj, "KALIYA0",0
+	.db	AppVarObj, "FRANV",0
 Vertex:
 	.dl	0
 TriangleName:
-	.db	AppVarObj, "KALIYA1", 0
+	.db	AppVarObj, "FRANF", 0
 Triangle:
 	.dl	0
 TextureName:
-	.db	AppVarObj, "KALIYA2", 0
+	.db	AppVarObj, "FRANT", 0
 Texture:
 	.dl	0
 Light:

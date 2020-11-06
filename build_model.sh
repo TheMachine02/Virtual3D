@@ -18,8 +18,8 @@ spasm -I lib/ file/PoolTRIII0.inc bin/POOLV.8xv -E -S
 spasm -I lib/ file/PoolTRIII1.inc bin/POOLF.8xv -E -S
 
 ./tools/mdlconv  file/room_commune.obj -T -N -S -B
-spasm -I lib/ file/room_commune0.inc bin/GYMV.8xv -E -S
-spasm -I lib/ file/room_commune1.inc bin/GYMF.8xv -E -S
+spasm -I lib/ file/room_commune0.inc bin/ROOMV.8xv -E -S
+spasm -I lib/ file/room_commune1.inc bin/ROOMF.8xv -E -S
 
 spasm -I lib/ file/XML0.ez80 bin/LARAV.8xv -E -S
 spasm -I lib/ file/XML1.ez80 bin/LARAF.8xv -E -S
@@ -123,7 +123,7 @@ spasm -I lib/ file/CityTRIII.inc bin/CITYT.8xv -E -S
 spasm -I lib/ file/TrainRoomTRIII.inc bin/TRAINT.8xv -E -S
 spasm -I lib/ file/PoolTRIII.inc bin/POOLT.8xv -E -S
 spasm -I lib/ file/LaraTRIII.inc bin/LARAT.8xv -E -S
-spasm -I lib/ file/texture.inc bin/GYMT.8xv -E -S
+spasm -I lib/ file/texture.inc bin/ROOMT.8xv -E -S
 spasm -I lib/ file/FranFFXII.inc bin/FRANT.8xv -E -S
 spasm -I lib/ file/MjrnFFXII.inc bin/MJRNT.8xv -E -S
 spasm -I lib/ file/BunnyFFXII.inc bin/FLUFFYT.8xv -E -S

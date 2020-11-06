@@ -84,8 +84,8 @@ renderLevel:
 ;	ld	b, 3
 ;	ld	c, 2
 
-	ld	b, 3
-	ld	c, 2
+	ld	b, 2
+	ld	c, 0
 
 allrender:
 	push	bc
@@ -251,9 +251,9 @@ dataLevelName:
 textureName:
 	.db	AppVarObj, "GYM2",0
 laraVertexName:
-	.db	AppVarObj, "LARA0", 0
+	.db	AppVarObj, "LARAV", 0
 laraIndexName:
-	.db	AppVarObj, "LARA1", 0
+	.db	AppVarObj, "LARAF", 0
 
 dataRoomIndex:
 	.dl	0
