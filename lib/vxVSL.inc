@@ -53,18 +53,20 @@
 
 ; vertex input register (iy) ;
 
-#define	VX_VERTEX_DATA_SIZE	9
+#define	VX_VERTEX_DATA_SIZE	9 ; >> 10
 #define	VX_VERTEX_POSITION	0
 #define	VX_VERTEX_VX		0
 #define	VX_VERTEX_VY		2
 #define	VX_VERTEX_VZ		4
-#define	VX_VERTEX_NORMAL		6
+#define	VX_VERTEX_NORMAL	6
 #define	VX_VERTEX_NX		6
 #define	VX_VERTEX_NY		7
 #define	VX_VERTEX_NZ		8
+#define VX_VERTEX_SM        9
 
 ; global data input register (ix) ;
 
+; special matrix 0
 #define	VX_MATRIX0			0
 #define	VX_MATRIX0_C0		0
 #define	VX_MATRIX0_C1		1
@@ -79,6 +81,8 @@
 #define	VX_MATRIX0_TY		12
 #define	VX_MATRIX0_TZ		15
 
+; special light 0
+
 #define	VX_LIGHT0_VECTOR		18
 #define	VX_LIGHT0_AMBIENT	21
 #define	VX_LIGHT0_POW		22
@@ -92,11 +96,14 @@
 #define	VX_TRIANGLE_I0		0
 #define	VX_TRIANGLE_I1		3
 #define	VX_TRIANGLE_I2		6
-#define	VX_TRIANGLE_COLOR	9
-#define	VX_TRIANGLE_TEXTURE	10
-#define	VX_TRIANGLE_UV0		10
-#define	VX_TRIANGLE_UV1		12
-#define	VX_TRIANGLE_UV2		14
+#define	VX_TRIANGLE_COLOR	9 ;+ 6
+#define	VX_TRIANGLE_TEXTURE	10 ;+ 6
+#define	VX_TRIANGLE_UV0		10 ;+ 6
+#define	VX_TRIANGLE_UV1		12 ;+ 6
+#define	VX_TRIANGLE_UV2		14 ;+ 6
+#define	VX_POLYGON_I0		0
+#define	VX_POLYGON_I1		3
+#define	VX_POLYGON_I2		6
 
 ; geometry out buffer register ;
 
@@ -117,7 +124,7 @@
 #define	VX_STREAM_HEADER_COUNT	1
 
 #define	VX_STREAM_HEADER_BBOX		8
-#define	VX_STREAM_HEADER_FORMAT_MASK	%00011111
+;#define	VX_STREAM_HEADER_FORMAT_MASK	%00011111
 
 ; type constant ;
 

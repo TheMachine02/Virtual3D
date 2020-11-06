@@ -1,10 +1,10 @@
 ; Quaternions utility functions
 
-#define VX_QUATERNION_SIZE    $0C
-#define VX_QW                 $0
-#define VX_QX                 $3
-#define VX_QY                 $6
-#define VX_QZ                 $9
+#define VX_QUATERNION_SIZE			$0C
+#define VX_QUATERNION_QW             	$0
+#define VX_QUATERNION_QX          	$3
+#define VX_QUATERNION_QY       		$6
+#define VX_QUATERNION_QZ             	$9
 
 vxIdentityQuaternion:
 .dl	$004000
@@ -25,20 +25,20 @@ vxQuaternionLoadRotation:
 	ret
 vxQuaternionMlt:
 ; untested
-	ld	hl, (ix+VX_QZ)
-	ld	de, (iy+VX_QZ)
+	ld	hl, (ix+VX_QUATERNION_QZ)
+	ld	de, (iy+VX_QUATERNION_QZ)
 	call	vxQuatMlt
 	push	hl
-	ld	hl, (ix+VX_QX)
-	ld	de, (iy+VX_QX)
+	ld	hl, (ix+VX_QUATERNION_QX)
+	ld	de, (iy+VX_QUATERNION_QX)
 	call	vxQuatMlt
 	push	hl
-	ld	hl, (ix+VX_QY)
-	ld	de, (iy+VX_QY)
+	ld	hl, (ix+VX_QUATERNION_QY)
+	ld	de, (iy+VX_QUATERNION_QY)
 	call	vxQuatMlt
 	push	hl
-	ld	hl, (ix+VX_QW)
-	ld	de, (iy+VX_QW)
+	ld	hl, (ix+VX_QUATERNION_QW)
+	ld	de, (iy+VX_QUATERNION_QW)
 	call	vxQuatMlt
 	pop	de
 	or	a, a
@@ -49,70 +49,22 @@ vxQuaternionMlt:
 	pop	de
 	or	a, a
 	sbc	hl, de
-; got VX_QW
+; got VX_QUATERNION_QW
 	push	hl
-	ld	hl, (ix+VX_QW)
-	ld	de, (iy+VX_QX)
+	ld	hl, (ix+VX_QUATERNION_QW)
+	ld	de, (iy+VX_QUATERNION_QX)
 	call	vxQuatMlt
 	push	hl
-	ld	hl, (ix+VX_QX)
-	ld	de, (iy+VX_QW)
+	ld	hl, (ix+VX_QUATERNION_QX)
+	ld	de, (iy+VX_QUATERNION_QW)
 	call	vxQuatMlt
 	push	hl
-	ld	hl, (ix+VX_QZ)
-	ld	de, (iy+VX_QY)
+	ld	hl, (ix+VX_QUATERNION_QZ)
+	ld	de, (iy+VX_QUATERNION_QY)
 	call	vxQuatMlt
 	push	hl
-	ld	hl, (ix+VX_QY)
-	ld	de, (iy+VX_QZ)
-	call	vxQuatMlt
-	pop	de
-	or	a, a
-	sbc	hl, de
-	pop	de
-	add	hl, de
-	pop	de
-	add	hl, de
-; got VX_QX
-	push	hl
-	ld	hl, (ix+VX_QW)
-	ld	de, (iy+VX_QY)
-	call	vxQuatMlt
-	push	hl
-	ld	hl, (ix+VX_QX)
-	ld	de, (iy+VX_QZ)
-	call	vxQuatMlt
-	push	hl
-	ld	hl, (ix+VX_QY)
-	ld	de, (iy+VX_QW)
-	call	vxQuatMlt
-	push	hl
-	ld	hl, (ix+VX_QZ)
-	ld	de, (iy+VX_QX)
-	call	vxQuatMlt
-	pop	de
-	add	hl, de
-	pop	de
-	or	a, a
-	sbc	hl, de
-	pop	de
-	add	hl, de
-; got VX_QY
-	push	hl
-	ld	hl, (ix+VX_QW)
-	ld	de, (iy+VX_QZ)
-	call	vxQuatMlt
-	push	hl
-	ld	hl, (ix+VX_QX)
-	ld	de, (iy+VX_QY)
-	call	vxQuatMlt
-	push	hl
-	ld	hl, (ix+VX_QY)
-	ld	de, (iy+VX_QX)
-	call	vxQuatMlt
-	push	hl
-	ld	hl, (ix+VX_QZ)
-	ld	de, (iy+VX_QW)
+	ld	hl, (ix+VX_QUATERNION_QY)
+	ld	de, (iy+VX_QUATERNION_QZ)
 	call	vxQuatMlt
 	pop	de
 	or	a, a
@@ -121,27 +73,75 @@ vxQuaternionMlt:
 	add	hl, de
 	pop	de
 	add	hl, de
-; got VX_QZ
-	ld	(ix+VX_QZ), hl
+; got VX_QUATERNION_QX
+	push	hl
+	ld	hl, (ix+VX_QUATERNION_QW)
+	ld	de, (iy+VX_QUATERNION_QY)
+	call	vxQuatMlt
+	push	hl
+	ld	hl, (ix+VX_QUATERNION_QX)
+	ld	de, (iy+VX_QUATERNION_QZ)
+	call	vxQuatMlt
+	push	hl
+	ld	hl, (ix+VX_QUATERNION_QY)
+	ld	de, (iy+VX_QUATERNION_QW)
+	call	vxQuatMlt
+	push	hl
+	ld	hl, (ix+VX_QUATERNION_QZ)
+	ld	de, (iy+VX_QUATERNION_QX)
+	call	vxQuatMlt
+	pop	de
+	add	hl, de
+	pop	de
+	or	a, a
+	sbc	hl, de
+	pop	de
+	add	hl, de
+; got VX_QUATERNION_QY
+	push	hl
+	ld	hl, (ix+VX_QUATERNION_QW)
+	ld	de, (iy+VX_QUATERNION_QZ)
+	call	vxQuatMlt
+	push	hl
+	ld	hl, (ix+VX_QUATERNION_QX)
+	ld	de, (iy+VX_QUATERNION_QY)
+	call	vxQuatMlt
+	push	hl
+	ld	hl, (ix+VX_QUATERNION_QY)
+	ld	de, (iy+VX_QUATERNION_QX)
+	call	vxQuatMlt
+	push	hl
+	ld	hl, (ix+VX_QUATERNION_QZ)
+	ld	de, (iy+VX_QUATERNION_QW)
+	call	vxQuatMlt
+	pop	de
+	or	a, a
+	sbc	hl, de
+	pop	de
+	add	hl, de
+	pop	de
+	add	hl, de
+; got VX_QUATERNION_QZ
+	ld	(ix+VX_QUATERNION_QZ), hl
 	pop	hl
-	ld	(ix+VX_QY), hl
+	ld	(ix+VX_QUATERNION_QY), hl
 	pop	hl
-	ld	(ix+VX_QX), hl
+	ld	(ix+VX_QUATERNION_QX), hl
 	pop	hl
-	ld	(ix+VX_QW), hl
+	ld	(ix+VX_QUATERNION_QW), hl
 	ret
 
 vxQuaternionMagnitude:
-	ld	hl, (ix+VX_QW)
+	ld	hl, (ix+VX_QUATERNION_QW)
 	call	vxQuatSquare
 	push	hl
-	ld	hl, (ix+VX_QX)
+	ld	hl, (ix+VX_QUATERNION_QX)
 	call	vxQuatSquare
 	push	hl
-	ld	hl, (ix+VX_QY)
+	ld	hl, (ix+VX_QUATERNION_QY)
 	call	vxQuatSquare
 	push	hl
-	ld	hl, (ix+VX_QZ)
+	ld	hl, (ix+VX_QUATERNION_QZ)
 	call	vxQuatSquare
 	pop	de
 	add	hl, de
@@ -178,14 +178,14 @@ vxQuaternionGetMatrix:
 ; 1 - 2*qy² - 2*qz² 	2*qx*qy - 2*qz*qw 	2*qx*qz + 2*qy*qw
 ; 2*qx*qy + 2*qz*qw 	1 - 2*qx² - 2*qz² 	2*qy*qz - 2*qx*qw
 ; 2*qx*qz - 2*qy*qw 	2*qy*qz + 2*qx*qw 	1 - 2*qx² - 2*qy²
-	ld	hl, (iy+VX_QZ)
-	ld	de, (iy+VX_QW)
+	ld	hl, (iy+VX_QUATERNION_QZ)
+	ld	de, (iy+VX_QUATERNION_QW)
 	call	vxQuatMlt
 	add	hl, hl
 ; 2*qz*qw
 	push	hl
-	ld	hl, (iy+VX_QX)
-	ld	de, (iy+VX_QY)
+	ld	hl, (iy+VX_QUATERNION_QX)
+	ld	de, (iy+VX_QUATERNION_QY)
 	call	vxQuatMlt
 	add	hl, hl
 ; 2*qx*qy
@@ -197,14 +197,14 @@ vxQuaternionGetMatrix:
 	add	hl, de
 	ld	(ix+3), h
 ; next
-	ld	hl, (iy+VX_QY)
-	ld	de, (iy+VX_QW)
+	ld	hl, (iy+VX_QUATERNION_QY)
+	ld	de, (iy+VX_QUATERNION_QW)
 	call	vxQuatMlt
 	add	hl, hl
 ; 2*qw*qy
 	push	hl
-	ld	hl, (iy+VX_QX)
-	ld	de, (iy+VX_QZ)
+	ld	hl, (iy+VX_QUATERNION_QX)
+	ld	de, (iy+VX_QUATERNION_QZ)
 	call	vxQuatMlt
 	add	hl, hl
 ; 2*qx*qz
@@ -216,14 +216,14 @@ vxQuaternionGetMatrix:
 	add	hl, de
 	ld	(ix+2), h
 ; next
-	ld	hl, (iy+VX_QX)
-	ld	de, (iy+VX_QW)
+	ld	hl, (iy+VX_QUATERNION_QX)
+	ld	de, (iy+VX_QUATERNION_QW)
 	call	vxQuatMlt
 	add	hl, hl
 ; 2*qx*qw
 	push	hl
-	ld	hl, (iy+VX_QY)
-	ld	de, (iy+VX_QZ)
+	ld	hl, (iy+VX_QUATERNION_QY)
+	ld	de, (iy+VX_QUATERNION_QZ)
 	call	vxQuatMlt
 	add	hl, hl
 ; 2*qy*qz
@@ -235,11 +235,11 @@ vxQuaternionGetMatrix:
 	add	hl, de
 	ld	(ix+7), h
 ; 1-2*qy²-2qz²
-	ld	hl, (iy+VX_QY)
+	ld	hl, (iy+VX_QUATERNION_QY)
 	call	vxQuatSquare
 	push	hl
 	push	hl
-	ld	hl, (iy+VX_QZ)
+	ld	hl, (iy+VX_QUATERNION_QZ)
 	call	vxQuatSquare
 	ex	de, hl
 	pop	bc
@@ -251,7 +251,7 @@ vxQuaternionGetMatrix:
 	ld	(ix+0), h
 ; 1-2*qz²-2qx²	
 	push	de
-	ld	hl, (iy+VX_QX)
+	ld	hl, (iy+VX_QUATERNION_QX)
 	call	vxQuatSquare
 	ex	de, hl
 	pop	bc
@@ -285,32 +285,32 @@ vxQuaternionRotationAxis:
 ; DE is never destroyed by the macro's
 	ld	hl, (ix+0)
 	call	vxQuatMlt
-	ld	(iy+VX_QX), hl
+	ld	(iy+VX_QUATERNION_QX), hl
 	ld	hl, (ix+3)
 	call	vxQuatMlt
-	ld	(iy+VX_QY), hl
+	ld	(iy+VX_QUATERNION_QY), hl
 	ld	hl, (ix+6)
 	call	vxQuatMlt
-	ld	(iy+VX_QZ), hl
+	ld	(iy+VX_QUATERNION_QZ), hl
 	pop	hl
 	call	vxCos
-	ld	(iy+VX_QW), hl
+	ld	(iy+VX_QUATERNION_QW), hl
 	ret
 vxQuaternionDot:
-	ld	hl, (ix+VX_QW)
-	ld	de, (iy+VX_QW)
+	ld	hl, (ix+VX_QUATERNION_QW)
+	ld	de, (iy+VX_QUATERNION_QW)
 	call	vxQuatMlt
 	push	hl
-	ld	hl, (ix+VX_QX)
-	ld	de, (iy+VX_QX)
+	ld	hl, (ix+VX_QUATERNION_QX)
+	ld	de, (iy+VX_QUATERNION_QX)
 	call	vxQuatMlt
 	push	hl
-	ld	hl, (ix+VX_QY)
-	ld	de, (iy+VX_QY)
+	ld	hl, (ix+VX_QUATERNION_QY)
+	ld	de, (iy+VX_QUATERNION_QY)
 	call	vxQuatMlt
 	push	hl
-	ld	hl, (ix+VX_QZ)
-	ld	de, (iy+VX_QZ)
+	ld	hl, (ix+VX_QUATERNION_QZ)
+	ld	de, (iy+VX_QUATERNION_QZ)
 	call	vxQuatMlt
 	pop	de
 	add	hl, de
@@ -326,7 +326,44 @@ vxQuaternionSlerp:
 
 vxQuatMlt:
 ; hl *de, de is not destroyed
-	call	vxMltFP8
+; start with hl*de/256
+; HLxDE/256 [16bits]
+; (HxD*256+LxD+ExH+LxE/256)
+	ld	b, h
+	ld	c, l
+	ld	l, d
+	mlt	hl
+	bit	7, b
+	jr	z, $+5
+	or	a, a
+	sbc	hl, de
+	bit	7, d
+	jr	z, $+5
+	or	a, a
+	sbc	hl, bc
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+; now need to do (CxD+BxE+ExC/256)
+	ld	a, c
+	ld	c, e
+	mlt	bc
+	add	hl, bc
+	ld	c, a
+	ld	b, d
+	mlt	bc
+	add	hl, bc
+	ld	c, a
+	ld	b, e
+	mlt	bc
+	ld	c, b
+	ld	b, 0
+	add	hl, bc
 ; and now divide by 64
 	add	hl, hl
 	add	hl, hl
@@ -339,7 +376,38 @@ vxQuatMlt:
 	ret
 vxQuatSquare:
 ; bc is kept intact
-	call	vxSquareFP8
+; HL²/256
+; Destroy DE,A [16bits]
+; (HxH*256+LxH*2+LxL/256)
+	bit	7, h
+	jr	z, vxSqAbsSkp
+	ex	de, hl
+	or	a, a
+	sbc	hl, hl
+	sbc	hl, de
+vxSqAbsSkp:
+	ld	d, h
+	ld	e, l
+	ld	l, h
+	mlt	hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	ld	a, e
+	mlt	de
+	add	hl, de
+	add	hl, de
+	ld	e, a
+	ld	d, a
+	mlt	de
+	ld	e, d
+	ld	d, 0
+	add	hl, de
 ; divide by 32
 	add	hl, hl
 	add	hl, hl
@@ -391,6 +459,7 @@ vxQuatNegResultCst:
 	ld	hl, $FFC000
 	ret
 
+#comment
 vxSquareFP8:
 ; HL²/256
 ; Destroy DE,A [16bits]
@@ -464,4 +533,5 @@ vxMltFP8:
 	ld	b, 0
 	add	hl, bc
 	ret
+#endcomment
 

@@ -44,10 +44,6 @@
 
 ; RAM and VRAM ;
 
-#define	VX_LUT_CONVOLVE		$D00000
-#define	VX_LUT_CONVOLVE_SIZE	8192
-#define	VX_LUT_SIN			$D02000
-#define	VX_LUT_SIN_SIZE		512
 
 ; color LCD ;
 
@@ -147,8 +143,8 @@
 ;.echo "pixel shader version    : ps_1.0"
 
 #define dbreak   scf \ sbc hl, hl \ ld (hl), 2
-#define dstm 	 push hl \ ld hl,$F20030 \ set 0,(hl) \ pop hl
-#define drtm	 push hl \ ld hl,$F20030 \ res 0,(hl) \ pop hl
+#define dstm 	 ld hl,$F20030 \ set 0,(hl)
+#define drtm	 ld hl,$F20030 \ res 0,(hl)
 
 #endif
 .list

@@ -1,9 +1,10 @@
-#include	"vxClipping.ez80"
+;;#include	"vxClipping.ez80"
+;;#include "vxPrimitiveClipping.asm"
 #include	"vxPipeline.ez80"
 #include	"vxImage.ez80"
-#include	"vxRasterFlat.ez80"
+;;#include	"vxRasterFlat.ez80"
 #include	"vxShaderCore.ez80"
-#include	"vxShaderEngine.ez80"
+;;#include	"vxShaderEngine.ez80"
 #include	"vxTimer.ez80"
 #include	"vxMatrix.ez80"
 #include	"vxQuaternion.ez80"
@@ -13,6 +14,8 @@
 #include	"vxData.inc"
 ;;#include	"vxConvolution.ez80"
 
+#include "vxPrimitive.asm"
+
 ; functions
 
 vxEngineInit:
@@ -20,8 +23,8 @@ vxEngineInit:
 	call	_RunIndicoff
 ; disable interrupts
 	di
-;;	ld	hl, 0E00005h
-;;	ld	(hl), 3	; Set flash wait states to 5 + 3 = 8 (total access time = 9)
+	ld	hl, 0E00005h
+	ld	(hl), 2	; Set flash wait states to 5 + 2 = 7 (total access time = 8)
 ; LCD initialisation
 	call	vxResetPalette
 ; start LCD interrupt
@@ -37,7 +40,7 @@ vxEngineInit:
 	ld	hl, VX_FRAMEBUFFER_AUX1	;used to be 1
 	ld	(vxFramebuffer), hl
 ; memory initialisation
-	call	vxMemoryUnlock
+	call	__unlock
 	call	vxMemoryCreateDevice
 ; data initialisation
 	ld	hl, VX_LUT_CONVOLVE_DATA
@@ -65,6 +68,8 @@ vxEngineInit:
 ; load shader
 	ld	ix, vxPixelShader
 	call	vxShaderLoad
+; init timer
+	call	vxTimerInit
 ; insert stack position
 	ld	hl, vxEngineQuit
 	ex	(sp), hl
@@ -90,9 +95,9 @@ vxEngineQuit:
 	ld	hl, VX_FRAMEBUFFER_AUX0
 	ld	(VX_LCD_BUFFER), hl
 	call	vxMemoryDestroyDevice
-	call	vxMemoryLock
-;;	ld	hl, 0E00005h
-;;	ld	(hl), 4	; Set flash wait states to 5 + 4 = 9 (total access time = 10)
+	call	__lock
+	ld	hl, 0E00005h
+	ld	(hl), 4	; Set flash wait states to 5 + 4 = 9 (total access time = 10)
 	call _HomeUp
 	call _Clrscrn
 	call _DrawStatusBar

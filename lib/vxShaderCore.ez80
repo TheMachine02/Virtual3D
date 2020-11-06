@@ -7,21 +7,32 @@ vxShaderAdress0:
 	.dl	0		; sub adress to change inc/dec
 vxShaderAdress1:
 	.dl	0		; second sub adress
+vxShaderAdress2:
+	.dl	0		; sub adress to change inc/dec
+vxShaderAdress3:
+	.dl	0		; second sub adress
 
 vxShaderLoad:
 	ld	bc, (ix+VX_SHADER_SIZE)	; load size
 	lea	hl, ix+VX_SHADER_CODE		; load shader
 	ld	de, VX_PIXEL_SHADER_CODE
 	ldir			; copy first part
+	push de
 	ld	hl, vxShaderGeneralInterpolation0
-	ld	c, 26
+	ld	c, 32
 	ldir			; copy constant part
+	pop de
+	ld	hl, VX_SMC_EDGEFIX - vxShaderGeneralInterpolation0
+	add hl, de
+	ld	(vxShaderAdress2), hl
+	ld	(vxShaderAdress3), hl
+
 ; TODO : generation of the shading table
 ; VX_CALL1_NEG
 	ld	c, (ix+VX_SHADER_DATA1)
 	ld	hl, VX_PIXEL_SHADER_CODE
 	add	hl, bc
-; VX_CALL0_NEG	
+; VX_CALL0_NEG
 	ld	de, VX_PIXEL_SHADER_CODE
 	ld	b, 160
 	ld	iy, VX_LUT_PIXEL_LENGTH-(320*4)
@@ -41,31 +52,59 @@ vxShaderCreate0:
 	lea	iy, iy+4
 
 ; de = VX_CALL1_POS
-	ld	c, (ix+VX_SHADER_DATA1)
-	dec	bc
+	ld	de, 0
+
+	ld	e, (ix+VX_SHADER_DATA1)
 	ld	hl, VX_PIXEL_SHADER_CODE
-	add	hl, bc
+	add	hl, de
+	dec hl
+	dec hl
 	ld	(vxShaderAdress0), hl
 	ex	de, hl
 ; hl = VX_CALL0_POS
-	ld	hl, VX_PIXEL_SHADER_CODE
-	add	hl, bc
-	add	hl, bc
-	inc	hl
+	add hl, de
 	ld	(vxShaderAdress1), hl
 	ld	b, 160
+
+	inc hl
+	inc hl
+	inc de
+	inc de
+
 vxShaderCreate1:
 	ld	(iy+1), de
 	ld	(iy+5), hl
 	lea	iy, iy+8
 	djnz vxShaderCreate1
+
 	ret
+
 vxShaderGeneralInterpolation0:
-	ld	hl, (iy+VX_REGISTER1)
-	ld	de, (iy+VX_REGISTER0)
+	ld	hl, (iy+VX_REGISTER2)	; v
+	exx
+	ld	hl, (iy+VX_REGISTER1) ; lut adress
+	ld	de, (iy+VX_REGISTER0)	; screen adress
 	add	hl, de
 	add	hl, hl
 	add	hl, hl
+VX_SMC_EDGEFIX=$
+	nop
+	ld	a, (hl)			; fetch correct size
+	inc	hl
+	ld	ix, (hl)			; fetch jump \o/
+	ld	hl, (iy+VX_REGISTER3)	; u
+	exx
+	ld	b, a
+	lea	iy, iy+VX_REGISTER_SIZE
+	jp	(ix)
+
+#comment
+vxShaderGeneralInterpolation0:
+	ld	hl, (iy+VX_REGISTER1)
+	ld	de, (iy+VX_REGISTER0)
+;	add	hl, de
+;	add	hl, hl
+;	add	hl, hl
 	ld	b, (hl)
 	inc	hl
 	ld	ix, (hl)
@@ -76,6 +115,7 @@ vxShaderGeneralInterpolation0:
 	lea	iy, iy+VX_REGISTER_SIZE
 	jp	(ix)
 ; exactly 26 bytes
+#endcomment
 
    .align  4
 VX_LUT_PIXEL_TABLE:
@@ -400,7 +440,7 @@ VX_LUT_PIXEL_TABLE:
    .db 1 \ .dl 0
    .db 1 \ .dl 0
 VX_LUT_PIXEL_LENGTH:
-   .db 1 \ .dl 0
+   .db 0 \ .dl 0
    .db 1 \ .dl 0
    .db 2 \ .dl 0
    .db 2 \ .dl 0
@@ -723,8 +763,3 @@ VX_LUT_PIXEL_LENGTH:
    .db 161 \ .dl 0
 vxPixelShaderExitLUT:
    .db 0 \ .dl vxPixelShaderExit
-
-
-
-
-

@@ -362,7 +362,7 @@ int main()
             scale3[2]=scale4[2];
         }
     }
-    printf("%d %d %d\n", bcount,fstart,fend);
+    printf("START : %d %d %d\n", bcount,fstart,fend);
 
     //output dataset to file.
     ofstream out("XML.ez80");

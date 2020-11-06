@@ -2,10 +2,8 @@
 #include	"shader/vxGeometryShader.inc"
 
 #define	VX_GEOMETRY_QUEUE		$D10000	; 4*4096 (16K)
-;#define	VX_GEOMETRY_N3TI9		%00010011	; 19
-#define	VX_GEOMETRY_TI9			%00010000	; 16
-;#define	VX_GEOMETRY_N3CI9		%00001101	; 13
-#define	VX_GEOMETRY_CI9			%00001010	; 10
+#define	VX_GEOMETRY_TEXTURE		16
+#define	VX_GEOMETRY_COLOR		10
 
 #define	VX_VERTEX_BUFFER		$D08000	; 16*2048 (32K)
 
@@ -60,6 +58,17 @@ vxTexturePage:
 vxPosition:
 	.dl	0,0,0
 
+	.db	0
+vxWorldEye:
+	.dl	0,0,0
+	.db	0
+
+vxModelViewReverse:
+	.db	0,0,0
+	.db	0,0,0
+	.db	0,0,0
+	.dl	0,0,0
+
 vxRenderStream:
 	ld	hl, (VX_LCD_BUFFER)
 	ld	(vxSubmissionQueue), hl
@@ -85,6 +94,8 @@ vxRenderStream:
 	ld	(vxShaderAdress0Write), hl
 	ld	hl, (vxShaderAdress1)
 	ld	(vxShaderAdress1Write), hl
+	ld	hl, (vxShaderAdress2)
+	ld	(vxShaderAdress2Write), hl
 
 ;	ld	hl, VX_PIXEL_SHADER_COPY
 ;	ld	de, VX_PIXEL_SHADER_CODE
@@ -105,29 +116,17 @@ vxRenderStream:
 	ld	b, a
 vxRenderLoop:
 	push	bc
-	ld	hl, VX_BATCH_DATA + VX_GEOMETRY_TI9
-	ld	a, l
+	ld	hl, VX_BATCH_DATA
 	ld	l, (iy+VX_GEOMETRY_ID)
-	cp	(hl)	; format
+	ld	a, (hl)
 	inc	hl
 	ld	bc, (hl)	; subcache
 	pea	iy+4
 	ld	iy, (iy+VX_GEOMETRY_INDEX)	; read triangle data
-; switch(format)
-	jr	z, vxRenderTexture
-vxRenderColor:
-	call	vxColorPrimitive
+	call	vxPrimitiveRenderTriangle
 	pop	iy
 	pop	bc
 	djnz	vxRenderLoop
-	dec	c
-	jr	nz, vxRenderLoop
-	ret
-vxRenderTexture:
-	call	vxTexturePrimitive
-	pop	iy
-	pop	bc
-	djnz vxRenderLoop
 	dec	c
 	jr	nz, vxRenderLoop
 	ret
@@ -136,8 +135,8 @@ vxGeometryStream:
 ; hl : vertex source
 ; bc : cache area (where does the output vertex should go ?)
 ; de : triangle source
-; ix : world matrix 
-; iy : model matrix
+; ix : worldview matrix
+; iy : modelworld matrix
 ; a  : format
 ; now write batch id, batch data (format, cache)
 	push	de
@@ -146,7 +145,6 @@ vxGeometryStream:
 	inc	hl \ inc hl \ inc hl \ inc hl
 	ld	(vxGeometryBatchID), hl
 	ld	(hl), a	; format
-	ld	a, l
 	inc	hl
 	ld	(hl), bc
 	ex	de, hl
@@ -165,8 +163,8 @@ vxGeometryStream:
 	inc	b
 	ld	c, b
 	ld	b, a
-	lea iy, iy+VX_STREAM_HEADER_SIZE 
-;would be nice to encode the format within 
+	lea iy, iy+VX_STREAM_HEADER_SIZE
+;would be nice to encode the format within
 	call	vxGeometryShader
 ; need to update count & queue position
 ; simple : new-previous / 8
@@ -202,11 +200,57 @@ vxVertexStream:
 	ld	de, vxModelView
 	ld	bc, VX_MATRIX_SIZE
 	ldir
+; modelViewReverseTranslate = modelViewTranslate * transpose(modelview)
+; equivalent to eye position in worldspace (worldpos)
+	push	iy
+
+	ld	hl, vxModelView
+	ld	de, vxModelViewReverse
+	ld	c, VX_MATRIX_SIZE
+	ldir
+	ld	ix, vxModelViewReverse
+	call	vxMatrixTranspose
+
+	ld	de, 0
+	ld	hl, (ix+VX_MATRIX_TZ)
+	ld	(ix+VX_MATRIX_TZ), de
+	add	hl, hl
+	add	hl, hl
+	ld	(vxWorldEye-1+4), hl
+	ld	hl, (ix+VX_MATRIX_TY)
+	ld	(ix+VX_MATRIX_TY), de
+	add	hl, hl
+	add	hl, hl
+	ld	(vxWorldEye-1+2), hl
+	ld	hl, (ix+VX_MATRIX_TX)
+	ld	(ix+VX_MATRIX_TX), de
+	add	hl, hl
+	add	hl, hl
+	ld	(vxWorldEye-1), hl
+
+	ld	iy, vxWorldEye
+	call	vxfTransform
+
+	ld	hl, (vxPosition+6)
+	add	hl, hl
+	add	hl, hl
+	ld	(vxWorldEye-1+4), hl
+
+	ld	hl, (vxPosition+3)
+	add	hl, hl
+	add	hl, hl
+	ld	(vxWorldEye-1+2), hl
+	ld	hl, (vxPosition)
+	add	hl, hl
+	add	hl, hl
+	ld	(vxWorldEye-1), hl
+	pop	iy
+
 ; modelworld=modelworld0
 ; tmodelworld=transpose(modelworld)
 	lea	hl, iy+0
 	ld	de, vxModelWorld
-	ld	c, VX_MATRIX_SIZE
+	ld	bc, VX_MATRIX_SIZE
 	ldir
 	lea	hl, iy+0
 	ld	c, VX_MATRIX_SIZE
@@ -219,12 +263,11 @@ vxVertexStream:
 	ld	iy, vxLightUniform
 	call	vxMatrixLightning
 ; load up shader data
-;;	ld	ix, VX_VERTEX_SHADER_DATA
 	pop	iy
 ; iy = source, ix = matrix
 	ld	a, (iy+VX_STREAM_HEADER_OPTION)
 	ld	bc, (iy+VX_STREAM_HEADER_COUNT)
-	lea	iy, iy+VX_STREAM_HEADER_SIZE 
+	lea	iy, iy+VX_STREAM_HEADER_SIZE
 ; iy+0 are options, so check those. Here, only bounding box is interesting.
 	and	VX_STREAM_HEADER_BBOX
 	call	nz, vxVertexStreamBox
@@ -243,11 +286,10 @@ vxVertexStreamLoop:
 	ld	a, b
 	xor	VX_ANIMATION_BONE/256
 	or	a, c
-	jr	z, vxVertexLoadBone
 ; wasn't a bone in source, so read vertex
 ; call vertex shader
+	jr	z, vxVertexLoadBone
 	call	vxVertexShader
-vxVertexStreamLoopBack:
 	pop	bc
 	djnz	vxVertexStreamLoop
 	dec	c
@@ -289,10 +331,11 @@ vxVertexLoadBone:
 	pop	de
 	pop	bc
 	jr	vxVertexStreamLoop
+
 vxVertexStreamBox:
 	push	bc
 ; check the bounding box
-	ld	de, VX_VERTEX_POOL
+	ld	de, VX_PATCH_VERTEX_POOL
 	ld	a, $FF
 	ld	b, 8
 vxVertexBoxLoop:
@@ -601,7 +644,7 @@ vxNClip:
 	bit 7, c \ jr z, $+3 \ sub a, d
 	mlt	de
 	add	a, d
-	ld	d, a		
+	ld	d, a
 ; bc and hl need a restore
 ; (y1-y0)*(x2-x1)
 ;  a - (hl)*hl-bc
@@ -624,7 +667,7 @@ vxNClip:
 	bit 7, c \ jr z, $+3 \ sub a, d
 	mlt	de
 	add	a, d
-	ld	d, a		
+	ld	d, a
 ; do de + temp_value
 	pop	hl
 	add	hl, de

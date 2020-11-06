@@ -8,6 +8,7 @@ lightShader:
 	.db	11	; total size of per pixel code
 .relocate	VX_PIXEL_SHADER_CODE
 lightCode:
+#comment
 	ld  a, h    	; a=v (integer part)
 	add hl, sp  	; v=v+dv : on hlu, compute u=u+du for fractionnal part
 	exx		 	; swap
@@ -18,16 +19,27 @@ lightCode:
 	exx		 	; swap
 	ld  (de), a	; write the pixel to the framebuffer
 	inc de		; advance next pixel
+#endcomment
+	add	hl, de
 	ld	a, h
-	add	hl, sp
 	exx
+	adc	hl, sp
 	ld	h, a
-	ld	e, (hl)
-	ld	a, (de)
-	adc	hl, bc
-	exx
+	ld	c, (hl)
+	ld	a, (bc)
 	ld	(de), a
 	inc	de
+	exx
+	add	hl, de
+	ld	a, h
+	exx
+	adc	hl, sp
+	ld	h, a
+	ld	c, (hl)
+	ld	a, (bc)
+	ld	(de), a
+	inc	de
+	exx
 	djnz	lightCode
 lightEnd:
 .endrelocate

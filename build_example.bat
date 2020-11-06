@@ -16,5 +16,12 @@ echo Building example2.ez80...
 spasm -L -T -E -A -S -I include/ -I lib/ example2.ez80 bin/TEST2.bin
 convhex -x bin\TEST2.bin
 del bin\TEST2.bin
+
+echo -----------------------------------
+echo Building lvl.ez80...
+spasm -L -T -E -A -S -I include/ -I lib/ lvl.ez80 bin/TESTLVL.bin
+convhex -x bin\TESTLVL.bin
+del bin\TESTLVL.bin
+
 pause
 goto Loop

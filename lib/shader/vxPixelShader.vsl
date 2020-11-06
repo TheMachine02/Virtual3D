@@ -5,24 +5,24 @@ vxPixelShader:
 	.db	10	; total size of per pixel code
 .relocate	VX_PIXEL_SHADER_CODE
 vxPixelCode:
-	ld  a, h    ; get v to pass to next part
-	add hl, sp  ; v=v+dv (du on high)
-	exx		 ; swap
-	ld  h, a    ; paste v on high byte
-	ld  a, (hl) ; fetch texture
-	adc hl, bc  ; u=u+du (on low)
-	exx		 ; swap
-	ld  (de), a ; write pixel
-	inc de      ; next pixel
+	add	hl, de
 	ld	a, h
-	add	hl, sp
 	exx
+	adc	hl, sp
 	ld	h, a
 	ld	a, (hl)
-	adc	hl, bc
-	exx
 	ld	(de), a
 	inc	de
+	exx
+	add	hl, de
+	ld	a, h
+	exx
+	adc	hl, sp
+	ld	h, a
+	ld	a, (hl)
+	ld	(de), a
+	inc	de
+	exx
 	djnz	vxPixelCode
 vxPixelEnd:
 .endrelocate

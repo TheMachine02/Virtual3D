@@ -1,11 +1,15 @@
-#define	VX_RLE_COMPRESSED	%01000000
-#define	VX_ZX7_COMPRESSED	%10000000
-#define	VX_UNCOMPRESSED		%00100000
+#define	VX_IMAGE_RLE_COMPRESSED	%01000000
+#define	VX_IMAGE_ZX7_COMPRESSED	%10000000
+#define	VX_IMAGE_UNCOMPRESSED		%00100000
+
+#define	VX_IMAGE_PAGE			$D30000
+
+vxImage:
 
 vxImageSubCopy:
 ; hl : org, bc : rect size, de : copy
 	push	bc
-	ld	bc, (vxTexturePage)
+	ld	bc, VX_IMAGE_PAGE
 	add	hl, bc
 	ex	de, hl
 	add	hl, bc
@@ -14,7 +18,7 @@ vxImageSubCopy:
 	ld	a, b
 	ld	b, 0
 ; ready to copy
-vxImageCopyLoop:
+_inner_copyLoop:
 	push	bc
 	ldir
 	pop	bc
@@ -30,8 +34,9 @@ vxImageCopyLoop:
 	inc	h
 	inc	d
 	dec	a
-	jr	nz, vxImageCopyLoop
+	jr	nz, _inner_copyLoop
 	ret
+
 vxImageClear:
 	ld	bc, 65535
 	xor	a, a
@@ -42,103 +47,97 @@ vxImageClear:
 	inc	de
 	ldir
 	ret
+
 vxImageCopy:
 ; hl : org, de : copy, a : format
 	rla
-	jr	c, vxZX7Uncompress
+	jr	c, _inner_ZX7Uncompress
 	rla
-	jr	c, vxRLEUncompress
+	jr	c, _inner_RLEUncompress
 	ld	bc, 65536
 	ldir
 	ret
-vxRLEUncompress:
+_inner_RLEUncompress:
 	ret
-vxZX7Uncompress:
+_inner_ZX7Uncompress:
 ; Routine copied from the C toolchain & speed optimized
 ;  Input:
 ;   HL = compressed data pointer
 ;   DE = output data pointer
 	ld	a, 128
-
-dzx7t_copy_byte_loop:
-
-        ldi                             ; copy literal byte
-
-dzx7t_main_loop:
-
-        add     a, a                    ; check next bit
- 	jr nz,$+5 \ ld a,(hl) \ inc hl \ rla
-        jr      nc, dzx7t_copy_byte_loop ; next bit indicates either literal or sequence
-
-; determine number of bits used for length (Elias gamma coding)
-
-        push    de
-        ld      de, 0
-        ld      bc, 1
-
-dzx7t_len_size_loop:
-
-        inc     d
-        add     a, a                    ; check next bit
- 	jr nz,$+5 \ ld a,(hl) \ inc hl \ rla
-        jr      nc, dzx7t_len_size_loop
-        jp      dzx7t_len_value_start
-
-; determine length
-
-dzx7t_len_value_loop:
-
-        add     a, a                    ; check next bit
- 	jr nz,$+5 \ ld a,(hl) \ inc hl \ rla
-        rl      c
-        rl      b
-        jr      c, dzx7t_exit           ; check end marker
-
-dzx7t_len_value_start:
-
-        dec     d
-        jr      nz, dzx7t_len_value_loop
-        inc     bc                      ; adjust length
-
-; determine offset
-
-        ld      e, (hl)                 ; load offset flag (1 bit) + offset value (7 bits)
-        inc     hl
-
-        sla e
-        inc e
-
-        jr      nc, dzx7t_offset_end    ; if offset flag is set, load 4 extra bits
-        add     a, a                    ; check next bit
- 	jr nz,$+5 \ ld a,(hl) \ inc hl \ rla
-        rl      d                       ; insert first bit into D
-        add     a, a                    ; check next bit
- 	jr nz,$+5 \ ld a,(hl) \ inc hl \ rla
-        rl      d                       ; insert second bit into D
-        add     a, a                    ; check next bit
- 	jr nz,$+5 \ ld a,(hl) \ inc hl \ rla
-        rl      d                       ; insert third bit into D
-        add     a, a                    ; check next bit
- 	jr nz,$+5 \ ld a,(hl) \ inc hl \ rla
-        ccf
-        jr      c, dzx7t_offset_end
-        inc     d                       ; equivalent to adding 128 to DE
-
-dzx7t_offset_end:
-
-        rr      e                       ; insert inverted fourth bit into E
-
-; copy previous sequence
-
-        ex      (sp), hl                ; store source, restore destination
-        push    hl                      ; store destination
-        sbc     hl, de                  ; HL = destination - offset - 1
-        pop     de                      ; DE = destination
-       ldir
-
-dzx7t_exit:
-
-        pop     hl                      ; restore source address (compressed data)
-        jr      nc, dzx7t_main_loop
+_inner_copybyteloop:
+	ldi
+_inner_mainloop:
+	add	a, a
+	jr	nz, $+5
+	ld	a, (hl)
+	inc	hl
+	rla
+	jr	nc, _inner_copybyteloop
+	push	de
+	ld	de, 0
+	ld	bc, 1
+_inner_lensizeloop:
+	inc	d
+	add	a, a
+	jr	nz, $+5
+	ld	a, (hl)
+	inc	hl
+	rla
+	jr	nc, _inner_lensizeloop
+	jr	_inner_lenvaluestart
+_inner_lenvalueloop:
+	add	a, a
+	jr	nz, $+5
+	ld	a, (hl)
+	inc	hl
+	rla
+	rl	c
+	rl	b
+	jr	c, _inner_exit
+_inner_lenvaluestart:
+	dec	d
+	jr	nz, _inner_lenvalueloop
+	inc	bc
+	ld	e, (hl)
+	inc	hl
+	sla	e
+	inc	e
+	jr	nc, _inner_offsetend
+	add	a, a
+	jr	nz, $+5
+	ld	a, (hl)
+	inc	hl
+	rla
+	rl	d
+	add	a, a
+	jr	nz, $+5
+	ld	a, (hl)
+	inc	hl
+	rla
+	rl	d
+	add	a, a
+	jr	nz, $+5
+	ld	a, (hl)
+	inc	hl
+	rla
+	rl	d
+	add	a, a
+	jr	nz, $+5
+	ld	a, (hl)
+	inc	hl
+	rla
+	ccf
+	jr	c, _inner_offsetend
+	inc	d
+_inner_offsetend:
+	rr	e
+	ex	(sp), hl
+	push	hl
+	sbc	hl, de
+	pop	de
+	ldir
+_inner_exit:
+	pop	hl
+	jr	nc, _inner_mainloop
 	ret
-	

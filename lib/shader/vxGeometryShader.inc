@@ -96,7 +96,12 @@ vxGeometryFormat=$+2
 	jr	nz, vxGeometryLoop
 	ret
 vxGeometryNClip:
-	inc	hl \ inc bc \ inc de
+; hl : vertex 0
+; de : vertex 1
+; bc : vertex 2
+	inc	hl
+	inc	de
+	inc	bc
 	push	hl
 	push	bc
 	ld	a, (bc)

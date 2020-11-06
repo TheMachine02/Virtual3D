@@ -9,14 +9,14 @@ VX_VERTEX_SHADER_COPY:
 .relocate VX_VERTEX_SHADER_CODE
 
 vxModelView:
-	.db	0,0,0
-	.db	0,0,0
-	.db	0,0,0
-	.dl	0,0,0
+ .db    0,0,0
+ .db    0,0,0
+ .db    0,0,0
+ .dl    0,0,0
 vxLight:
-	.db	0,0,0
-	.db	0,0,0
-	.dw	0,0,0
+ .db    0,0,0
+ .db    0,0,0
+ .dw    0,0,0
 
 ; global shader call
 
@@ -59,9 +59,11 @@ vxVertexShader:
 	add	hl, bc
 	add	hl, de
 	ld	a, (ix+VX_MATRIX0_C1)
-	or	a, a
-	jr	z, vxVertexSkipC1
 	ld	bc, (iy+VX_VERTEX_VY)
+	ld	d, c
+	ld	e, a
+	mlt	de
+	add	hl, de
 	ex	de, hl
 	ld	h, b
 	ld	l, a
@@ -70,7 +72,6 @@ vxVertexShader:
 	jr	c, $+4
 	sbc	hl, bc
 	bit	7, b
-	ld	b, a
 	jr	z, $+5
 	cpl
 	adc	a, h
@@ -83,10 +84,7 @@ vxVertexShader:
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
-	mlt	bc
-	add	hl, bc
 	add	hl, de
-vxVertexSkipC1:
 	ld	a, (ix+VX_MATRIX0_C2)
 	ld	bc, (iy+VX_VERTEX_VZ)
 	ld	d, c
@@ -143,6 +141,10 @@ vxVertexSkipC1:
 	add	hl, de
 	ld	a, (ix+VX_MATRIX0_C7)
 	ld	bc, (iy+VX_VERTEX_VY)
+	ld	d, c
+	ld	e, a
+	mlt	de
+	add	hl, de
 	ex	de, hl
 	ld	h, b
 	ld	l, a
@@ -151,7 +153,6 @@ vxVertexSkipC1:
 	jr	c, $+4
 	sbc	hl, bc
 	bit	7, b
-	ld	b, a
 	jr	z, $+5
 	cpl
 	adc	a, h
@@ -164,8 +165,6 @@ vxVertexSkipC1:
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
-	mlt	bc
-	add	hl, bc
 	add	hl, de
 	ld	a, (ix+VX_MATRIX0_C6)
 	ld	bc, (iy+VX_VERTEX_VX)
@@ -223,6 +222,10 @@ vxVertexSkipC1:
 	add	hl, de
 	ld	a, (ix+VX_MATRIX0_C4)
 	ld	bc, (iy+VX_VERTEX_VY)
+	ld	d, c
+	ld	e, a
+	mlt	de
+	add	hl, de
 	ex	de, hl
 	ld	h, b
 	ld	l, a
@@ -231,7 +234,6 @@ vxVertexSkipC1:
 	jr	c, $+4
 	sbc	hl, bc
 	bit	7, b
-	ld	b, a
 	jr	z, $+5
 	cpl
 	adc	a, h
@@ -244,11 +246,13 @@ vxVertexSkipC1:
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
-	mlt	bc
-	add	hl, bc
 	add	hl, de
 	ld	a, (ix+VX_MATRIX0_C5)
 	ld	bc, (iy+VX_VERTEX_VZ)
+	ld	d, c
+	ld	e, a
+	mlt	de
+	add	hl, de
 	ex	de, hl
 	ld	h, b
 	ld	l, a
@@ -257,7 +261,6 @@ vxVertexSkipC1:
 	jr	c, $+4
 	sbc	hl, bc
 	bit	7, b
-	ld	b, a
 	jr	z, $+5
 	cpl
 	adc	a, h
@@ -270,8 +273,6 @@ vxVertexSkipC1:
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
-	mlt	bc
-	add	hl, bc
 	add	hl, de
 
 ; lightning model is here, infinite directionnal light, no pow
@@ -306,9 +307,9 @@ vxVertexSkipC1:
 ; ambiant lightning=12
 	adc	a, (ix+VX_LIGHT0_AMBIENT)
 ; min(a,15)
-	cp	16
+	cp	32
 	jr	c, $+4
-	ld	a, 15
+	ld	a, 31
 
 	pop	bc
 	pop	de
@@ -408,7 +409,7 @@ vxPerspectiveClip0:
 	ld	hl, (ix+VX_VERTEX_RY)
 	or	a, a
 	sbc	hl, bc
-; X<Z. If X=Z, r=p, fail
+; X < Z if X=Z, r=p, fail
 	jp	m, vxPerspectiveClip1
 	or	%00100000
 vxPerspectiveClip1:

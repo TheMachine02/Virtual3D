@@ -14,7 +14,7 @@
 #define COLOR   4
 #define BOUNDING_BOX  8
 #define SEPARATE    16
-
+#define FACE_NORMAL 32
 
 using namespace std;
 using namespace glm;
@@ -81,6 +81,9 @@ int main(int argc, char* argv[])
                 break;
             case 'S':
                 option=option|SEPARATE;
+                break;
+            case 'X':
+                option=option|FACE_NORMAL;
                 break;
             default:
                 printf("Unrecognized argument %s\n",argv[arg]);
@@ -377,10 +380,33 @@ bool loadOBJ(const char * path, unsigned short option)
         usemat=materialTable[indexTable[i*10]];
         out << ".f " << indexTable[i*10+1] << "," << indexTable[i*10+4] << "," << indexTable[i*10+7] << '\n';
 
+        if(option&FACE_NORMAL)
+        {
+            vec3 edge0;
+            vec3 edge1;
+
+            edge0 = vertexTable[indexTable[i*10+4]] - vertexTable[indexTable[i*10+1]];
+            edge1 = vertexTable[indexTable[i*10+7]] - vertexTable[indexTable[i*10+1]];
+            vec3 norm=normalize(cross(edge0,edge1));
+
+            vec3 cst(64.0,64.0,-64.0);
+            vec3 cst2(256.0*77.0/64.0,256.0*102.0/64.0,-256.0);
+         //   vec3 norm = normalize(normalTable[indexTable[i*10+3]]+normalTable[indexTable[i*10+6]]+normalTable[indexTable[i*10+9]]);
+
+            norm = norm * cst;
+            vec3 vertex = vertexTable[indexTable[i*10+1]] * cst2;
+
+            out << ".db " << round(norm[0]) << ',' << round(norm[1]) << ',' << round(norm[2]) << '\n';
+            out << ".dl " << round(dot(norm,vertex )) << '\n';
+            // n*(p-v)  n (64) *p (256)
+
+        }
+
         if(option&COLOR)
         {
             out << ".db " << usemat.color << '\n';
         }
+
         if(option&TEXTURE)
         {
             //ivec2 texsize;
@@ -394,12 +420,6 @@ bool loadOBJ(const char * path, unsigned short option)
             text=mapUV256(textTable[indexTable[i*10+8]]);
             out << ".db " << text[0] << ',' << text[1] << '\n';
         }
-        //if(option&NORMAL)
-        //{
-        //    ivec3 norm;
-        //    norm=MapNormal(normalTable[indexTable[i*10+3]],normalTable[indexTable[i*10+6]],normalTable[indexTable[i*10+9]]);
-        //    out << ".db " << norm[0] << ',' << norm[1] << ',' << norm[2] << '\n';
-        //}
 
     }
     out.close();

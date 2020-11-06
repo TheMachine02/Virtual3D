@@ -8,22 +8,22 @@ gouraudShader:
 	.db	8	; total size of per pixel code
 .relocate	VX_PIXEL_SHADER_CODE
 gouraudCode:
+	add	hl, de
 	ld	a, h
-	add	hl, sp	; grp1 (v)
 	exx
-	ld	d, a
-	ld	a, (de)
-	exx
+	ld	b, a
+	ld	a, (bc)
 	ld	(de), a
 	inc	de
+	exx
+	add	hl, de
 	ld	a, h
-	add	hl, sp
 	exx
-	ld	d, a
-	ld	a, (de)
-	exx
+	ld	b, a
+	ld	a, (bc)
 	ld	(de), a
 	inc	de
+	exx
 	djnz	gouraudCode
 gouraudEnd:
 .endrelocate

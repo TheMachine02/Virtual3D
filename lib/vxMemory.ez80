@@ -54,6 +54,7 @@ vxMemoryDestroyDevice:
 	ldir
 	ret
 
+#comment
 .assume ADL=0
 vxMemoryUnlock:
 	di
@@ -92,3 +93,38 @@ vxMemoryRawLock:
 	out0	($24), a
 	ret.l
 .assume ADL=1
+
+#endcomment
+
+__unlock:
+	ld	bc,$24
+	ld	a,$8c
+	call	__write
+	ld	bc,$06
+	call	__read
+	or	a,4
+	call	__write
+	ld	bc,$28
+	ld	a,$4
+	jp	__write
+__lock:
+	ld	bc,$28
+	xor	a,a
+	call	__write
+	ld	bc,$06
+	call	__read
+	res	2,a
+	call	__write
+	ld	bc,$24
+	ld	a,$88
+	jp	__write
+__write:
+	ld	de,$C979ED
+	ld	hl,$D1887C - 3
+	ld	(hl),de
+	jp	(hl)
+__read:
+	ld	de,$C978ED
+	ld	hl,$0D1887C - 3
+	ld	(hl),de
+	jp	(hl)

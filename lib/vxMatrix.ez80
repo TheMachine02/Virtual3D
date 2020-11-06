@@ -4,8 +4,8 @@ vxIdentityMatrix:
 .db	0,0,64
 .dl	0,0,0
 vxProjectionMatrix:
-.db	77,0,0
-.db	0,102,0
+.db	64,0,0
+.db	0,85,0
 .db	0,0,64
 .dl	0,0,0
 vxTmpVector:
@@ -29,103 +29,62 @@ vxMatrixLoadIdentity:
 	add	hl, bc
 	ret
 vxMatrixRotationX:
-#comment
-	ld	a, l
-	ld	hl, ISIN_TABLE
-	ld	l, a
-	ld	a, (hl)
-	ld	(ix+7), a
-	neg
-	ld	(ix+5), a
-	ld	a, l
-	add	a, 64
-	ld	l, a
-	ld	c, (hl)
-	ld	(ix+4), c
-	ld	(ix+8), c
-	ld	(ix+0), 64
-	xor	a, a
-	ld	(ix+1), a
-	ld	(ix+2), a
-	ld	(ix+3), a
-	ld	(ix+6), a
-#endcomment
 	push	hl
 	call	vxSin
 	ld	a, h
-	ld	(ix+7), a
+	ld	(ix+VX_MATRIX_C7), a
 	neg
-	ld	(ix+5), a
+	ld	(ix+VX_MATRIX_C5), a
 	pop	hl
 	call	vxCos
-	ld	(ix+4), h
-	ld	(ix+8), h
-	ld	(ix+0), 64
+	ld	(ix+VX_MATRIX_C4), h
+	ld	(ix+VX_MATRIX_C8), h
+	ld	(ix+VX_MATRIX_C0), 64
 	xor	a, a
-	ld	(ix+1), a
-	ld	(ix+2), a
-	ld	(ix+3), a
-	ld	(ix+6), a
+	ld	(ix+VX_MATRIX_C1), a
+	ld	(ix+VX_MATRIX_C2), a
+	ld	(ix+VX_MATRIX_C3), a
+	ld	(ix+VX_MATRIX_C6), a
 	ret
 vxMatrixRotationZ:
-#comment
-	ld	a, l
-	ld	hl, ISIN_TABLE
-	ld	l, a
-	ld	a, (hl)
-	ld	(ix+3), a
-	neg
-	ld	(ix+1), a
-	ld	a, l
-	add	a, 64
-	ld	l, a
-	ld	c, (hl)
-	ld	(ix+0), c
-	ld	(ix+4), c
-	ld	(ix+8), 64
-	xor	a, a
-	ld	(ix+2), a
-	ld	(ix+6), a
-	ld	(ix+7), a
-	ld	(ix+5), a
-#endcomment
 	push	hl
 	call	vxSin
 	ld	a, h
-	ld	(ix+3), a
+	ld	(ix+VX_MATRIX_C3), a
 	neg
-	ld	(ix+1), a
+	ld	(ix+VX_MATRIX_C1), a
 	pop	hl
 	call	vxCos
-	ld	(ix+0), h
-	ld	(ix+4), h
-	ld	(ix+8), 64
+	ld	(ix+VX_MATRIX_C0), h
+	ld	(ix+VX_MATRIX_C4), h
+	ld	(ix+VX_MATRIX_C8), 64
 	xor	a, a
-	ld	(ix+2), a
-	ld	(ix+6), a
-	ld	(ix+7), a
-	ld	(ix+5), a
+	ld	(ix+VX_MATRIX_C2), a
+	ld	(ix+VX_MATRIX_C6), a
+	ld	(ix+VX_MATRIX_C7), a
+	ld	(ix+VX_MATRIX_C5), a
 	ret
 vxMatrixRotationY:
 	push	hl
 	call	vxSin
 	ld	a, h
-	ld	(ix+2), a
+	ld	(ix+VX_MATRIX_C2), a
 	neg
-	ld	(ix+6), a
+	ld	(ix+VX_MATRIX_C6), a
 	pop	hl
 	call	vxCos
-	ld	(ix+0), h
-	ld	(ix+8), h
-	ld	(ix+4), 64
+	ld	(ix+VX_MATRIX_C0), h
+	ld	(ix+VX_MATRIX_C8), h
+	ld	(ix+VX_MATRIX_C4), 64
 	xor	a, a
-	ld	(ix+1), a
-	ld	(ix+3), a
-	ld	(ix+5), a
-	ld	(ix+7), a
+	ld	(ix+VX_MATRIX_C1), a
+	ld	(ix+VX_MATRIX_C3), a
+	ld	(ix+VX_MATRIX_C5), a
+	ld	(ix+VX_MATRIX_C7), a
 	ret
 vxMatrixMlt:
 ; (hl) = (iy) * (ix)
+; WARNING : hl can't be equal to ix
 ; 116 bytes, ~3800 TStates
 	ex	de, hl
 	ld	bc, 768
@@ -179,9 +138,10 @@ vxMatrixTransform:
 ; (hl) = (iy)*(ix) with translation
 ; iy is a animation matrix, ix is a world matrix, hl is world matrix
 	push	hl
-	lea	iy, iy+9	; load up the translation of matrix 0
+; load up the translation of matrix
+	lea	iy, iy+VX_MATRIX_TX
 	call	vxfTransform
-	lea	iy, iy-9
+	lea	iy, iy-VX_MATRIX_TX
 	pop	hl
 	call	vxMatrixMlt
 ; copy translation data to result (hl)
@@ -196,33 +156,33 @@ vxMatrixTransform:
 	ret
 vxMatrixTranspose:
 ; 192 TStates + translation
-	ld	c, (ix+3)
-	ld	a, (ix+1)
-	ld	(ix+3), a
-	ld	(ix+1), c
-	ld	c, (ix+6)
-	ld	a, (ix+2)
-	ld	(ix+6), a
-	ld	(ix+2), c
-	ld	c, (ix+7)
-	ld	a, (ix+5)
-	ld	(ix+7), a
-	ld	(ix+5), c	
-	ld	de, (ix+9)
+	ld	c, (ix+VX_MATRIX_C3)
+	ld	a, (ix+VX_MATRIX_C1)
+	ld	(ix+VX_MATRIX_C3), a
+	ld	(ix+VX_MATRIX_C1), c
+	ld	c, (ix+VX_MATRIX_C6)
+	ld	a, (ix+VX_MATRIX_C2)
+	ld	(ix+VX_MATRIX_C6), a
+	ld	(ix+VX_MATRIX_C2), c
+	ld	c, (ix+VX_MATRIX_C7)
+	ld	a, (ix+VX_MATRIX_C5)
+	ld	(ix+VX_MATRIX_C7), a
+	ld	(ix+VX_MATRIX_C5), c	
+	ld	de, (ix+VX_MATRIX_TX)
 	or	a, a
 	sbc	hl, hl
 	sbc	hl, de
-	ld	(ix+9), hl
-	ld	de, (ix+12)
+	ld	(ix+VX_MATRIX_TX), hl
+	ld	de, (ix+VX_MATRIX_TY)
 	or	a, a
 	sbc	hl, hl
 	sbc	hl, de
-	ld	(ix+12), hl
-	ld	de, (ix+15)
+	ld	(ix+VX_MATRIX_TY), hl
+	ld	de, (ix+VX_MATRIX_TZ)
 	or	a, a
 	sbc	hl, hl
 	sbc	hl, de
-	ld	(ix+15), hl
+	ld	(ix+VX_MATRIX_TZ), hl
 	ret
 vxMatrixLightning:
 	ex	de, hl
