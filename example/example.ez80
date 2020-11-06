@@ -202,7 +202,7 @@ triangle_count=$+1
 	jp	 MainLoop
 	ret
 
-#include	"vxMain.ez80"
+#include	"../lib/vxMain.ez80"
 #include	"graphics_lib.asm"
 
 posX:
@@ -480,5 +480,3 @@ RoomMap:
 
 ;#include "XML.ez80"
 ;#include "XML-1.ez80"
-
-#include "shaderpack\alpha.vsl"

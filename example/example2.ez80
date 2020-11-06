@@ -324,9 +324,3 @@ EulerAngle:
 	.dl	0,0,0
 LightAngle:
 	.dl	0,0,0
-
-#include	"shaderpack\alpha.vsl"
-#include	"shaderpack\light.vsl"
-#include	"shaderpack\gouraud.vsl"
-
-;;#include "XML.ez80"

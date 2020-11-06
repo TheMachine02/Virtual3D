@@ -1,5 +1,8 @@
 ; include standard shader
-#include "shader/vxPixelShader.vsl"
+#include	"shader/vxTextureShader.asm"
+#include	"shader/vxGouraudShader.asm"
+#include	"shader/vxLightShader.asm"
+#include	"shader/vxAlphaShader.asm"
 
 vxShaderJump:
 	.dl	0		; actual adress where pixel shader is

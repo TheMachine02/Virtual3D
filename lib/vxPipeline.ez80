@@ -1,5 +1,5 @@
-#include	"shader/vxVertexShader.inc"
-#include	"shader/vxGeometryShader.inc"
+#include	"shader/vxVertexShader.asm"
+#include	"shader/vxGeometryShader.asm"
 
 #define	VX_GEOMETRY_QUEUE		$D10000	; 4*4096 (16K)
 #define	VX_GEOMETRY_TEXTURE		16
