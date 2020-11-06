@@ -358,13 +358,13 @@ bool loadOBJ(const char * path, unsigned short option)
 
     newfile=path;
     i=newfile.find('.');
-    const char * newpath2=newfile.substr(0,i).append("1.inc").c_str();
+    string newpath2=newfile.substr(0,i).append("1.inc");
 
     out.close();
-    out.open(newpath2,std::ios::out);
+    out.open(newpath2.c_str(),std::ios::out);
     if(!out)
     {
-        cerr << "Cannot open " << newpath << endl;
+        cerr << "Cannot open " << newpath2.c_str() << endl;
         exit(EXIT_FAILURE);
     }
     out << "#include \"vxModel.inc\"" << '\n';

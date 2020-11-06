@@ -1,3 +1,4 @@
+mkdir bin
 echo "-----------------------------------"
 echo "Building example.ez80..."
 spasm -L -T -E -A -S -I include/ -I lib/ example.ez80 bin/TEST.8xp
@@ -35,13 +36,13 @@ spasm -I lib/ file/room_commune1.inc bin/GYMF.8xv -E -S
 spasm -I lib/ file/XML0.ez80 bin/LARAV.8xv -E -S
 spasm -I lib/ file/XML1.ez80 bin/LARAF.8xv -E -S
 
-echo Converting Suzanne...
+echo "Converting Suzanne..."
 
 ./tools/mdlconv  file/Suzanne.obj -C -N -S -B
 spasm -I lib/ file/Suzanne0.inc bin/SUZANV.8xv -E -S
 spasm -I lib/ file/Suzanne1.inc bin/SUZANF.8xv -E -S
 
-echo Converting FFXII test models...
+echo "Converting FFXII test models..."
 
 ./tools/mdlconv  file/MateusFFXII.obj -T -N -S -B
 spasm -I lib/ file/MateusFFXII0.inc bin/MATEUSV.8xv -E -S
@@ -67,15 +68,15 @@ spasm -I lib/ file/FranFFXII_LOD11.inc bin/FRANLF.8xv -E -S
 spasm -I lib/ file/VieraSceneFFXII0.inc bin/VIERAV.8xv -E -S
 spasm -I lib/ file/VieraSceneFFXII1.inc bin/VIERAF.8xv -E -S
 
-echo Converting FFX test models...
+echo "Converting FFX test models..."
 
 ./tools/mdlconv  file/LuluFFX.obj -T -N -S -B
 spasm -I lib/ file/LuluFFX0.inc bin/LULUV.8xv -E -S
 spasm -I lib/ file/LuluFFX1.inc bin/LULUF.8xv -E -S
 
-echo Converting FFVIII test models...
+echo "Converting FFVIII test models..."
 
-echo Converting TonberryFFVIII.obj...
+echo "Converting TonberryFFVIII.obj..."
 ./tools/mdlconv  file/TonberryFFVIII.obj -T -N -S -B
 spasm -I lib/ file/TonberryFFVIII0.inc bin/TONBV.8xv -E -S
 spasm -I lib/ file/TonberryFFVIII1.inc bin/TONBF.8xv -E -S
@@ -84,14 +85,14 @@ spasm -I lib/ file/TonberryFFVIII1.inc bin/TONBF.8xv -E -S
 spasm -I lib/ file/UltimeciaFFVIII0.inc bin/ULTIMV.8xv -E -S
 spasm -I lib/ file/UltimeciaFFVIII1.inc bin/ULTIMF.8xv -E -S
 
-echo Converting Zelda test models...
+echo "Converting Zelda test models..."
 
-echo Converting MidnaZelda.obj
+echo "Converting MidnaZelda.obj"
 ./tools/mdlconv  file/MidnaZelda.obj -T -N -S -B
 spasm -I lib/ file/MidnaZelda0.inc bin/MIDNAV.8xv -E -S
 spasm -I lib/ file/MidnaZelda1.inc bin/MIDNAF.8xv -E -S
 
-echo Converting NabooruZelda.obj
+echo "Converting NabooruZelda.obj"
 ./tools/mdlconv  file/NabooruZelda.obj -T -N -S -B
 spasm -I lib/ file/NabooruZelda0.inc bin/NABOORUV.8xv -E -S
 spasm -I lib/ file/NabooruZelda1.inc bin/NABOORUF.8xv -E -S
