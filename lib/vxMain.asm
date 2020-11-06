@@ -1,5 +1,8 @@
 ; functions
 
+vxEngine:
+	jp	__end
+
 vxEngineInit:
 ; get indic off
 	call	_RunIndicoff
@@ -177,3 +180,5 @@ _inner_read:
 #include	"vxFramebuffer.asm"
 ; various LUT
 #include	"vxData.inc"
+
+__end:

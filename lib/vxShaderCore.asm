@@ -16,6 +16,8 @@ vxShaderAdress3:
 	.dl	0		; second sub adress
 
 vxShaderLoad:
+	ld	hl, vxPixelShaderExit
+	ld	(vxPixelShaderExitLUT+1), hl
 	ld	bc, (ix+VX_SHADER_SIZE)	; load size
 	lea	hl, ix+VX_SHADER_CODE		; load shader
 	ld	de, VX_PIXEL_SHADER_CODE
@@ -100,25 +102,6 @@ VX_SMC_EDGEFIX=$
 	ld	b, a
 	lea	iy, iy+VX_REGISTER_SIZE
 	jp	(ix)
-
-#comment
-vxShaderGeneralInterpolation0:
-	ld	hl, (iy+VX_REGISTER1)
-	ld	de, (iy+VX_REGISTER0)
-;	add	hl, de
-;	add	hl, hl
-;	add	hl, hl
-	ld	b, (hl)
-	inc	hl
-	ld	ix, (hl)
-	ld	hl, (iy+VX_REGISTER2)	; v
-	exx
-	ld	hl, (iy+VX_REGISTER3)	; u
-	exx
-	lea	iy, iy+VX_REGISTER_SIZE
-	jp	(ix)
-; exactly 26 bytes
-#endcomment
 
    .align  4
 VX_LUT_PIXEL_TABLE:
