@@ -94,7 +94,7 @@ MainLoop:
 ; VX_VERTEX_BUFFER
 	ld	hl, (Vertex)
 	ld	de, (Triangle)
-	call	vxGeometryStream
+	call	vxGeometryQueue
 
 ;	ld	a, VX_GEOMETRY_TI9
 ;	ld	ix, WorldMatrix
@@ -102,7 +102,7 @@ MainLoop:
 ;	ld	bc, VX_VERTEX_BUFFER+(1024*16)
 ;	ld	hl, VERTEXDATA
 ;	ld	de, TRIDATA
-;	call	vxGeometryStream
+;	call	vxGeometryQueue
 
 ;	ld	a, VX_GEOMETRY_TI9
 ;	ld	ix, WorldMatrix
@@ -110,16 +110,16 @@ MainLoop:
 ;	ld	bc, VX_VERTEX_BUFFER+(1536*16)
 ;	ld	hl, VERTEXDATA1
 ;	ld	de, TRIDATA1
-;	call	vxGeometryStream
+;	call	vxGeometryQueue
 
 	ld	hl, (vxGeometrySize)
 	ld	(triangle_count), hl
 
-	call	vxCmdDepthSort
+	call	vxSortQueue
 
 	ld	c, %00000000
 	call	vxClearBuffer
-	call	vxRenderStream
+	call	vxSubmitQueue
 
 ; timer & counter
 

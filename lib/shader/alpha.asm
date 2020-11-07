@@ -1,11 +1,11 @@
-#include	"vxVSL.inc"
+include	"lib/vxVSL.inc"
 
 alphaShader:
-	.db	VX_PIXEL_SHADER		; shader type
-	.dl	alphaEnd-alphaCode	; shader size
-	.db	2			; two pixel are written per loop
-	.db	16			; total size of per pixel code
-.relocate	VX_PIXEL_SHADER_CODE
+	db	VX_PIXEL_SHADER		; shader type
+	dl	alphaEnd-alphaCode	; shader size
+	db	2			; two pixel are written per loop
+	db	16			; total size of per pixel code
+relocate	VX_PIXEL_SHADER_CODE
 alphaCode:
 	add	hl, de
 	ld	a, h
@@ -37,4 +37,4 @@ alphaCode:
 	exx
 	djnz	alphaCode
 alphaEnd:
-.endrelocate
+endrelocate

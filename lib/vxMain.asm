@@ -5,15 +5,15 @@ vxEngine:
 
 vxEngineInit:
 ; get indic off
-	call	_RunIndicoff
+	call	ti.RunIndicOff
 ; disable interrupts
 	di
-	ld	hl, 0E00005h
+	ld	hl, $E00005
 	ld	(hl), 2	; Set flash wait states to 5 + 2 = 7 (total access time = 8)
 ; LCD initialisation
 	call	vxResetPalette
 ; start LCD interrupt
-	call	_boot_ClearVRAM
+	call	ti.boot.ClearVRAM
 	ld	hl, VX_LCD_IMSC
 	set	2, (hl)
 ; setup 8bpp mode
@@ -61,8 +61,6 @@ vxEngineInit:
 	jp	(hl)
 vxEngineQuit:
 ;	call	vxMemoryLockPrivilege
-	ld	a, $D0
-	.db	$ED,$6D	; ld mb,a
 	ld hl,$F50000
 	ld (hl),h	; Mode 0
 	inc l		; 0F50001h
@@ -81,14 +79,14 @@ vxEngineQuit:
 	ld	hl, VX_FRAMEBUFFER_AUX0
 	ld	(VX_LCD_BUFFER), hl
 	call	vxMemoryDestroyDevice
-	ld	hl, 0E00005h
+	ld	hl, $E00005
 	ld	(hl), 4	; Set flash wait states to 5 + 4 = 9 (total access time = 10)
-	call _HomeUp
-	call _Clrscrn
-	call _DrawStatusBar
-	call _RunIndicon
+	call ti.HomeUp
+	call ti.ClrScrn
+	call ti.DrawStatusBar
+	call ti.RunIndicOn
 	ei
-	jp _DrawBatteryIndicator
+	jp ti.DrawBatteryIndicator
 
 ; memory backing function
 	
@@ -108,12 +106,12 @@ vxMemoryCreateDevice:
 	ld	(hl), $5A
 	ld	de, $3C0000
 	ld	bc, $40000
-	jp	__WriteFlash
+	jp	ti.WriteFlash
 ; 	jp	vxMemoryLock
 vxMemorySafeErase:
 	ld	bc,$0000F8
 	push	bc
-	jp	__EraseFlashPage
+	jp	ti.EraseFlashSector
 
 vxMemoryDestroyDevice:
 ; restore RAM state
@@ -169,16 +167,16 @@ _inner_read:
 	jp	(hl)
 
 ; include texture, clipping, color
-#include	"vxPrimitive.asm"
-#include	"vxPipeline.asm"
-#include	"vxImage.asm"
-#include	"vxShaderCore.asm"
-#include	"vxTimer.asm"
-#include	"vxMatrix.asm"
-#include	"vxQuaternion.asm"
-#include	"vxVector.asm"
-#include	"vxFramebuffer.asm"
+include	"primitive.asm"
+include	"pipeline.asm"
+include	"image.asm"
+include	"shader.asm"
+include	"timer.asm"
+include	"matrix.asm"
+include	"quaternion.asm"
+include	"vector.asm"
+include	"framebuffer.asm"
 ; various LUT
-#include	"vxData.inc"
+include	"data.inc"
 
 __end:

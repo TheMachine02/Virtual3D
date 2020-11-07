@@ -1,11 +1,10 @@
-#include	"vx3D.inc"
-#include "ti84pce.inc"
+include	"include/ez80.inc"
+include	"include/ti84pceg.inc"
+include	"include/tiformat.inc"
+include	"lib/vx3D.inc"
 
-#define	DELTA	4096
-
-.org userMem - 2
-.db tExtTok, tAsm84CeCmp
-.assume ADL=1
+format	ti executable 'TEST2'
+define	DELTA	4096
 
 	ld	hl, VertexName
 	call	find
@@ -89,66 +88,66 @@ MainLoop:
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
 ;	ld	bc, VX_VERTEX_BUFFER
-	ld	bc, $D23000
+	ld	bc, VX_VERTEX_BUFFER
 	ld	hl, (Vertex)
 	ld	de, (Triangle)
 ;	ld	hl, VERTEXDATA
 ;	ld	de, TRIDATA
-	call	vxGeometryStream
+	call	vxGeometryQueue
 
 	ld	hl, (vxGeometrySize)
-	ld	(triangle_count), hl
+; 	ld	(triangle_count), hl
 
-	call	vxCmdDepthSort
+	call	vxSortQueue
 
 	ld	c, $00
 	call	vxClearBuffer
-	call	vxRenderStream
+	call	vxSubmitQueue
 ; timer & counter
 
-	ld	bc, 320*8-1
-	ld	de, (vxFramebuffer)
-	or	a, a
-	sbc	hl, hl
-	add	hl, de
-	inc	de
-	ld	(hl), 0
-	ldir
-
-	ld	hl, 0
-	ld	(TextXPos_SMC), hl
-	ld	a, 0
-	ld	(TextYPos_SMC), a
-	call	vxTimerRead
-; do (ade/256)/187
-	ld	(Temp), de
-	ld	(Temp+3), a
-
-	ld	de, (Temp+1)
-; divide de by 187
-	ex	de, hl
-	ld	bc, 187
-	call	__idivs_ASM
-	ld	de, 4
-	push	de
-	push	hl
-	call	_PrintUInt
-	pop	de
-	pop	hl
-
-	ld	hl, (TextXPos_SMC)
-	ld	de, 8
-	add	hl, de
-	ld	(TextXPos_SMC), hl
-
-triangle_count=$+1
-	ld	hl, 0
-	ld	de, 4
-	push	de
-	push	hl
-	call	_PrintUInt
-	pop	de
-	pop	hl
+; 	ld	bc, 320*8-1
+; 	ld	de, (vxFramebuffer)
+; 	or	a, a
+; 	sbc	hl, hl
+; 	add	hl, de
+; 	inc	de
+; 	ld	(hl), 0
+; 	ldir
+; 
+; 	ld	hl, 0
+; 	ld	(TextXPos_SMC), hl
+; 	ld	a, 0
+; 	ld	(TextYPos_SMC), a
+; 	call	vxTimerRead
+; ; do (ade/256)/187
+; 	ld	(Temp), de
+; 	ld	(Temp+3), a
+; 
+; 	ld	de, (Temp+1)
+; ; divide de by 187
+; 	ex	de, hl
+; 	ld	bc, 187
+; 	call	__idivs_ASM
+; 	ld	de, 4
+; 	push	de
+; 	push	hl
+; 	call	_PrintUInt
+; 	pop	de
+; 	pop	hl
+; 
+; 	ld	hl, (TextXPos_SMC)
+; 	ld	de, 8
+; 	add	hl, de
+; 	ld	(TextXPos_SMC), hl
+; 
+; triangle_count=$+1
+; 	ld	hl, 0
+; 	ld	de, 4
+; 	push	de
+; 	push	hl
+; 	call	_PrintUInt
+; 	pop	de
+; 	pop	hl
 
 	call	vxFlushLCD
 
@@ -242,7 +241,7 @@ Random:
     rl b
     ld (ix+9), bc
     sbc a, a
-    and %11000101
+    and	a, 11000101b
     xor l
     ld l, a
     ld (ix+6), hl
@@ -250,78 +249,78 @@ Random:
     add hl, bc
     ret
 rand1:
-.fill	12
+ rb	12
 
-#include	"vxMain.asm"
-#include	"graphics_lib.asm"
+include	"lib/vxMain.asm"
+; #include	"graphics_lib.asm"
 
 posX:
-	.dw	0
+	dw	0
 posY:
-	.dw	0
+	dw	0
 posZ:
-	.dw	0
+	dw	0
 Temp:
-	.dl	0,0
+	dl	0,0
 
 ; choose mateus or tonberry
 
 VertexName:
-	.db	AppVarObj, "FRANV",0
+	db	ti.AppVarObj, "FRANV",0
 Vertex:
-	.dl	0
+	dl	0
 TriangleName:
-	.db	AppVarObj, "FRANF", 0
+	db	ti.AppVarObj, "FRANF", 0
 Triangle:
-	.dl	0
+	dl	0
 TextureName:
-	.db	AppVarObj, "FRANT", 0
+	db	ti.AppVarObj, "FRANT", 0
 Texture:
-	.dl	0
+	dl	0
 Light:
-	.db	0,0,-64
-	.db	0
-	.db	255
-	.dw	0,0,0
+	db	0,0,-64
+	db	0
+	db	255
+	dw	0,0,0
 
 ScaleMatrix:
-	.db	64,0,0		; 44
-	.db	0,113,0		; 58
-	.db	0,0,40		; 37
-	.dl	0,0,0
+	db	64,0,0		; 44
+	db	0,113,0		; 58
+	db	0,0,40		; 37
+	dl	0,0,0
 ScaleMatrix3d4:
-	.db	64,0,0
-	.db	0,85,0
-	.db	0,0,40
-	.dl	0,0,0
+	db	64,0,0
+	db	0,85,0
+	db	0,0,40
+	dl	0,0,0
 UnitVector:
-	.dl	0,16384,0
+	dl	0,16384,0
 Quaternion:
-	.dl	0,0,0,0
+	dl	0,0,0,0
 QuatMatrix:
-	.dl	0,0,0,0,0,0
+	dl	0,0,0,0,0,0
 WorldMatrix:
-	.dl	0,0,0,0,0,0
+	dl	0,0,0,0,0,0
 ModelMatrix:
-	.db	64,0,0
-	.db	0,64,0
-	.db	0,0,64
-	.dw	0,0,0
+	db	64,0,0
+	db	0,64,0
+	db	0,0,64
+	dw	0,0,0
 EulerAngle:
-	.dl	0,0,0
+	dl	0,0,0
 LightAngle:
-	.dl	0,0,0
+	dl	0,0,0
 
 find:
 ; load a file from an appv
 ; hl : file name
 ; hl = file adress
 ; if error : c set, a = error code
-	call	_mov9toOP1
-	call	_ChkFindSym
+	call	ti.Mov9ToOP1
+	call	ti.ChkFindSym
 	ret	c
-	call	_ChkInRam
-	ex de,hl
+	call	ti.ChkInRam
+	ex	de, hl
 	jr	z, unarchived
 ; 9 bytes - name size (1b), name string, appv size (2b)
 	ld	de, 9

@@ -1,41 +1,41 @@
-#define	VX_REGISTER_US	-36-11
-#define	VX_REGISTER_VS	-36-10
-#define	VX_REGISTER_STARTPOINT -36-9
-#define	VX_REGISTER_OFFSET -36-6
-#define	VX_REGISTER_MIDPOINT -36-3
-#define	VX_REGISTER_TMP	-36+0
-#define	VX_REGISTER_Y0	-32+0
-#define	VX_REGISTER_X0	-32+1
-#define	VX_REGISTER_U0	-32+3
-#define	VX_REGISTER_V0	-32+4
-#define	VX_REGISTER_C0	-32+5
-#define	VX_REGISTER_Y1	-26+0
-#define	VX_REGISTER_X1	-26+1
-#define	VX_REGISTER_U1	-26+3
-#define	VX_REGISTER_V1	-26+4
-#define	VX_REGISTER_C1	-26+5
-#define	VX_REGISTER_Y2	-20+0
-#define	VX_REGISTER_X2	-20+1
-#define	VX_REGISTER_U2	-20+3
-#define	VX_REGISTER_V2	-20+4
-#define	VX_REGISTER_C2	-20+5
+define	VX_REGISTER_US	-36-11
+define	VX_REGISTER_VS	-36-10
+define	VX_REGISTER_STARTPOINT -36-9
+define	VX_REGISTER_OFFSET -36-6
+define	VX_REGISTER_MIDPOINT -36-3
+define	VX_REGISTER_TMP	-36+0
+define	VX_REGISTER_Y0	-32+0
+define	VX_REGISTER_X0	-32+1
+define	VX_REGISTER_U0	-32+3
+define	VX_REGISTER_V0	-32+4
+define	VX_REGISTER_C0	-32+5
+define	VX_REGISTER_Y1	-26+0
+define	VX_REGISTER_X1	-26+1
+define	VX_REGISTER_U1	-26+3
+define	VX_REGISTER_V1	-26+4
+define	VX_REGISTER_C1	-26+5
+define	VX_REGISTER_Y2	-20+0
+define	VX_REGISTER_X2	-20+1
+define	VX_REGISTER_U2	-20+3
+define	VX_REGISTER_V2	-20+4
+define	VX_REGISTER_C2	-20+5
 
-#define	VX_FDVDY	-12
-#define	VX_FDUDY	-10
-#define	VX_FDVDX	-6
-#define	VX_FDUDX	-4
+define	VX_FDVDY	-12
+define	VX_FDUDY	-10
+define	VX_FDVDX	-6
+define	VX_FDUDX	-4
 
-#define	VX_REGISTER_INTERPOLATION_CODE	$E30800
-#define	VX_REGISTER_INTERPOLATION_SIZE	1024
+define	VX_REGISTER_INTERPOLATION_CODE	$E30800
+define	VX_REGISTER_INTERPOLATION_SIZE	1024
 
-	.fill	64, 0
+ rb	64
 VX_REGISTER_DATA:
-	.fill	3072, $D3
+ db	3072	dup	$D3
 
 vxPrimitive:
 
 VX_REGISTER_INTERPOLATION_COPY:
-.relocate VX_REGISTER_INTERPOLATION_CODE
+relocate VX_REGISTER_INTERPOLATION_CODE
 
 _inner_clipdrawTextureTriangle:
 	ld	iy, VX_PATCH_INPUT
@@ -74,7 +74,7 @@ _inner_cyclicLoop0:
 	pop	iy
 	pop	hl
 	pop	bc
-	djnz _inner_cyclicLoop0
+	djnz	_inner_cyclicLoop0
 	ret
 
 vxPrimitiveRenderTriangle:
@@ -82,8 +82,8 @@ vxPrimitiveRenderTriangle:
 ; bc = vertex cache adress
 ;  a = encoding format of triangle data
 ; nicely optimized for 3 points
-	and	16
-	jp	z,_inner_renderTriangleColor
+	and	a, 16
+	jp	z,_renderTriangleColor
 _inner_renderTriangleTexture:
 ; take iy as input, bc as vertex
 	lea	hl, iy+VX_TRIANGLE_UV0
@@ -126,16 +126,16 @@ vxPrimitiveTextureTriangle:
 ; hl = p0 adress
 ; de = p1 adress
 ; bc = p2 adress
-#include "vxPrimitiveTexture.asm"
+#include "texture.asm"
 
-.endrelocate
+endrelocate
 
 vxPrimitiveRenderPolygon:
 ; iy = polygon data (as stored in memory) (index, data)
 ; bc = vertex cache adress
 ;  a = encoding format of triangle data
 ;  d = point count
-	and	16
+	and	a, 16
 	jp	z, _inner_renderPolygonColor
 _inner_renderPolygonTexture:
 	ret
@@ -172,14 +172,44 @@ _inner_uniformCompute:
 	djnz	_inner_uniformCompute
 ; hl div c here
 	xor	a, a
-	add	hl,hl	\ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-	add	hl,hl	\ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-	add	hl,hl	\ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-	add	hl,hl	\ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-	add	hl,hl	\ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-	add	hl,hl	\ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-	add	hl,hl	\ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-	add	hl,hl	\ sbc hl,bc \ adc a,a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	adc	a, a
 	cpl
 	ld	de, VX_LUT_CONVOLVE
 	ld	e, (iy+0)
@@ -234,7 +264,7 @@ _inner_cyclicLoop:
 	djnz _inner_cyclicLoop
 	ret
 
-_inner_renderTriangleColor:
+_renderTriangleColor:
 	ld	ix, (iy+VX_TRIANGLE_I0)
 	add	ix, bc
 	ld	a, (ix+VX_VERTEX_UNIFORM)
@@ -268,6 +298,6 @@ vxPrimitiveFillTriangle:
 ; de = p1 adress
 ; bc = p2 adress
 ; use global VX_COLOR_PRIMITIVE_RBG color
-#include "vxPrimitiveColor.asm"
+#include "color.asm"
 
-#include "vxPrimitiveClipping.asm"
+#include "clipping.asm"

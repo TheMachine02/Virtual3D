@@ -125,7 +125,7 @@ allrender:
 	ld	a, VX_GEOMETRY_TEXTURE
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
-	call	vxGeometryStream
+	call	vxGeometryQueue
 
 	pop	bc
 	inc	c
@@ -137,16 +137,16 @@ allrender:
 	ld	bc, (cacheAdress)
 	ld	hl, (dataLaraVertex)
 	ld	de, (dataLaraTriangle)
-	call	vxGeometryStream
+	call	vxGeometryQueue
 
 	ld	hl, (vxGeometrySize)
 	ld	(triangle_count), hl
 
-	call	vxCmdDepthSort
+	call	vxSortQueue
 
 	ld	c, %00000000
 	call	vxClearBuffer
-	call	vxRenderStream
+	call	vxSubmitQueue
 
 ; timer & counter
 

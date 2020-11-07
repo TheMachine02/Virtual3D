@@ -1,21 +1,21 @@
 vxIdentityMatrix:
-.db	64,0,0
-.db	0,64,0
-.db	0,0,64
-.dl	0,0,0
+ db	64,0,0
+ db	0,64,0
+ db	0,0,64
+ dl	0,0,0
 vxProjectionMatrix:
-.db	64,0,0
-.db	0,85,0
-.db	0,0,64
-.dl	0,0,0
+ db	64,0,0
+ db	0,85,0
+ db	0,0,64
+ dl	0,0,0
 vxTmpVector:
-.dw	0,0,0
-.db	0	; pad
+ dw	0,0,0
+ db	0	; pad
 vxLookAtMatrix:
-.db	0,0,0
-.db	0,0,0
-.db	0,0,0
-.dl	0,0,0
+ db	0,0,0
+ db	0,0,0
+ db	0,0,0
+ dl	0,0,0
 
 vxMatrixLoadIdentity:
 ; input : hl matrix
@@ -28,6 +28,7 @@ vxMatrixLoadIdentity:
 	ld	c, -VX_MATRIX_SIZE
 	add	hl, bc
 	ret
+
 vxMatrixRotationX:
 	push	hl
 	call	vxSin
@@ -46,6 +47,7 @@ vxMatrixRotationX:
 	ld	(ix+VX_MATRIX_C3), a
 	ld	(ix+VX_MATRIX_C6), a
 	ret
+
 vxMatrixRotationZ:
 	push	hl
 	call	vxSin
@@ -64,6 +66,7 @@ vxMatrixRotationZ:
 	ld	(ix+VX_MATRIX_C7), a
 	ld	(ix+VX_MATRIX_C5), a
 	ret
+
 vxMatrixRotationY:
 	push	hl
 	call	vxSin
@@ -82,6 +85,7 @@ vxMatrixRotationY:
 	ld	(ix+VX_MATRIX_C5), a
 	ld	(ix+VX_MATRIX_C7), a
 	ret
+
 vxMatrixMlt:
 ; (hl) = (iy) * (ix)
 ; WARNING : hl can't be equal to ix
@@ -97,19 +101,31 @@ vxMatrixRowLoop:
 	ld	h, (ix+0)
 	ld	l, (iy+0)
 	xor	a, a
-	bit	7, h \ jr z, $+3 \ sub a, l
-	bit	7, l \ jr z, $+3 \ sub a, h
+	bit	7, h
+	jr z, $+3
+	sub a, l
+	bit	7, l
+	jr z, $+3
+	sub a, h
 	mlt	hl
 	ld	b, (ix+1)
 	ld	c, (iy+3)
-	bit	7, b \ jr z, $+3 \ sub a, c
-	bit	7, c \ jr z, $+3 \ sub a, b
+	bit	7, b
+	jr z, $+3
+	sub a, c
+	bit	7, c
+	jr z, $+3
+	sub a, b
 	mlt	bc
 	add	hl, bc
 	ld	b, (ix+2)
 	ld	c, (iy+6)
-	bit	7, b \ jr z, $+3 \ sub a, c
-	bit	7, c \ jr z, $+3 \ sub a, b
+	bit	7, b
+	jr z, $+3
+	sub a, c
+	bit	7, c
+	jr z, $+3
+	sub a, b
 	mlt	bc
 	add	hl, bc
 	ld	b, a
@@ -134,6 +150,7 @@ vxMatrixRowLoop:
 	ex	de, hl
 	add	hl, bc
 	ret
+
 vxMatrixTransform:
 ; (hl) = (iy)*(ix) with translation
 ; iy is a animation matrix, ix is a world matrix, hl is world matrix
@@ -154,6 +171,7 @@ vxMatrixTransform:
 	ex	de, hl
 	add	hl, bc
 	ret
+
 vxMatrixTranspose:
 ; 192 TStates + translation
 	ld	c, (ix+VX_MATRIX_C3)
@@ -184,6 +202,7 @@ vxMatrixTranspose:
 	sbc	hl, de
 	ld	(ix+VX_MATRIX_TZ), hl
 	ret
+
 vxMatrixLightning:
 	ex	de, hl
 	ld	b, 3
@@ -252,6 +271,7 @@ vxMatrixLightLoop:
 	inc	hl
 	ld	(hl), d
 	ret
+
 vxfTransform:
 ; input : iy vector, ix matrix
 ; [ix+0]*[iy]+[ix+1]*[iy+2]+[ix+2]*[iy+4]+[ix+9]=x
@@ -263,37 +283,251 @@ vxfTransform:
 	ld	bc, (iy+0)
 	ld	hl, (ix+9)
 	ld	a, (ix+0)
-	fma
+	ex	de, hl
+	ld	h, b
+	ld	l, a
+	mlt	hl
+	cp	$80
+	jr	c, $+4
+	sbc	hl, bc
+	bit	7, b
+	ld	b, a
+	jr	z, $+5
+	cpl
+	adc	a, h
+	ld	h, a
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	mlt	bc
+	add	hl, bc
+	add	hl, de
 	ld	a, (ix+1)
 	ld	bc, (iy+2)
-	fma
+	ex	de, hl
+	ld	h, b
+	ld	l, a
+	mlt	hl
+	cp	$80
+	jr	c, $+4
+	sbc	hl, bc
+	bit	7, b
+	ld	b, a
+	jr	z, $+5
+	cpl
+	adc	a, h
+	ld	h, a
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	mlt	bc
+	add	hl, bc
+	add	hl, de
 	ld	a, (ix+2)
 	ld	bc, (iy+4)
-	fma.f
+	ld	d, c
+	ld	e, a
+	mlt	de
+	add	hl, de
+	ex	de, hl
+	ld	h, b
+	ld	l, a
+	mlt	hl
+; watch the carry flag !
+	cp	$80
+	jr	c, $+4
+	sbc	hl, bc
+	bit	7, b
+	jr	z, $+5
+	cpl
+	adc	a, h
+	ld	h, a
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, de
 	ld	(vxPosition), hl
 ; Y coordinate
 	ld	hl, (ix+12)
 	ld	a, (ix+5)
-	fma
+	ex	de, hl
+	ld	h, b
+	ld	l, a
+	mlt	hl
+	cp	$80
+	jr	c, $+4
+	sbc	hl, bc
+	bit	7, b
+	ld	b, a
+	jr	z, $+5
+	cpl
+	adc	a, h
+	ld	h, a
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	mlt	bc
+	add	hl, bc
+	add	hl, de
 	ld	a, (ix+4)
 	ld	bc, (iy+2)
-	fma
+	ex	de, hl
+	ld	h, b
+	ld	l, a
+	mlt	hl
+	cp	$80
+	jr	c, $+4
+	sbc	hl, bc
+	bit	7, b
+	ld	b, a
+	jr	z, $+5
+	cpl
+	adc	a, h
+	ld	h, a
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	mlt	bc
+	add	hl, bc
+	add	hl, de
 	ld	a, (ix+3)
 	ld	bc, (iy+0)
-	fma.f
+	ld	d, c
+	ld	e, a
+	mlt	de
+	add	hl, de
+	ex	de, hl
+	ld	h, b
+	ld	l, a
+	mlt	hl
+; watch the carry flag !
+	cp	$80
+	jr	c, $+4
+	sbc	hl, bc
+	bit	7, b
+	jr	z, $+5
+	cpl
+	adc	a, h
+	ld	h, a
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, de
 	ld	(vxPosition+3), hl
 ; Z coordinate
 	ld	hl, (ix+15)
 	ld	a, (ix+6)
-	fma
+	ex	de, hl
+	ld	h, b
+	ld	l, a
+	mlt	hl
+	cp	$80
+	jr	c, $+4
+	sbc	hl, bc
+	bit	7, b
+	ld	b, a
+	jr	z, $+5
+	cpl
+	adc	a, h
+	ld	h, a
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	mlt	bc
+	add	hl, bc
+	add	hl, de
 	ld	a, (ix+7)
 	ld	bc, (iy+2)
-	fma
+	ex	de, hl
+	ld	h, b
+	ld	l, a
+	mlt	hl
+	cp	$80
+	jr	c, $+4
+	sbc	hl, bc
+	bit	7, b
+	ld	b, a
+	jr	z, $+5
+	cpl
+	adc	a, h
+	ld	h, a
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	mlt	bc
+	add	hl, bc
+	add	hl, de
 	ld	a, (ix+8)
 	ld	bc, (iy+4)
-	fma.f
+	ld	d, c
+	ld	e, a
+	mlt	de
+	add	hl, de
+	ex	de, hl
+	ld	h, b
+	ld	l, a
+	mlt	hl
+; watch the carry flag !
+	cp	$80
+	jr	c, $+4
+	sbc	hl, bc
+	bit	7, b
+	jr	z, $+5
+	cpl
+	adc	a, h
+	ld	h, a
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, de
 	ld	(vxPosition+6), hl
 	ret
+
 vxMatrixLookAt:
 ; zaxis = normal(At - Eye)
 ; xaxis = normal(cross(Up, zaxis))
@@ -341,12 +575,18 @@ vxMatrixLookAt:
 	call	vxfTransform
 ; here we copy negated value to translation part of the matrix
 	ld	de, (vxPosition+VX_VECTOR_LX)
-	or	a, a \ sbc hl,hl \ sbc hl, de
+	or	a, a
+	sbc hl,hl
+	sbc hl, de
 	ld	(ix+VX_MATRIX_TX), hl
 	ld	de, (vxPosition+VX_VECTOR_LY)
-	or	a, a \ sbc hl,hl \ sbc hl, de
+	or	a, a
+	sbc hl,hl
+	sbc hl, de
 	ld	(ix+VX_MATRIX_TY), hl
 	ld	de, (vxPosition+VX_VECTOR_LZ)
-	or	a, a \ sbc hl,hl \ sbc hl, de
+	or	a, a
+	sbc hl,hl
+	sbc hl, de
 	ld	(ix+VX_MATRIX_TZ), hl
 	ret

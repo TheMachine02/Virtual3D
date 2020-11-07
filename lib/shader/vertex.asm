@@ -1,4 +1,4 @@
-#include "vxVSL.inc"
+include "lib/vxVSL.inc"
 
 ; shader will copy 1024 bytes from global_data to VX_VRAM. This load occurs at begin of stream instruction, to ensure maximum vertex throughput. About 2200 cycles per vertex are needed.
 
@@ -6,17 +6,17 @@ VX_VERTEX_SHADER_COPY:
 
 ; relocate the shader to fast VRAM ($E30800)
 
-.relocate VX_VERTEX_SHADER_CODE
+relocate VX_VERTEX_SHADER_CODE
 
 vxModelView:
- .db    0,0,0
- .db    0,0,0
- .db    0,0,0
- .dl    0,0,0
+ db    0,0,0
+ db    0,0,0
+ db    0,0,0
+ dl    0,0,0
 vxLight:
- .db    0,0,0
- .db    0,0,0
- .dw    0,0,0
+ db    0,0,0
+ db    0,0,0
+ dw    0,0,0
 
 ; global shader call
 
@@ -279,20 +279,32 @@ vxVertexShader:
 	xor	a, a
 	ld	c, (iy+VX_VERTEX_NX)
 	ld	b, (ix+VX_LIGHT0_VECTOR+0)
-	bit	7, c \ jr z, $+3 \ sub a,b
-	bit	7, b \ jr z, $+3 \ sub a,c
+	bit	7, c
+	jr z, $+3
+	sub a,b
+	bit	7, b
+	jr z, $+3
+	sub a,c
 	mlt	bc
 	add	a, b
 	ld	c, (iy+VX_VERTEX_NY)
 	ld	b, (ix+VX_LIGHT0_VECTOR+1)
-	bit	7, c \ jr z, $+3 \ sub a,b
-	bit	7, b \ jr z, $+3 \ sub a,c
+	bit	7, c
+	jr z, $+3
+	sub a,b
+	bit	7, b
+	jr z, $+3
+	sub a,c
 	mlt	bc
 	add	a, b
 	ld	c, (iy+VX_VERTEX_NZ)
 	ld	b, (ix+VX_LIGHT0_VECTOR+2)
-	bit	7, c \ jr z, $+3 \ sub a,b
-	bit	7, b \ jr z, $+3 \ sub a,c
+	bit	7, c
+	jr z, $+3
+	sub a,b
+	bit	7, b
+	jr z, $+3
+	sub a,c
 	mlt	bc
 	add	a, b
 
@@ -339,13 +351,36 @@ vxPerspectiveAbs0:
 	jp	nc, vxPerspectiveClip0
 	or	a, a
 vxPerspectiveNext0:
-	adc	a,a \ add hl,bc
-	add	hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-   	add	hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-   	add	hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-   	add	hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-   	add	hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-  	add	hl,hl \ sbc hl,bc \ adc a,a
+	adc	a,a
+	add hl,bc
+	add	hl,hl
+	sbc hl,bc
+	jr nc,$+3
+	add hl,bc
+	adc a,a
+   	add	hl,hl
+	sbc hl,bc
+	jr nc,$+3
+	add hl,bc
+	adc a,a
+   	add	hl,hl
+	sbc hl,bc
+	jr nc,$+3
+	add hl,bc
+	adc a,a
+   	add	hl,hl
+	sbc hl,bc
+	jr nc,$+3
+	add hl,bc
+	adc a,a
+   	add	hl,hl
+	sbc hl,bc
+	jr nc,$+3
+	add hl,bc
+	adc a,a
+  	add	hl,hl
+	sbc hl,bc
+	adc a,a
    	cpl
    	add	a, a
    	ld   l, VX_SCREEN_HEIGHT/2+1 ;precision stuffs
@@ -373,14 +408,41 @@ vxPerspectiveAbs1:
 	jr	nc, vxPerspectiveClip2
 	or	a, a
 vxPerspectiveNext1:
-   	adc a,a \ add hl,bc
-   	add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-   	add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-   	add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-   	add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-   	add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-   	add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-   	add hl,hl \ sbc hl,bc \ adc a,a
+   	adc a,a
+	add hl,bc
+   	add hl,hl
+	sbc hl,bc
+	jr nc,$+3
+	add hl,bc
+	adc a,a
+   	add hl,hl
+	sbc hl,bc
+	jr nc,$+3
+	add hl,bc
+	adc a,a
+   	add hl,hl
+	sbc hl,bc
+	jr nc,$+3
+	add hl,bc
+	adc a,a
+   	add hl,hl
+	sbc hl,bc
+	jr nc,$+3
+	add hl,bc
+	adc a,a
+   	add hl,hl
+	sbc hl,bc
+	jr nc,$+3
+	add hl,bc
+	adc a,a
+   	add hl,hl
+	sbc hl,bc
+	jr nc,$+3
+	add hl,bc
+	adc a,a
+   	add hl,hl
+	sbc hl,bc
+	adc a,a
    	cpl
    	ld	l, a
    	ld	h, VX_SCREEN_WIDTH/2+1
@@ -404,38 +466,38 @@ vxPerspectiveCode:
 	bit	7,(ix+VX_VERTEX_RZ+2)
 	jr	z, $+4
 vxPerspectiveClipZ:
-	ld	a, %00001000
+	ld	a, 00001000b
 vxPerspectiveClip0:
 	ld	hl, (ix+VX_VERTEX_RY)
 	or	a, a
 	sbc	hl, bc
 ; X < Z if X=Z, r=p, fail
 	jp	m, vxPerspectiveClip1
-	or	%00100000
+	or	00100000b
 vxPerspectiveClip1:
 	add	hl, bc
 	or	a, a
 	adc	hl, bc
 	jp	p, vxPerspectiveClip2
-	or	%00010000
+	or	00010000b
 vxPerspectiveClip2:
 ; y cliping was handled
 	ld	hl, (ix+VX_VERTEX_RX)
 	or	a, a
 	sbc	hl, bc
 	jp	m, vxPerspectiveClip3
-	or	a, %10000000
+	or	a, 10000000b
 vxPerspectiveClip3:
 	add	hl, bc
 	or	a, a
 	adc	hl, bc
 	jp	p, vxPerspectiveClip4
-	or	a, %01000000
+	or	a, 01000000b
 vxPerspectiveClip4:
 ; x clipping handled
-	and	%11111000
+	and	a, 11111000b
 	ld	(ix+VX_VERTEX_CODE), a
 	lea	de, ix+VX_VERTEX_SIZE
 	lea	iy, iy+VX_VERTEX_DATA_SIZE
 	ret
-.endrelocate
+endrelocate

@@ -1,75 +1,72 @@
-#include	"shader/vxVertexShader.asm"
-#include	"shader/vxGeometryShader.asm"
+include	"shader/vertex.asm"
+include	"shader/geometry.asm"
 
-#define	VX_GEOMETRY_QUEUE		$D10000	; 4*4096 (16K)
-#define	VX_GEOMETRY_TEXTURE		16
-#define	VX_GEOMETRY_COLOR		10
+define	VX_GEOMETRY_QUEUE		$D10000	; 4*4096 (16K)
+define	VX_GEOMETRY_TEXTURE		16
+define	VX_GEOMETRY_COLOR		10
 
-#define	VX_VERTEX_BUFFER		$D08000	; 16*2048 (32K)
+define	VX_VERTEX_BUFFER		$D08000	; 16*2048 (32K)
 
-#define	vxDepthSortTemp		$E30014
+define	vxDepthSortTemp		$E30014
 
-#define	VX_DEPTH_BUCKET		$D03200
-#define	VX_DEPTH_TEST         $01
-#define	VX_DEPTH_BITS         24
-#define	VX_DEPTH_MIN          0
-#define	VX_DEPTH_MAX          16777215
-#define	VX_DEPTH_OFFSET		8388608
-
-#define	VX_MAX_TRIANGLE			4096
-#define	VX_MAX_VERTEX			2048
-#define	VX_MAX_BATCH			64
-
-#define	VX_BATCH_DATA		$D03500
+define	VX_DEPTH_BUCKET		$D03200
+define	VX_DEPTH_TEST         $01
+define	VX_DEPTH_BITS         24
+define	VX_DEPTH_MIN          0
+define	VX_DEPTH_MAX          16777215
+define	VX_DEPTH_OFFSET		8388608
+define	VX_MAX_TRIANGLE			4096
+define	VX_MAX_VERTEX			2048
+define	VX_MAX_BATCH			64
+define	VX_BATCH_DATA		$D03500
 
 ; TODO : create geometry shader in submission
 ; Better vertex shader with decoupled projection
 ; Put all the code in fast ram, use sha256
 
 vxSubmissionQueue:
-	.dl	0
+ dl	0
 vxGeometrySize:
-	.dl	0
+ dl	0
 vxGeometryBatchID:
-	.dl	0
+ dl	0
 vxModelViewCache:
-	.db	0,0,0
-	.db	0,0,0
-	.db	0,0,0
-	.dl	0,0,0
+ db	0,0,0
+ db	0,0,0
+ db	0,0,0
+ dl	0,0,0
 vxModelWorld:
-	.db	0,0,0
-	.db	0,0,0
-	.db	0,0,0
-	.dl	0,0,0
+ db	0,0,0
+ db	0,0,0
+ db	0,0,0
+ dl	0,0,0
 vxTModelWorld:
-	.db	0,0,0
-	.db	0,0,0
-	.db	0,0,0
-	.dl	0,0,0
+ db	0,0,0
+ db	0,0,0
+ db	0,0,0
+ dl	0,0,0
 vxLightUniform:
-	.db	0,0,0
-	.db	0,0,0
-	.dw	0,0,0
+ db	0,0,0
+ db	0,0,0
+ dw	0,0,0
 vxAnimationKey:
-	.db	0
+ db	0
 vxTexturePage:
-	.dl	0
+ dl	0
 vxPosition:
-	.dl	0,0,0
-
-	.db	0
+ dl	0,0,0
+ db	0
 vxWorldEye:
-	.dl	0,0,0
-	.db	0
+ dl	0,0,0
+ db	0
 
 vxModelViewReverse:
-	.db	0,0,0
-	.db	0,0,0
-	.db	0,0,0
-	.dl	0,0,0
+ db	0,0,0
+ db	0,0,0
+ db	0,0,0
+ dl	0,0,0
 
-vxRenderStream:
+vxSubmitQueue:
 	ld	hl, (VX_LCD_BUFFER)
 	ld	(vxSubmissionQueue), hl
 
@@ -131,7 +128,7 @@ vxRenderLoop:
 	jr	nz, vxRenderLoop
 	ret
 
-vxGeometryStream:
+vxGeometryQueue:
 ; hl : vertex source
 ; bc : cache area (where does the output vertex should go ?)
 ; de : triangle source
@@ -142,7 +139,10 @@ vxGeometryStream:
 	push	de
 	ex	de, hl
 	ld	hl, (vxGeometryBatchID)
-	inc	hl \ inc hl \ inc hl \ inc hl
+	inc	hl
+	inc	hl
+	inc	hl
+	inc	hl
 	ld	(vxGeometryBatchID), hl
 	ld	(hl), a	; format
 	inc	hl
@@ -173,9 +173,12 @@ vxGeometryStream:
 	ld	(vxSubmissionQueue), hl
 	or	a, a
 	sbc	hl, de
-	sra h \ rr l
-	sra h \ rr l
-	sra h \ rr l
+	sra	h
+	rr	l
+	sra	h
+	rr	l
+	sra	h
+	rr	l
 	ld	bc, (vxGeometrySize)
 	add	hl, bc
 	ld	(vxGeometrySize), hl
@@ -355,7 +358,7 @@ vxVertexBoxLoop:
 	scf
 	ret
 
-vxCmdDepthSort:
+vxSortQueue:
 ; sort the current submission queue
 	ld	bc, (vxGeometrySize)
 	ld	a, b
@@ -620,7 +623,9 @@ vxCmdFillBucket2:
 
 vxNClip:
 ; we'll compute (y1-y0)*(x2-x1)+(y2-y1)*(x0-x1)
-	inc	hl \ inc bc \ inc de
+	inc	hl
+	inc	bc
+	inc	de
 	push	hl
 	push	bc
 	ld	a, (bc)
@@ -633,15 +638,19 @@ vxNClip:
 ; hl-bc is x0-x1
 	or	a, a
 	sbc	hl, bc
-	sra	h \ rr l
+	sra	h
+	rr	l
 	ld	c, h
 	ex	de, hl
 	dec	hl
 	sub	a, (hl)
 	ld	d, a
 	ld	a, 0
-	jr	nc, $+3 \ sub a, e
-	bit 7, c \ jr z, $+3 \ sub a, d
+	jr	nc, $+3
+	sub	a, e
+	bit	7, c
+	jr	z, $+3
+	sub	a, d
 	mlt	de
 	add	a, d
 	ld	d, a
@@ -656,15 +665,19 @@ vxNClip:
 	ld	hl, (hl)
 	or	a, a
 	sbc	hl, bc
-	sra	h \ rr l
+	sra	h
+	rr	l
 	ld	c, h
 	ex	de, hl
 	ex	(sp), hl	; save previous de
 	sub	a, (hl)
 	ld	d, a
 	ld	a, 0
-	jr	nc, $+3 \ sub a, e
-	bit 7, c \ jr z, $+3 \ sub a, d
+	jr	nc, $+3
+	sub	a, e
+	bit	7, c
+	jr	z, $+3
+	sub	a, d
 	mlt	de
 	add	a, d
 	ld	d, a

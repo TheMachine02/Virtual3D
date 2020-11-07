@@ -1,6 +1,5 @@
 ; code start - vector utility fonctions
 
-#define	xpd	call vxCrossProduct
 vxCrossProduct:
 ; (hl) = (ix) cross (iy)
 ; 774 TStates, 177 Bytes
@@ -129,7 +128,7 @@ vxCrossProduct:
 	dec	hl
 	dec	hl
 	ret
-#define	dp3	call vxDotProduct
+
 vxDotProduct:
 ; hl = (ix) dot (iy)
 	ld	h, (ix+0)
@@ -186,7 +185,7 @@ vxNormalize:
 	ret
 vxLength:
 	ret
-#define	rfl	call	vxReflect
+
 vxReflect:
 ; I = ix, N = iy, hl = result
 ; reflection direction I-2*dot(N,I)*N

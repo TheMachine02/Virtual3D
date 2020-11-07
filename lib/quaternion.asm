@@ -1,16 +1,16 @@
 ; Quaternions utility functions
 
-#define VX_QUATERNION_SIZE			$0C
-#define VX_QUATERNION_QW             	$0
-#define VX_QUATERNION_QX          	$3
-#define VX_QUATERNION_QY       		$6
-#define VX_QUATERNION_QZ             	$9
+define VX_QUATERNION_SIZE			$0C
+define VX_QUATERNION_QW             	$0
+define VX_QUATERNION_QX          	$3
+define VX_QUATERNION_QY       		$6
+define VX_QUATERNION_QZ             	$9
 
 vxIdentityQuaternion:
-.dl	$004000
-.dl	$000000
-.dl	$000000
-.dl	$000000
+ dl	$004000
+ dl	$000000
+ dl	$000000
+ dl	$000000
 
 vxQuaternionLoadIdentity:
 	ex	de, hl
@@ -367,7 +367,11 @@ vxQuatMlt:
 ; and now divide by 64
 	add	hl, hl
 	add	hl, hl
-	ld	a, hlu
+	dec	sp
+	push	hl
+	inc	sp
+	pop	af
+; 	ld	a, hlu
 	ld	c, h
 	add	hl, hl
 	sbc	hl, hl
@@ -412,7 +416,11 @@ vxSqAbsSkp:
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
-	ld	a, hlu
+	dec	sp
+	push	hl
+	inc	sp
+	pop	af
+; 	ld	a, hlu
 	ld	e, h
 	or	a, a
 	sbc	hl, hl

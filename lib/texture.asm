@@ -4,29 +4,29 @@ vxPrimitiveTextureRaster:
 	inc	bc
 	ld	a, (de)
 	sub	a, (hl)
-	jr	c, _inner_swap0
+	jr	c, .swap0
 	ex	de, hl
-_inner_swap0:
+.swap0:
 	ld	a, (bc)
 	sub	a, (hl)
-	jr	nc, _inner_swap1
+	jr	nc, .swap1
 	push	hl
 	or	a, a
 	sbc	hl, hl
 	add	hl, bc
 	pop	bc
-_inner_swap1:
+.swap1:
 	ld	a, (de)
 	sub	a, (hl)
-	jr	nc, _inner_swap2
+	jr	nc, .swap2
 	ex	de, hl
-_inner_swap2:
-_inner_hcull:
+.swap2:
+.hcull:
 ; cull if dy=0
 	ld	a, (bc)
 	sub	(hl)
 	ret	z
-_inner_cacheRegister:
+.cacheRegister:
 	ld	(VX_SMC_STACK_REGISTER), sp
 ; copy x&y u&v to constant area
 	ld	iy, VX_REGISTER_DATA
@@ -41,15 +41,15 @@ _inner_cacheRegister:
 	pop	hl
 	ld	c, 6
 	ldir
-_inner_triangleSetup:
-debug_mark_gouraud:
+.triangleSetup:
+; debug_mark_gouraud:
 ;	ld	a, (iy+VX_REGISTER_C0)
 ;	ld	(iy+VX_REGISTER_V0), a
 ;	ld	a, (iy+VX_REGISTER_C1)
 ;	ld	(iy+VX_REGISTER_V1), a
 ;	ld	a, (iy+VX_REGISTER_C2)
 ;	ld	(iy+VX_REGISTER_V2), a
-debug_mark_endpoint:
+; debug_mark_endpoint:
 ;	ld	hl, $D30000
 ;	ld	h, (iy+VX_REGISTER_V0)
 ;	ld	l, (iy+VX_REGISTER_U0)
@@ -60,7 +60,7 @@ debug_mark_endpoint:
 ;	ld	h, (iy+VX_REGISTER_V2)
 ;	ld	l, (iy+VX_REGISTER_U2)
 ;	ld	(hl), $E0
-_inner_triangleInv_dy:
+.triangleInv_dy:
 ; ~ 500 cc
 ; inv = 65536/(y2-y0);
 	ld	a, (iy+VX_REGISTER_Y2)
@@ -72,14 +72,14 @@ _inner_triangleInv_dy:
 	add	hl, de
 	ld	de, (hl)
 	inc.s	de
-_inner_triangleCompute_dvdy:
+.triangleCompute_dvdy:
 ; dvdy = (v2-v0)*inv/256;
 	ld	a, (iy+VX_REGISTER_V2)
 	sub	(iy+VX_REGISTER_V0)
 	ld	h, d
 	ld	l, a
 	mlt	hl
-	jr	z, _inner_triangleNull_dvdy
+	jr	z, .triangleNull_dvdy
 	jr	nc, $+5
 	or	a, a
 	sbc	hl, de
@@ -90,7 +90,7 @@ _inner_triangleCompute_dvdy:
 	ld	c, b
 	ld	b, 0
 	adc	hl, bc
-_inner_triangleNull_dvdy:
+.triangleNull_dvdy:
 	ld	(iy+VX_FDVDY), hl
 ; compute vs at longest span
 	ld	a, (iy+VX_REGISTER_Y1)
@@ -105,14 +105,14 @@ _inner_triangleNull_dvdy:
 	adc	a, h
 	add	a, c
 	ld	(iy+VX_REGISTER_VS), a
-_inner_triangleCompute_dudy:
+.triangleCompute_dudy:
 ; dudy = (u2-u0)*inv/256;
 	ld	a, (iy+VX_REGISTER_U2)
 	sub	(iy+VX_REGISTER_U0)
 	ld	h, d
 	ld	l, a
 	mlt	hl
-	jr	z, _inner_triangleNull_dudy
+	jr	z, .triangleNull_dudy
 	jr	nc, $+5
 	or	a, a
 	sbc	hl, de
@@ -122,7 +122,7 @@ _inner_triangleCompute_dudy:
 	ld	e, d
 	ld	d, 0
 	adc.s	hl, de
-_inner_triangleNull_dudy:
+.triangleNull_dudy:
 ; compute us at longest span
 	ld	a, (iy+VX_REGISTER_Y1)
 	sub	(iy+VX_REGISTER_Y0)
@@ -142,10 +142,10 @@ _inner_triangleNull_dudy:
 	jr	z, $+4
 	dec.s	hl
 	ld	(iy+VX_FDUDY), hl
-_inner_edge0Setup:
+.edge0Setup:
 ; perform necessary computation to interpolate over the edge0, which is line(x0,y0,x2,y2)
 ; ~ 250cc
-_inner_edge0Compute_offset:
+.edge0Compute_offset:
 ; register_offset=320*y0+x0+framebuffer;
 	ld	hl, (iy+VX_REGISTER_X0)
 	ld	e, (iy+VX_REGISTER_Y0)
@@ -158,7 +158,7 @@ _inner_edge0Compute_offset:
 	ld	ix, (vxFramebuffer)
 	add	ix, de
 	ld	(iy+VX_REGISTER_OFFSET), ix
-_inner_edge0Compute_dx:
+.edge0Compute_dx:
 ; compute the deltas for vxRegisterInterpolation
 ; dx = abs(x2-x0) [de]
 	ld	de, (iy+VX_REGISTER_X2)	; load x2
@@ -169,20 +169,20 @@ _inner_edge0Compute_dx:
 ; carry reseted by add ix, de
 ;	or	a, a
 	sbc	hl, de	; hl = x2-x0
-	jr	nc, _inner_edge0Swap
+	jr	nc, .edge0Swap
 	add	hl, de	;
 	ex	de, hl	;
 	or	a, $08	; dec ix
 	sbc	hl, de	; hl = x0-x2
-_inner_edge0Swap:
+.edge0Swap:
 	ld	(VX_SMC_EDGE0_INC), a
-_inner_edge0Compute_dy:
+.edge0Compute_dy:
 ; dy = y0-y2 [bc]
 	ld	a, (iy+VX_REGISTER_Y0)
 	sub	a, (iy+VX_REGISTER_Y2)
 	ld	bc, $FFFFFF
 	ld	c, a
-_inner_edge0Compute_error:
+.edge0Compute_error:
 ; prepare the error for pixel center correct in/out (leftruled)
 	ex	de, hl
 	sbc	hl, hl	; carry is set here, so hl=-1
@@ -193,23 +193,23 @@ _inner_edge0Compute_error:
 	neg
 ; load the buffer increment on the y axis
 	ld	sp, 320
-_inner_edge0loop:
+.edge0loop:
 ; dark magic part I
 	add	hl, de
-	jr	nc, _inner_edge0End
-_inner_edge0Propagate:
-	.db	$DD
+	jr	nc, .edge0End
+.edge0Propagate:
+	db	$DD
 VX_SMC_EDGE0_INC=$
 	nop
 	add	hl, bc
-	jr	c, _inner_edge0Propagate
-_inner_edge0End:
+	jr	c, .edge0Propagate
+.edge0End:
 	ld	(iy+VX_REGISTER0), ix
 	add	ix, sp
 	lea	iy, iy+VX_REGISTER_SIZE
 	dec	a
-	jr	nz, _inner_edge0loop
-_inner_edge0magic:
+	jr	nz, .edge0loop
+.edge0magic:
 	ld	ix, VX_REGISTER_DATA
 	ld	hl, (ix+VX_REGISTER_X2)
 	ld	e, (ix+VX_REGISTER_Y2)
@@ -221,39 +221,39 @@ _inner_edge0magic:
 	ld	de, (vxFramebuffer)
 	add	hl, de
 	ld	(iy+VX_REGISTER0), hl
-_inner_edge1Setup:
+.edge1Setup:
 ;	ld	iy, VX_REGISTER_DATA	; load up shader data register
 	lea iy, ix+0
-_inner_edge1Compute_dy:
+.edge1Compute_dy:
 	ld	a, (iy+VX_REGISTER_Y0)
 	sub	a, (iy+VX_REGISTER_Y1)
-	jr	z, _inner_edge1Null
+	jr	z, .edge1Null
 ; bc is already negated
 ;	ld	bc, $FFFFFF
 	ld	c, a
-_inner_edge1Compute_offset:
+.edge1Compute_offset:
 	ld	de, (iy+VX_REGISTER_OFFSET)
 	sbc	hl, hl
 	sbc	hl, de
 	ex	de, hl
 	ld	ix, VX_LUT_PIXEL_LENGTH/4 + 2 ; (+2 is double carry sbc)
 	add	ix, de
-_inner_edge1Compute_dx:
+.edge1Compute_dx:
 	ld	de, (iy+VX_REGISTER_X0)
 	ld	hl, (iy+VX_REGISTER_X1)
 	ex.s	de, hl
 	ld	a, $23	; dec ix
 	or	a, a
 	sbc	hl, de	; hl = x1-x0
-	jr	nc, _inner_edge1Swap
+	jr	nc, .edge1Swap
 	add	hl, de	;
 	ex	de, hl	;
 	xor	a, $08	; inc ix	(inverted due to <0 working function)
 	sbc	hl, de	; hl = -x1+x0
-_inner_edge1Swap:
+.edge1Swap:
 	ex	de, hl	; de = abs(x1-x0)
 	ld	(VX_SMC_EDGE1_INC), a
-_inner_edge1Compute_error:
+.edge1Compute_error:
 	ld	a, c
 	scf
 	sbc	hl, hl
@@ -265,33 +265,33 @@ _inner_edge1Compute_error:
 ; load the buffer increment on the y axis
 	ld	sp, -320
 	lea	iy, iy+VX_REGISTER1
-_inner_edge1loop:
+.edge1loop:
 ; dark magic part II
 	add	hl, de
-	jr	nc, _inner_edge1End
-_inner_edge1Propagate:
-	.db	$DD
+	jr	nc, .edge1End
+.edge1Propagate:
+	db	$DD
 VX_SMC_EDGE1_INC=$
 	nop
 	add	hl, bc
-	jr	c, _inner_edge1Propagate
-_inner_edge1End:
+	jr	c, .edge1Propagate
+.edge1End:
 	ld	(iy+VX_REGISTER0), ix
 	add	ix, sp
 	lea	iy, iy+VX_REGISTER_SIZE
 	dec	a
-	jr	nz, _inner_edge1loop
+	jr	nz, .edge1loop
 	lea	iy, iy-VX_REGISTER1
-_inner_edge1Null:
+.edge1Null:
 
-_inner_edge2Setup:
+.edge2Setup:
 	ld	ix, VX_REGISTER_DATA	; load up shader data register
 	ld	(ix+VX_REGISTER_MIDPOINT), iy
-_inner_edge2Compute_dy:
+.edge2Compute_dy:
 	ld	a, (ix+VX_REGISTER_Y1)
 	ld	e, a
 	sub	a, (ix+VX_REGISTER_Y2)
-_inner_edge2Compute_offset:
+.edge2Compute_offset:
 	ld	hl, (ix+VX_REGISTER_X1)
 	ld	b, h
 	ld	c, l
@@ -304,7 +304,7 @@ _inner_edge2Compute_offset:
 	add	hl, de
 	ld	(ix+VX_REGISTER_OFFSET), hl
 	or	a, a
-	jr	z, _inner_edge2Null
+	jr	z, .edge2Null
 	ex	de, hl
 	sbc	hl, hl
 	sbc	hl, de
@@ -312,7 +312,7 @@ _inner_edge2Compute_offset:
 	ld	hl, (ix+VX_REGISTER_X2)
 	ld	ix, VX_LUT_PIXEL_LENGTH/4
 	add	ix, de
-_inner_edge2Compute_dx:
+.edge2Compute_dx:
 	ld	d, b
 	ld	e, c
 ; bcu already at $FF, reset only b
@@ -323,14 +323,14 @@ _inner_edge2Compute_dx:
 	ld	a, $23	; dec ix
 	or	a, a
 	sbc	hl, de	; hl = x2-x1
-	jr	nc, _inner_edge2Swap
+	jr	nc, .edge2Swap
 	add	hl, de	;
 	ex	de, hl	;
 	xor	a, $08	; inc ix	(inverted due to <0 working function)
 	sbc	hl, de	; hl = -x1+x0
-_inner_edge2Swap:
+.edge2Swap:
 	ld	(VX_SMC_EDGE2_INC), a
-_inner_edge2Compute_error:
+.edge2Compute_error:
 	ld	a, c
 	ex	de, hl
 	scf
@@ -342,32 +342,32 @@ _inner_edge2Compute_error:
 	neg
 	ld	sp, -320
 	lea	iy, iy+VX_REGISTER1
-_inner_edge2loop:
+.edge2loop:
 ; dark magic part III
 	add	hl, de
-	jr	nc, _inner_edge2End
-_inner_edge2Propagate:
-	.db	$DD
+	jr	nc, .edge2End
+.edge2Propagate:
+	db	$DD
 VX_SMC_EDGE2_INC=$
 	nop
 	add	hl, bc
-	jr	c, _inner_edge2Propagate
-_inner_edge2End:
+	jr	c, .edge2Propagate
+.edge2End:
 	ld	(iy+VX_REGISTER0), ix
 	add	ix, sp
 	lea	iy, iy+VX_REGISTER_SIZE
 	dec	a
-	jr	nz, _inner_edge2loop
+	jr	nz, .edge2loop
 	lea	iy, iy-VX_REGISTER1
-_inner_edge2Null:
-_inner_edge2Magic:
+.edge2Null:
+.edge2Magic:
 	ld	de, (iy+VX_REGISTER0)
 	ld	hl, vxPixelShaderExitLUT/4
 	or	a, a
 	sbc	hl, de
 	ld	(iy+VX_REGISTER1), hl
 
-_inner_triangleInv_dx:
+.triangleInv_dx:
 	ld	iy, VX_REGISTER_DATA	; load up shader data register
 	ld	ix, (iy+VX_REGISTER_MIDPOINT)	; value @x1
 	ld	hl, (iy+VX_REGISTER_OFFSET)
@@ -377,12 +377,12 @@ _inner_triangleInv_dx:
 	jp	z, vxPixelShaderExit
 ; now abs(hl)
 	ld	a, $13
-	jr	nc, _inner_triangleAbs
+	jr	nc, .triangleAbs
 	ex	de, hl
 	or	a, $08
 	sbc	hl, hl
 	sbc	hl, de
-_inner_triangleAbs:
+.triangleAbs:
 ; write inc/dec
 vxShaderAdress0Write=$+1
 	ld	($D00000), a
@@ -400,13 +400,13 @@ vxShaderAdress2Write=$+1
 	add	hl, de
 	ld	de, (hl)
 	inc.s	de	; de = 65536/dx
-_inner_triangleCompute_dvdx:
+.triangleCompute_dvdx:
 	ld	a, (iy+VX_REGISTER_V1)
 	sub	a, (iy+VX_REGISTER_VS)
 	ld	h, d
 	ld	l, a
 	mlt	hl
-	jr	z, _inner_triangleNull_dvdx
+	jr	z, .triangleNull_dvdx
 	jr	nc, $+5
 	or	a, a
 	sbc	hl, de
@@ -417,16 +417,16 @@ _inner_triangleCompute_dvdx:
 	xor	a, a
 	ld	b, a
 	add	hl, bc
-_inner_triangleNull_dvdx:
+.triangleNull_dvdx:
 	ld	(iy+VX_FDVDX), hl
 	ld	c, h
-_inner_triangleCompute_dudx:
+.triangleCompute_dudx:
 	ld	a, (iy+VX_REGISTER_U1)
 	sub	a, (iy+VX_REGISTER_US)
 	ld	h, d
 	ld	l, a
 	mlt	hl
-	jr	z, _inner_triangleNull_dudx
+	jr	z, .triangleNull_dudx
 	jr	nc, $+5
 	or	a, a
 	sbc	hl, de
@@ -436,13 +436,13 @@ _inner_triangleCompute_dudx:
 	xor	a, a
 	ld	d, a
 	add.s	hl, de
-_inner_triangleNull_dudx:
+.triangleNull_dudx:
 	bit	7, c
 	jr	z, $+4
 	dec.s	hl
 	ld	(iy+VX_FDUDX), hl
 
-_inner_triangleGradient:
+.triangleGradient:
 	ld	a, (iy+VX_REGISTER_Y2)
 	sub	a, (iy+VX_REGISTER_Y0)
 	ld	b, a
@@ -450,7 +450,8 @@ _inner_triangleGradient:
 	ld	de, (iy+VX_FDVDX)
 	or	a, a
 	sbc	hl, de
-	sra	h \ rr l
+	sra	h
+	rr	l
 	ld	a, (iy+VX_REGISTER_V0)
 	add	a, h
 	ld	h, a
@@ -459,7 +460,8 @@ _inner_triangleGradient:
 	ld	de, (iy+VX_FDUDX)
 	or	a, a
 	sbc	hl, de
-	sra	h \ rr l
+	sra	h
+	rr	l
 	ld	(iy+VX_REGISTER_TMP+2), l
 	ld	a, (iy+VX_REGISTER_U0)
 	add	a, h
@@ -467,21 +469,21 @@ _inner_triangleGradient:
 	ld	de, (iy+VX_FDVDY)
 	ld	c, (iy+VX_FDUDY+1)
 	lea	ix, iy+0
-_inner_triangleGradientLoop:
+.triangleGradientLoop:
 	ld	(ix+VX_REGISTER2), hl
 	ld	(ix+VX_REGISTER3), a
 	add	hl, de
 	adc	a, c
 	dec	b
-	jr	z, _inner_triangleGradientEnd
+	jr	z, .triangleGradientEnd
 	ld	(ix+VX_REGISTER2+VX_REGISTER_SIZE), hl
 	ld	(ix+VX_REGISTER3+VX_REGISTER_SIZE), a
 	add	hl, de
 	adc	a, c
 	lea	ix, ix+(VX_REGISTER_SIZE*2)
-	djnz	_inner_triangleGradientLoop
-_inner_triangleGradientEnd:
-_inner_triangleRenderPixel:
+	djnz	.triangleGradientLoop
+.triangleGradientEnd:
+.triangleRenderPixel:
 ; initialise drawing
 ; hl'= texture page and accumulator for dux	LOADED
 ; bc'= low byte is dux						INIT
@@ -503,27 +505,3 @@ vxPixelShaderExit:
 VX_SMC_STACK_REGISTER=$+1
 	ld	sp, $000000
 	ret
-
-VX_REALLOC_EDGE_POINTER:
-; dark magic
-_inner_edgeTrace:
-	add	hl, de
-	jr	nc, _inner_edgeEnd
-_inner_edgePropagate:
-	.db	$DD
-VX_REALLOC_EDGE_INC=$
-	nop
-	add	hl, bc
-	jr	c, _inner_edgePropagate
-_inner_edgeEnd:
-	ld	(iy+VX_REGISTER0), ix
-	add	ix, sp
-	lea	iy, iy+VX_REGISTER_SIZE
-	dec	a
-	jr	nz, _inner_edgeTrace
-	ret
-VX_REALLOC_EDGE_SIZE=$-VX_REALLOC_EDGE_POINTER
-
-VX_REALLOC_SHADER_POINTER:
-	.fill VX_REALLOC_EDGE_SIZE
-VX_REALLOC_SHADER_SIZE=VX_REALLOC_EDGE_SIZE

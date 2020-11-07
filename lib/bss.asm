@@ -1,6 +1,8 @@
 include	'include/ez80.inc'
 
-org	$D00000
+if $ <> $D00000
+ org	$D00000
+end if
 
 VX_LUT_CONVOLVE:
  db	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
@@ -110,9 +112,7 @@ VX_PATCH_OUTPUT:
  db	32	dup	$00
 VX_BATCH_DATA:
  db	256	dup	$00
-VX_CLIP_VERTEX0:
- db	16	dup	$00
-VX_CLIP_VERTEX1:
+VX_PATCH_VERTEX:
  db	16	dup	$00
 VX_LUT_INVERSE:
  dw 65534	; position 0, so nothing in fact (div by 0)
@@ -439,9 +439,9 @@ VX_LUT_INVERSE:
  db	64	dup	$00
 VX_REGISTER_DATA: 
  db	3072	dup	$D3 
-vxNewSize:
+vxPatchSize:
  db	0
-vxVertexAdress:
+vxPatchVertexCache:
  dl	0
 vxIdentityMatrix:
  db	64,0,0
@@ -1809,8 +1809,8 @@ vxPixelShaderExitLUT:
  db	0
  dl	0
 ; padding up to $D04000 
- db	196	dup	$00
+ rb	212
 VX_GEOMETRY_QUEUE:	; 4*4096 (16K)
- db	16384	dup	$00
+ rb	16384
 VX_VERTEX_BUFFER:	; 16*2048 (32K)
- db	32768	dup	$00
+ rb	32768

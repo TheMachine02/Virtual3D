@@ -6,7 +6,7 @@ vxTimerInit:
 	ld	hl, VX_TIMER_CTRL
 	ld	a, (hl)
 ; CPU clock, not enable, count up
-	and	%11111000
+	and	a, 11111000b
 	ld	(hl), a
 	inc	l
 	set	1, (hl)

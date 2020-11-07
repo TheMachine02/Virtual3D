@@ -1,8 +1,7 @@
-#define	VX_IMAGE_RLE_COMPRESSED	%01000000
-#define	VX_IMAGE_ZX7_COMPRESSED	%10000000
-#define	VX_IMAGE_UNCOMPRESSED		%00100000
-
-#define	VX_IMAGE_PAGE			$D30000
+define	VX_IMAGE_RLE_COMPRESSED		01000000b
+define	VX_IMAGE_ZX7_COMPRESSED		10000000b
+define	VX_IMAGE_UNCOMPRESSED		00100000b
+define	VX_IMAGE_PAGE			$D30000
 
 vxImage:
 
@@ -18,7 +17,7 @@ vxImageSubCopy:
 	ld	a, b
 	ld	b, 0
 ; ready to copy
-_inner_copyLoop:
+.copyLoop:
 	push	bc
 	ldir
 	pop	bc
@@ -34,7 +33,7 @@ _inner_copyLoop:
 	inc	h
 	inc	d
 	dec	a
-	jr	nz, _inner_copyLoop
+	jr	nz, .copyLoop
 	ret
 
 vxImageClear:
@@ -51,42 +50,42 @@ vxImageClear:
 vxImageCopy:
 ; hl : org, de : copy, a : format
 	rla
-	jr	c, _inner_ZX7Uncompress
+	jr	c, .ZX7Uncompress
 	rla
-	jr	c, _inner_RLEUncompress
+	jr	c, .RLEUncompress
 	ld	bc, 65536
 	ldir
 	ret
-_inner_RLEUncompress:
+.RLEUncompress:
 	ret
-_inner_ZX7Uncompress:
+.ZX7Uncompress:
 ; Routine copied from the C toolchain & speed optimized
 ;  Input:
 ;   HL = compressed data pointer
 ;   DE = output data pointer
 	ld	a, 128
-_inner_copybyteloop:
+.copybyteloop:
 	ldi
-_inner_mainloop:
+.mainloop:
 	add	a, a
 	jr	nz, $+5
 	ld	a, (hl)
 	inc	hl
 	rla
-	jr	nc, _inner_copybyteloop
+	jr	nc, .copybyteloop
 	push	de
 	ld	de, 0
 	ld	bc, 1
-_inner_lensizeloop:
+.lensizeloop:
 	inc	d
 	add	a, a
 	jr	nz, $+5
 	ld	a, (hl)
 	inc	hl
 	rla
-	jr	nc, _inner_lensizeloop
-	jr	_inner_lenvaluestart
-_inner_lenvalueloop:
+	jr	nc, .lensizeloop
+	jr	.lenvaluestart
+.lenvalueloop:
 	add	a, a
 	jr	nz, $+5
 	ld	a, (hl)
@@ -94,16 +93,16 @@ _inner_lenvalueloop:
 	rla
 	rl	c
 	rl	b
-	jr	c, _inner_exit
-_inner_lenvaluestart:
+	jr	c, .exit
+.lenvaluestart:
 	dec	d
-	jr	nz, _inner_lenvalueloop
+	jr	nz, .lenvalueloop
 	inc	bc
 	ld	e, (hl)
 	inc	hl
 	sla	e
 	inc	e
-	jr	nc, _inner_offsetend
+	jr	nc, .offsetend
 	add	a, a
 	jr	nz, $+5
 	ld	a, (hl)
@@ -128,16 +127,16 @@ _inner_lenvaluestart:
 	inc	hl
 	rla
 	ccf
-	jr	c, _inner_offsetend
+	jr	c, .offsetend
 	inc	d
-_inner_offsetend:
+.offsetend:
 	rr	e
 	ex	(sp), hl
 	push	hl
 	sbc	hl, de
 	pop	de
 	ldir
-_inner_exit:
+.exit:
 	pop	hl
-	jr	nc, _inner_mainloop
+	jr	nc, .mainloop
 	ret

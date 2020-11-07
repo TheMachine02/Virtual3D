@@ -1,9 +1,11 @@
+include	"lib/vxVSL.inc"
+
 vxPixelShader:
-	.db	VX_PIXEL_SHADER
-	.dl	vxPixelEnd-vxPixelCode
-	.db	2	; two pixel are written per loop
-	.db	10	; total size of per pixel code
-.relocate	VX_PIXEL_SHADER_CODE
+	db	VX_PIXEL_SHADER
+	dl	vxPixelEnd-vxPixelCode
+	db	2	; two pixel are written per loop
+	db	10	; total size of per pixel code
+relocate	VX_PIXEL_SHADER_CODE
 vxPixelCode:
 	add	hl, de
 	ld	a, h
@@ -25,4 +27,4 @@ vxPixelCode:
 	exx
 	djnz	vxPixelCode
 vxPixelEnd:
-.endrelocate
+endrelocate

@@ -1,27 +1,25 @@
-#define  vxPlaneBit0             %10000000
-#define  vxPlaneBit1             %01000000
-#define  vxPlaneBit2             %00100000
-#define  vxPlaneBit3             %00010000
-#define  vxPlaneBit4             %00001000
-#define  vxVertexDirty           %00000001
-#define  VX_SCREEN_WIDTH         320
-#define  VX_SCREEN_HEIGHT        240
-#define  VX_SCREEN_WCENTER       160
-#define  VX_SCREEN_HCENTER       120
-
-
-#define 	VX_MAX_PATCH_VERTEX    	8
-#define 	VX_MAX_PATCH_SIZE    		64
-#define	VX_PATCH_INPUT			$D03480
-#define	VX_PATCH_OUTPUT			$D034C0
-#define	VX_PATCH_VERTEX_POOL		$D03400
+define	VX_PLANE_BIT0		10000000b
+define	VX_PLANE_BIT1		01000000b
+define	VX_PLANE_BIT2		00100000b
+define	VX_PLANE_BIT3		00010000b
+define	VX_PLANE_BIT4		00001000b
+define	VX_VERTEX_DIRTY		00000001b
+define	VX_SCREEN_WIDTH         320
+define	VX_SCREEN_HEIGHT        240
+define	VX_SCREEN_WCENTER       160
+define	VX_SCREEN_HCENTER       120
+define 	VX_MAX_PATCH_VERTEX    	8
+define 	VX_MAX_PATCH_SIZE    	64
+define	VX_PATCH_INPUT		$D03480
+define	VX_PATCH_OUTPUT		$D034C0
+define	VX_PATCH_VERTEX_POOL	$D03400
 
 vxPatchSize:
-	.db	0
+ db	0
 vxPatchVertexCache:
-	.dl	0
+ dl	0
 VX_PATCH_VERTEX:
-	.dl	0,0,0,0,0,0
+ dl	0,0,0,0,0,0
 
 vxPrimitiveClipFrustrum:
 ; input ;
@@ -33,29 +31,29 @@ vxPrimitiveClipFrustrum:
 	ld	hl, VX_PATCH_VERTEX_POOL
 	ld	(vxPatchVertexCache), hl
 	rla
-	jr	nc, _inner_nextPlane0
+	jr	nc, .nextPlane0
 	ex	af,af'
-	ld	a, %10000000
+	ld	a, VX_PLANE_BIT0
 	call	vxPrimitiveClipPlane
 	ex	af,af'
-_inner_nextPlane0:
+.nextPlane0:
 	rla
-	jr	nc, _inner_nextPlane1
+	jr	nc, .nextPlane1
 	ex	af,af'
-	ld	a, %01000000
+	ld	a, VX_PLANE_BIT1
 	call	vxPrimitiveClipPlane
 	ex	af,af'
-_inner_nextPlane1:
+.nextPlane1:
 	rla
-	jr	nc, _inner_nextPlane2
+	jr	nc, .nextPlane2
 	ex	af,af'
-	ld	a, %00100000
+	ld	a, VX_PLANE_BIT2
 	call	vxPrimitiveClipPlane
 	ex	af,af'
-_inner_nextPlane2:
+.nextPlane2:
 	rla
 	ret	nc
-	ld	a, %00010000
+	ld	a, VX_PLANE_BIT3
 ; fall trough ;
 
 vxPrimitiveClipPlane:
@@ -79,33 +77,33 @@ vxPrimitiveClipPlane:
 	lea	hl, iy + 0
 	ld	iy, VX_PATCH_INPUT
 ;	ld	ix, VX_PATCH_OUTPUT
-	lea ix, iy + VX_MAX_PATCH_SIZE
+	lea	ix, iy + VX_MAX_PATCH_SIZE
 	lea	de, iy + 0
 	ldir
 	pop	bc
 ; b : count, c : planemask
-_inner_clipSutherHodgmanLoop:
+.clipSutherHodgmanLoop:
 	push	bc
 	ld	hl, (iy+VX_POLYGON_I1)
 	ld	de, (iy+VX_POLYGON_I0)
 	ld	a, (de)
 	and	(hl)
 	and	c
-	jr	nz, _inner_noEdge
+	jr	nz, .noEdge
 	ld	a, (de)
 	or	a, (hl)
 	and	c
-	jr	nz, _inner_clipEdge
+	jr	nz, .clipEdge
 	ld	(ix+VX_POLYGON_I0), de
 	ld	a, (vxPatchSize)
-_inner_incEdge:
+.incEdge:
 	lea	ix, ix+3
 	inc	a
 	ld	(vxPatchSize), a
-_inner_noEdge:
+.noEdge:
 	lea	iy, iy + 3
 	pop	bc
-	djnz	_inner_clipSutherHodgmanLoop
+	djnz	.clipSutherHodgmanLoop
 	ld	a, (vxPatchSize)
 	ld	b, a
 	ld	iy, VX_PATCH_OUTPUT
@@ -113,16 +111,16 @@ _inner_noEdge:
 	ld	(ix+VX_POLYGON_I0), hl
 	ret
 ; all works is here ;
-_inner_clipEdge:
+.clipEdge:
 	ld	a, (de)
 	and	c
 	push	af
 ; compute distance based of mask a
 	ld	a, c
-	tst	a, %11000000
+	tst	a, 11000000b
 ; nz = vertical
-	jp	nz, _inner_clipVerticalPlane
-_inner_clipHorizontalPlane:
+	jp	nz, .clipVerticalPlane
+.clipHorizontalPlane:
 	ld	bc, VX_VERTEX_RY
 	add	hl, bc
 	ld	bc, (hl)
@@ -131,11 +129,11 @@ _inner_clipHorizontalPlane:
 	inc	hl
 	ld	hl, (hl)
 	sbc	hl, bc
-	tst	a, %00100000
-	jr	nz, _inner_hinv0
+	tst	a, 00100000b
+	jr	nz, .hinv0
 	add	hl, bc
 	add	hl, bc
-_inner_hinv0:
+.hinv0:
 	ex	de, hl
 	ld	bc, VX_VERTEX_RY
 	add	hl, bc
@@ -145,13 +143,13 @@ _inner_hinv0:
 	inc	hl
 	ld	hl, (hl)
 	sbc	hl, bc
-	tst	a, %00100000
-	jr	nz, _inner_hinv1
+	tst	a, 00100000b
+	jr	nz, .hinv1
 	add	hl, bc
 	add	hl, bc
-_inner_hinv1:
+.hinv1:
 ; parametric compute for horizontal plane ;
-_inner_parametricHCompute:
+.parametricHCompute:
 	push	ix
 	push	iy
 ; save plane mask for later
@@ -174,20 +172,20 @@ _inner_parametricHCompute:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_RZ), hl
 ; vertex coordinate ry
 	pop	af
-	and	%00100000
+	and	a, 00100000b
 	ld	a, VX_SCREEN_HCENTER-(VX_SCREEN_HEIGHT/2)
-	jr	nz, _inner_HNeg
+	jr	nz, .HNeg
 	ex	de, hl
 	sbc	hl, hl
 	sbc	hl, de
 	ld	a, VX_SCREEN_HCENTER+(VX_SCREEN_HEIGHT/2)
-_inner_HNeg:
+.HNeg:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_RY), hl
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SY), a
 	push	bc
 	ld	hl, (VX_PATCH_VERTEX+VX_VERTEX_RX)
 	ld	bc, (VX_PATCH_VERTEX+VX_VERTEX_RZ)
-_inner_parametricDivide1:
+.parametricDivide1:
 	xor	a, a
 	add	hl, hl
 	jr	nc, $+9
@@ -198,41 +196,68 @@ _inner_parametricDivide1:
 	or	a, a
 
 	sbc	hl, bc
-	jr	c, _inner_nextcarry1
+	jr	c, .nextcarry1
 	sbc	hl, bc
-	jr	nc, _inner_equal1
+	jr	nc, .equal1
 	or	a, a
-_inner_nextcarry1:
-	adc	a,a	\ add hl,bc
-	add	hl,hl	\ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-	add	hl,hl	\ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-	add	hl,hl	\ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-	add	hl,hl	\ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-	add	hl,hl	\ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-	add	hl,hl	\ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-	add	hl,hl	\ sbc hl,bc \ adc a,a
+.nextcarry1:
+	adc	a,a
+	add	hl,bc
+	add	hl,hl
+	sbc	hl,bc
+	jr	nc,$+3
+	add	hl,bc
+	adc	a,a
+	add	hl,hl
+	sbc	hl,bc
+	jr	nc,$+3
+	add	hl,bc
+	adc	a,a
+	add	hl,hl
+	sbc	hl,bc
+	jr	nc,$+3
+	add	hl,bc
+	adc	a,a
+	add	hl,hl	
+	sbc	hl,bc
+	jr	nc,$+3
+	add	hl,bc
+	adc	a,a
+	add	hl,hl	
+	sbc	hl,bc
+	jr	nc,$+3
+	add	hl,bc
+	adc	a,a
+	add	hl,hl	
+	sbc	hl,bc
+	jr	nc,$+3
+	add	hl,bc
+	adc	a,a
+	add	hl,hl	
+	sbc	hl,bc
+	adc	a,a
 	cpl
-	ld   e, a
-	ld   d, VX_SCREEN_WIDTH/2+1
-	mlt   de
-	ld    a, d
+	ld	e, a
+	ld	d, VX_SCREEN_WIDTH/2+1
+	mlt	de
+	ld	a, d
 	sbc	hl, hl
 	jr	nc, $+3
 	cpl
 	ld	l, a
 	ld	de, VX_SCREEN_WCENTER
 	adc	hl, de
-	jr	_inner_writex
-_inner_equal1:
+	jr	.writex
+.equal1:
 	rra
 	ld	hl, VX_SCREEN_WCENTER-(VX_SCREEN_WIDTH/2)
-	jr	c, _inner_writex
+	jr	c, .writex
 	ld	hl, VX_SCREEN_WCENTER+(VX_SCREEN_WIDTH/2)
-_inner_writex:
+.writex:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SX), hl
 	xor	a, a
 ; common compute ;
-_inner_parametricCCompute:
+.parametricCCompute:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_CODE), a
 ; now, other vertex parameters
 	pop	bc
@@ -267,22 +292,22 @@ _inner_parametricCCompute:
 ; do specific edge shift here
 	pop	af
 	ld	a, (vxPatchSize)
-	jr	nz, _inner_edgeRentring
+	jr	nz, .edgeRentring
 ; edge leaving
 	ld	hl, (iy+VX_POLYGON_I0)
 	ld	(ix+VX_POLYGON_I0), hl
 	lea	ix, ix+3
 	inc	a
-_inner_edgeRentring:
+.edgeRentring:
 	ld	hl, VX_PATCH_VERTEX
 	ld	de, (vxPatchVertexCache)
 	ld	(ix+VX_POLYGON_I0), de
 	ld	bc, VX_VERTEX_SIZE
 	ldir
 	ld	(vxPatchVertexCache), de
-	jp	_inner_incEdge
+	jp	.incEdge
 ; parametric compute for horizontal plane ;
-_inner_clipVerticalPlane:
+.clipVerticalPlane:
 	ld	bc, VX_VERTEX_RX
 	add	hl, bc
 	ld	bc, (hl)
@@ -294,11 +319,11 @@ _inner_clipVerticalPlane:
 	inc	hl
 	ld	hl, (hl)
 	sbc	hl, bc
-	tst	a, %10000000
-	jr	nz, _inner_vinv0
+	tst	a, 10000000b
+	jr	nz, .vinv0
 	add	hl, bc
 	add	hl, bc
-_inner_vinv0:
+.vinv0:
 	ex	de, hl
 	ld	bc, VX_VERTEX_RX
 	add	hl, bc
@@ -311,12 +336,12 @@ _inner_vinv0:
 	inc	hl
 	ld	hl, (hl)
 	sbc	hl, bc
-	tst	a, %10000000
-	jr	nz, _inner_vinv1
+	tst	a, 10000000b
+	jr	nz, .vinv1
 	add	hl, bc
 	add	hl, bc
-_inner_vinv1:
-_inner_parametricVCompute:
+.vinv1:
+.parametricVCompute:
 	push	ix
 	push	iy
 	push	af	; push flag plane
@@ -339,15 +364,15 @@ _inner_parametricVCompute:
 ; vertex coordinate rx
 ; here, rx = -z or +z (based on plane, right plane = +)
 	pop	af
-	and	%10000000
+	and	a, 10000000b
 	push	bc
 	ld	bc, VX_SCREEN_WCENTER+(VX_SCREEN_WIDTH/2)
-	jr	nz, _inner_VNeg
+	jr	nz, .VNeg
 	ex	de, hl
 	sbc	hl, hl
 	sbc	hl, de
 	ld	bc, VX_SCREEN_WCENTER-(VX_SCREEN_WIDTH/2)
-_inner_VNeg:
+.VNeg:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_RX), hl
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SX), bc
 	ld	hl, (VX_PATCH_VERTEX+VX_VERTEX_RY)
@@ -357,7 +382,7 @@ _inner_VNeg:
 	rla
 	jr	nc, $+6
 	ld	bc, 1
-_inner_parametricDivide0:
+.parametricDivide0:
 	xor	a, a
 	add	hl, hl
 	jr	nc, $+9
@@ -367,18 +392,41 @@ _inner_parametricDivide0:
 	sbc	hl, de
 	or	a, a
 	sbc	hl, bc
-	jr	c, _inner_nextcarry0
+	jr	c, .nextcarry0
 	sbc	hl, bc
-	jr	nc, _inner_equal0
+	jr	nc, .equal0
 	or	a, a
-_inner_nextcarry0:
-	adc a,a \ add hl,bc
-	add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-	add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-	add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-	add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-	add hl,hl \ sbc hl,bc \ jr nc,$+3 \ add hl,bc \ adc a,a
-	add hl,hl \ sbc hl,bc \ adc a,a
+.nextcarry0:
+	adc	a,a
+	add	hl,bc
+	add	hl,hl
+	sbc	hl,bc
+	jr	nc,$+3
+	add	hl,bc
+	adc	a,a
+	add	hl,hl
+	sbc	hl,bc
+	jr	nc,$+3
+	add	hl,bc
+	adc	a,a
+	add	hl,hl
+	sbc	hl,bc
+	jr	nc,$+3
+	add	hl,bc
+	adc	a,a
+	add	hl,hl
+	sbc	hl,bc
+	jr	nc,$+3
+	add	hl,bc
+	adc	a,a
+	add	hl,hl
+	sbc	hl,bc
+	jr	nc,$+3
+	add	hl,bc
+	adc	a,a
+	add	hl,hl
+	sbc	hl,bc
+	adc	a,a
 	cpl
 	add	a, a
 	ld	l, VX_SCREEN_HEIGHT/2+1
@@ -390,28 +438,28 @@ _inner_nextcarry0:
 	adc	a, VX_SCREEN_HCENTER
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SY), a
 	xor	a, a
-	jp	_inner_parametricCCompute
-_inner_equal0:
-	jr	nz, _inner_clipy0
+	jp	.parametricCCompute
+.equal0:
+	jr	nz, .clipy0
 	rra
 	ld	a, VX_SCREEN_HCENTER-(VX_SCREEN_HEIGHT/2)
 	jr	nc, $+4
 	ld	a, VX_SCREEN_HCENTER+(VX_SCREEN_HEIGHT/2)
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SY), a
-	jp	_inner_parametricCCompute
-_inner_clipy0:
+	jp	.parametricCCompute
+.clipy0:
 ; we need to take care of extra clipping incurring on y plane only, since vertical plane will be both clipped proprely at first (and it doesn't change anything)
 ; so when it moves on to the y code, x won't be clipped anymore, only clamped, which is more than enough
 	rra
-	ld	c, %00100000
+	ld	c, 00100000b
 	ld	a, VX_SCREEN_HCENTER-(VX_SCREEN_HEIGHT/2)
-	jr	nc, _inner_clipy1
+	jr	nc, .clipy1
 	ld	a, VX_SCREEN_HCENTER+(VX_SCREEN_HEIGHT/2)
-	ld	c, %00010000
-_inner_clipy1
+	ld	c, 00010000b
+.clipy1:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SY), a
 	ld	a, c
-	jp	_inner_parametricCCompute
+	jp	.parametricCCompute
 
 vxParametricExtendMlt:
 ; (p1-p0)*f/65536+p0
@@ -470,7 +518,7 @@ vxParametricSignAdjust:
 	ld	d, 0
 	add	hl, de
 	pop	de
-	add	hl, de	; add up p0
+	add	hl, de	; add	up p0
 	ret
 
 vxParametricFactor:
@@ -481,41 +529,102 @@ vxParametricFactor:
 	sbc	hl, de
 	push	de
 ; abs(de-hl), if >0 then de <0
-	jp	p, _inner_deltaAbs
+	jp	p, .deltaAbs
 	add	hl, de
 	ex	de, hl
 	or	a, a
 	sbc	hl, de
-_inner_deltaAbs:
+.deltaAbs:
 	pop	de
 	ex	de, hl
 	add	hl, hl
-	jr	nc, _inner_absValue
+	jr	nc, .absValue
 	push	de
 	ex	de, hl
 	or	a, a
 	sbc	hl, hl
 	sbc	hl, de
 	pop	de
-_inner_absValue:
-	sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
+.absValue:
+	sbc	hl,de
+	jr	nc,$+3
+	add	hl,de
+	adc	a,a
+	add	hl,hl
+	sbc	hl,de
+	jr	nc,$+3
+	add	hl,de
+	adc	a,a
+	add	hl,hl
+	sbc	hl,de
+	jr	nc,$+3
+	add	hl,de
+	adc	a,a
+	add	hl,hl
+	sbc	hl,de
+	jr	nc,$+3
+	add	hl,de
+	adc	a,a
+	add	hl,hl
+	sbc	hl,de
+	jr	nc,$+3
+	add	hl,de
+	adc	a,a
+	add	hl,hl
+	sbc	hl,de
+	jr	nc,$+3
+	add	hl,de
+	adc	a,a
+	add	hl,hl
+	sbc	hl,de
+	jr	nc,$+3
+	add	hl,de
+	adc	a,a
+	add	hl,hl
+	sbc	hl,de
+	jr	nc,$+3
+	add	hl,de
+	adc	a,a
 	cpl
-	ld   b, a
-	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-	add   hl,hl \ sbc hl,de \ jr nc,$+3 \ add hl,de \ adc a,a
-	add   hl,hl \ sbc hl,de \ adc a,a
+	ld	b, a
+	add	hl,hl
+	sbc	hl,de
+	jr	nc,$+3
+	add	hl,de
+	adc	a,a
+	add	hl,hl
+	sbc	hl,de
+	jr	nc,$+3
+	add	hl,de
+	adc	a,a
+	add	hl,hl
+	sbc	hl,de
+	jr	nc,$+3
+	add	hl,de
+	adc	a,a
+	add	hl,hl
+	sbc	hl,de
+	jr	nc,$+3
+	add	hl,de
+	adc	a,a
+	add	hl,hl
+	sbc	hl,de
+	jr	nc,$+3
+	add	hl,de
+	adc	a,a
+	add	  hl,hl
+	sbc	hl,de
+	jr	nc,$+3
+	add	hl,de
+	adc	a,a
+	add	hl,hl
+	sbc	hl,de
+	jr	nc,$+3
+	add	hl,de
+	adc	a,a
+	add	hl,hl
+	sbc	hl,de
+	adc	a,a
 	cpl
-	ld   c, a
+	ld	c, a
 	ret

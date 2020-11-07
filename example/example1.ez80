@@ -72,16 +72,16 @@ MainLoop:
 	ld	bc, VX_VERTEX_BUFFER
 	ld	hl, (Vertex)
 	ld	de, (Triangle)
-	call	vxGeometryStream
+	call	vxGeometryQueue
 
 	ld	hl, (vxGeometrySize)
 	ld	(triangle_count), hl
 
-	call	vxCmdDepthSort
+	call	vxSortQueue
 
 	ld	c, %00000000
 	call	vxClearBuffer
-	call	vxRenderStream
+	call	vxSubmitQueue
 
 ; timer & counter
 

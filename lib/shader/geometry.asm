@@ -1,10 +1,10 @@
-#include "vxVSL.inc"
+include "lib/vxVSL.inc"
 
 VX_GEOMETRY_SHADER_COPY:
 
 ; relocate the shader to fast VRAM ($E30800)
 
-.relocate VX_GEOMETRY_SHADER_CODE
+relocate VX_GEOMETRY_SHADER_CODE
 
 vxGeometryShader:
 ; input : iy=data, bc=size
@@ -113,15 +113,19 @@ vxGeometryNClip:
 	ex	de, hl
 	or	a, a
 	sbc	hl, bc
-	sra	h \ rr l
+	sra	h
+	rr l
 	ld	c, h
 	ex	de, hl
 	dec	hl
 	sub	a, (hl)
 	ld	d, a
 	ld	a, 0
-	jr	nc, $+3 \ sub a, e
-	bit 7, c \ jr z, $+3 \ sub a, d
+	jr	nc, $+3
+	sub a, e
+	bit 7, c
+	jr z, $+3
+	sub a, d
 	mlt	de
 	add	a, d
 	ld	d, a
@@ -133,15 +137,20 @@ vxGeometryNClip:
 	ld	hl, (hl)
 	or	a, a
 	sbc	hl, bc
-	sra	h \ rr l
+	sra	h
+	rr l
 	ld	c, h
 	ld	b, l
 	pop	hl
 	sub	a, (hl)
 	ld	l, a
 	ld	h, b
-	ld	a, 0 \ jr nc,$+3 \ sub a, h
-	bit	7, c \ jr z, $+3 \ sub a, l
+	ld	a, 0
+	jr nc,$+3
+	sub a, h
+	bit	7, c
+	jr z, $+3
+	sub a, l
 	mlt	hl
 	add	hl, de
 	dec	hl
@@ -149,4 +158,4 @@ vxGeometryNClip:
 	rla
 	jp	vxGeometryNext
 
-.endrelocate
+endrelocate

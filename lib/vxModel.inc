@@ -1,21 +1,14 @@
-#ifndef	VX_MODELGUARD
-#define	VX_MODELGUARD
-
 VX_VERTEX_BASE=0
-#define	VX_ANIMATION_BONE		32768
+define	VX_ANIMATION_BONE		32768
 
-#macro  vxVertex(x,y,z)
-.dw x,y,z 
-#endmacro
-#define .v vxVertex(
+macro  .v x,y,z
+ dw x,y,z 
+end macro
 
-#macro vxFace(i,j,k)
-.dl i*16+VX_VERTEX_BASE
-.dl j*16+VX_VERTEX_BASE
-.dl k*16+VX_VERTEX_BASE
-#endmacro
-#define .f vxFace(
+macro .f i,j,k
+ dl i*16+VX_VERTEX_BASE
+ dl j*16+VX_VERTEX_BASE
+ dl k*16+VX_VERTEX_BASE
+end macro
 
-.org $0
-
-#endif
+org $0
