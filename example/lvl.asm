@@ -1,9 +1,9 @@
-#include	"vx3D.inc"
-#include "ti84pce.inc"
+include	"include/ez80.inc"
+include	"include/ti84pceg.inc"
+include	"include/tiformat.inc"
+include	"lib/vx3D.inc"
 
-.org userMem - 2
-.db tExtTok, tAsm84CeCmp
-.assume ADL=1
+format	ti executable 'LVL'
 
 ; init the virtual 3d library
 	call	vxEngineInit
@@ -113,7 +113,8 @@ allrender:
 	push	hl
 	inc	hl
 	ld	hl, (hl)
-	inc.s	hl \ dec.s hl
+	inc.s	hl
+	dec.s	hl
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
@@ -139,173 +140,166 @@ allrender:
 	ld	de, (dataLaraTriangle)
 	call	vxGeometryQueue
 
-	ld	hl, (vxGeometrySize)
-	ld	(triangle_count), hl
+; 	ld	hl, (vxGeometrySize)
+; 	ld	(triangle_count), hl
 
 	call	vxSortQueue
 
-	ld	c, %00000000
+	ld	c, 00000000b
 	call	vxClearBuffer
 	call	vxSubmitQueue
 
-; timer & counter
-
-	ld	bc, 320*8-1
-	ld	de, (vxFramebuffer)
-	or	a, a
-	sbc	hl, hl
-	add	hl, de
-	inc	de
-	ld	(hl), 0
-	ldir
-
-	ld	hl, 0
-	ld	(TextXPos_SMC), hl
-	ld	a, 0
-	ld	(TextYPos_SMC), a
-
-	call	vxTimerRead
-; do (ade/256)/187
-	ld	(Temp), de
-	ld	(Temp+3), a
-	ld	de, (Temp+1)
-; divide de by 187
-	ex	de, hl
-	ld	bc, 187
-	call	__idivs_ASM
-	ld	de, 4
-	push	de
-	push	hl
-	call	_PrintUInt
-	pop	de
-	pop	hl
-
-	ld	hl, (TextXPos_SMC)
-	ld	de, 8
-	add	hl, de
-	ld	(TextXPos_SMC), hl
-
-triangle_count=$+1
-	ld	hl, 0
-	ld	de, 4
-	push	de
-	push	hl
-	call	_PrintUInt
-	pop	de
-	pop	hl
-	ld	hl, (TextXPos_SMC)
-	ld	de, 8
-	add	hl, de
-	ld	(TextXPos_SMC), hl
-
-	ld	hl, 0
-	ld	a, (posX+1)
-	neg
-	ld	l, a
-	ld	de, 4
-	push	de
-	push	hl
-	call	_PrintUInt
-	pop	de
-	pop	hl
-	ld	hl, (TextXPos_SMC)
-	ld	de, 8
-	add	hl, de
-	ld	(TextXPos_SMC), hl
-
-	ld	a, (posZ+1)
-	neg
-	ld	l, a
-	ld	de, 4
-	push	de
-	push	hl
-	call	_PrintUInt
-	pop	de
-	pop	hl
-
+; ; timer & counter
+; 
+; 	ld	bc, 320*8-1
+; 	ld	de, (vxFramebuffer)
+; 	or	a, a
+; 	sbc	hl, hl
+; 	add	hl, de
+; 	inc	de
+; 	ld	(hl), 0
+; 	ldir
+; 
+; 	ld	hl, 0
+; 	ld	(TextXPos_SMC), hl
+; 	ld	a, 0
+; 	ld	(TextYPos_SMC), a
+; 
+; 	call	vxTimerRead
+; ; do (ade/256)/187
+; 	ld	(Temp), de
+; 	ld	(Temp+3), a
+; 	ld	de, (Temp+1)
+; ; divide de by 187
+; 	ex	de, hl
+; 	ld	bc, 187
+; 	call	__idivs_ASM
+; 	ld	de, 4
+; 	push	de
+; 	push	hl
+; 	call	_PrintUInt
+; 	pop	de
+; 	pop	hl
+; 
+; 	ld	hl, (TextXPos_SMC)
+; 	ld	de, 8
+; 	add	hl, de
+; 	ld	(TextXPos_SMC), hl
+; 
+; triangle_count=$+1
+; 	ld	hl, 0
+; 	ld	de, 4
+; 	push	de
+; 	push	hl
+; 	call	_PrintUInt
+; 	pop	de
+; 	pop	hl
+; 	ld	hl, (TextXPos_SMC)
+; 	ld	de, 8
+; 	add	hl, de
+; 	ld	(TextXPos_SMC), hl
+; 
+; 	ld	hl, 0
+; 	ld	a, (posX+1)
+; 	neg
+; 	ld	l, a
+; 	ld	de, 4
+; 	push	de
+; 	push	hl
+; 	call	_PrintUInt
+; 	pop	de
+; 	pop	hl
+; 	ld	hl, (TextXPos_SMC)
+; 	ld	de, 8
+; 	add	hl, de
+; 	ld	(TextXPos_SMC), hl
+; 
+; 	ld	a, (posZ+1)
+; 	neg
+; 	ld	l, a
+; 	ld	de, 4
+; 	push	de
+; 	push	hl
+; 	call	_PrintUInt
+; 	pop	de
+; 	pop	hl
 
 	call	vxFlushLCD
-
 	jp	 MainLoop
-	ret
 
-#include	"vxMain.asm"
-#include	"graphics_lib.asm"
+include	"lib/vxMain.asm"
+;include	"graphics_lib.asm"
 
 posX:
-	.dw	0*256
+ dw	0*256
 posY:
-	.dw	-704 ; 2*256 // offset 192
+ dw	-704 ; 2*256 // offset 192
 posZ:
-	.dw	0*256
-
+ dw	0*256
 Temp:
-	.dl	0,0
+ dl	0,0
 
 dataRoomVertexName:
-	.db	AppVarObj, "GYM0",0
+	db	ti.AppVarObj, "GYM0",0
 dataRoomIndexName:
-	.db	AppVarObj, "GYM1",0
+	db	ti.AppVarObj, "GYM1",0
 dataLevelName:
-	.db	AppVarObj, "GYMHEAD",0
+	db	ti.AppVarObj, "GYMHEAD",0
 textureName:
-	.db	AppVarObj, "GYM2",0
+	db	ti.AppVarObj, "GYM2",0
 laraVertexName:
-	.db	AppVarObj, "LARAV", 0
+	db	ti.AppVarObj, "LARAV", 0
 laraIndexName:
-	.db	AppVarObj, "LARAF", 0
+	db	ti.AppVarObj, "LARAF", 0
 
 dataRoomIndex:
-	.dl	0
+	dl	0
 dataRoomVertex:
-	.dl	0
+	dl	0
 dataLevel:
-	.dl	0
+	dl	0
 dataLaraVertex:
-	.dl	0
+	dl	0
 dataLaraTriangle:
-	.dl	0
-
+	dl	0
 cacheAdress:
-	.dl	0
+	dl	0
 cacheTexture:
-	.dl	0
-
-
+	dl	0
 UnitVector:
-	.dl	0,16384,0
+	dl	0,16384,0
 Quaternion:
-	.dl	0,0,0,0
+	dl	0,0,0,0
 QuatMatrix:
-	.dl	0,0,0,0,0,0
+	dl	0,0,0,0,0,0
 WorldMatrix:
-	.dl	0,0,0,0,0,0
+	dl	0,0,0,0,0,0
 
 ModelMatrix:
-	.db	64,0,0
-	.db	0,64,0
-	.db	0,0,64
-	.dw	0,0,0
+	db	64,0,0
+	db	0,64,0
+	db	0,0,64
+	dw	0,0,0
 LaraMatrix:
-	.db	64,0,0
-	.db	0,64,0
-	.db	0,0,64
-	.dw	0,0,0
+	db	64,0,0
+	db	0,64,0
+	db	0,0,64
+	dw	0,0,0
 LaraMatrix0:
-	.db	64,0,0
-	.db	0,64,0
-	.db	0,0,64
-	.dw	0,0,0
+	db	64,0,0
+	db	0,64,0
+	db	0,0,64
+	dw	0,0,0
 
 LaraStaticMatrix:
-	.db	0,0,64
-	.db	0,64,0
-	.db	-64,0,0
-	.dw	0,0,0
+	db	0,0,64
+	db	0,64,0
+	db	-64,0,0
+	dw	0,0,0
 LaraAngle:
-	.dl	0,0,0
+	dl	0,0,0
 CameraAngle:
-	.dl	0,0,0
+	dl	0,0,0
 
 Camera:
 
@@ -521,59 +515,54 @@ _kskip7:
 	ret
 
 keypressed:
-	.db	0
+	db	0
 
-BoundingBoxTest:
-; hl is stream
-; test vmax and vmin
+; BoundingBoxTest:
+; ; hl is stream
+; ; test vmax and vmin
+; 
+; ; if vmax.x>x && vmin.x < x
+; 
+; #define VX_VMAX_OFFSET   12
+; #define VX_VMIN_OFFSET   18
+; 	ret
 
-; if vmax.x>x && vmin.x < x
-
-#define VX_VMAX_OFFSET   12
-#define VX_VMIN_OFFSET   18
-
-
-
-
-
-	ret
-
-#define animationLivingStart  0
-#define animationLivingSize   12
-#define animationWalkingStart 12
-#define animationWalkingSize  19
-#define animationTurnRStart   31
-#define animationTurnRSize    16
-#define animationTurnLStart   47
-#define animationTurnLSize    16
-#define animationBackStart    63
-#define animationBackSize     16
+define animationLivingStart  0
+define animationLivingSize   12
+define animationWalkingStart 12
+define animationWalkingSize  19
+define animationTurnRStart   31
+define animationTurnRSize    16
+define animationTurnLStart   47
+define animationTurnLSize    16
+define animationBackStart    63
+define animationBackSize     16
 
 animationLiving:
-	.db	0,11
+	db	0,11
 animationWalking:
-	.db	0,18
+	db	0,18
 animationTurnright:
-	.db	0,15
+	db	0,15
 animationTurnleft:
-	.db	0,15
+	db	0,15
 animationBack:
-	.db	0,15
+	db	0,15
 
 
 ModelAnimation:
 AnimationFrameStart:
-	.db	0
+	db	0
 AnimationFrameEnd:
-	.db	0
+	db	0
 AnimationRuning:
-	.db	%11111111
+	db	11111111b
 init:
 	xor	a, a
 	ld	(vxAnimationKey), a
 	ld	(AnimationFrameEnd), a
 	ld	(AnimationFrameStart), a
-	ld	a, %11110000
+	ld	a, 11110000b
 	ld	(AnimationRuning), a
 	ret
 
@@ -589,7 +578,7 @@ advanceFrame:
 	and	(hl)
 	bit	3, a
 	jr	z, AnimationWalkingEnd
-	ld	a, %11110111
+	ld	a, 11110111b
 	ld	(hl), a
 	ld	a, animationWalkingStart - 1
 	ld	(vxAnimationKey), a
@@ -608,7 +597,7 @@ AnimationWalkingEnd:
 	and	(hl)
 	bit	0, a
 	jr	z, AnimationBackEnd
-	ld	a, %11111110
+	ld	a, 11111110b
 	ld	(hl), a
 	ld	a, animationBackStart - 1
 	ld	(vxAnimationKey), a
@@ -628,7 +617,7 @@ AnimationBackEnd:
 	and	(hl)
 	bit	1, a
 	jr	z, AnimateTurnLEnd
-	ld	a, %11111101
+	ld	a, 11111101b
 	ld	(hl), a
 	ld	a, animationTurnLStart - 1
 	ld	(vxAnimationKey), a
@@ -648,7 +637,7 @@ AnimateTurnLEnd:
 	and	(hl)
 	bit	2, a
 	jr	z, AnimateTurnREnd
-	ld	a, %11111011
+	ld	a, 11111011b
 	ld	(hl), a
 	ld	a, animationTurnRStart - 1
 	ld	(vxAnimationKey), a
@@ -660,12 +649,12 @@ AnimateTurnLEnd:
 AnimateTurnREnd:
 
 	ld	a, ($F5001E)
-	and	%00001111
+	and	00001111b
 	jr	nz, AnimationLivingEnd
 	ld	a, (hl)
 	bit	4, a
 	jr	z, AnimationLivingEnd
-	ld	a, %11101111
+	ld	a, 11101111b
 	ld	(hl), a
 	ld	a, animationLivingStart - 1
 	ld	(vxAnimationKey), a
@@ -684,29 +673,29 @@ AnimationApply:
 	ld	a, (vxAnimationKey)
 	add	a, 2
 	cp	a, l
-	jr	c, Store
+	jr	c, StoreKey
 	ld	a, (AnimationFrameStart)
-Store:
+StoreKey:
 	ld	(vxAnimationKey), a
 	ret
 
 
 Light:
-	.db	64,0,0
-	.db	8
-	.db	255
-	.dw	0,0,0
+	db	64,0,0
+	db	8
+	db	255
+	dw	0,0,0
 
 find:
 ; load a file from an appv
 ; hl : file name
 ; hl = file adress
 ; if error : c set, a = error code
-	call	_mov9toOP1
-	call	_ChkFindSym
+	call	ti.Mov9ToOP1
+	call	ti.ChkFindSym
 	ret	c
-	call	_ChkInRam
-	ex de,hl
+	call	ti.ChkInRam
+	ex	de, hl
 	jr	z, unarchived
 ; 9 bytes - name size (1b), name string, appv size (2b)
 	ld	de, 9

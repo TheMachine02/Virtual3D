@@ -1,9 +1,9 @@
-#include	"vx3D.inc"
-#include "ti84pce.inc"
+include	"include/ez80.inc"
+include	"include/ti84pceg.inc"
+include	"include/tiformat.inc"
+include	"lib/vx3D.inc"
 
-.org userMem - 2
-.db tExtTok, tAsm84CeCmp
-.assume ADL=1
+format	ti executable 'TEST'
 
 ; init the virtual 3d library
 	call	vxEngineInit
@@ -18,7 +18,6 @@
 	call	find
 	ret	c
 	ld	(Triangle), hl
-
 
 	ld	hl, TextName
 	call	find
@@ -59,38 +58,37 @@ MainLoop:
 	call	Camera
 	ret	nz
 
-	ld	a, (vxAnimationKey)
-	inc a
-	cp	13
-	jr	nz, $+3
-	xor	a, a
-	ld	(vxAnimationKey), a
-#comment
-; animate the texture
-	ld	a, (texture_frame)
-	inc	a
-	cp	4
-	jr	nz, $+3
-	xor	a, a
-	ld	(texture_frame), a
-; texture_frame*16
-	ld	l, a
-	ld	h, 16
-	mlt	hl
-	ld	a, l
-	add	a, 160+16
-	ld	h, a
-	ld	l, 0
+; 	ld	a, (vxAnimationKey)
+; 	inc a
+; 	cp	13
+; 	jr	nz, $+3
+; 	xor	a, a
+; 	ld	(vxAnimationKey), a
+; ; animate the texture
+; 	ld	a, (texture_frame)
+; 	inc	a
+; 	cp	4
+; 	jr	nz, $+3
+; 	xor	a, a
+; 	ld	(texture_frame), a
+; ; texture_frame*16
+; 	ld	l, a
+; 	ld	h, 16
+; 	mlt	hl
+; 	ld	a, l
+; 	add	a, 160+16
+; 	ld	h, a
+; 	ld	l, 0
+; 
+; 	ld	de, 160*256+0
+; 	ld	bc, 16*256+64
+; 	
+; 	call	vxImageSubCopy
 
-	ld	de, 160*256+0
-	ld	bc, 16*256+64
-	
-	call	vxImageSubCopy
-#endcomment
 	ld	a, VX_GEOMETRY_TEXTURE
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
-	ld	bc, $D22000
+	ld	bc, VX_VERTEX_BUFFER
 ; VX_VERTEX_BUFFER
 	ld	hl, (Vertex)
 	ld	de, (Triangle)
@@ -113,88 +111,88 @@ MainLoop:
 ;	call	vxGeometryQueue
 
 	ld	hl, (vxGeometrySize)
-	ld	(triangle_count), hl
+; 	ld	(triangle_count), hl
 
 	call	vxSortQueue
 
-	ld	c, %00000000
+	ld	c, 00000000b
 	call	vxClearBuffer
 	call	vxSubmitQueue
 
 ; timer & counter
 
-	ld	bc, 320*8-1
-	ld	de, (vxFramebuffer)
-	or	a, a
-	sbc	hl, hl
-	add	hl, de
-	inc	de
-	ld	(hl), 0
-	ldir
-
-	ld	hl, 0
-	ld	(TextXPos_SMC), hl
-	ld	a, 0
-	ld	(TextYPos_SMC), a
-
-	call	vxTimerRead
-; do (ade/256)/187
-	ld	(Temp), de
-	ld	(Temp+3), a
-	ld	de, (Temp+1)
-; divide de by 187
-	ex	de, hl
-	ld	bc, 187
-	call	__idivs_ASM
-	ld	de, 4
-	push	de
-	push	hl
-	call	_PrintUInt
-	pop	de
-	pop	hl
-
-	ld	hl, (TextXPos_SMC)
-	ld	de, 8
-	add	hl, de
-	ld	(TextXPos_SMC), hl
-
-triangle_count=$+1
-	ld	hl, 0
-	ld	de, 4
-	push	de
-	push	hl
-	call	_PrintUInt
-	pop	de
-	pop	hl
-	ld	hl, (TextXPos_SMC)
-	ld	de, 8
-	add	hl, de
-	ld	(TextXPos_SMC), hl
-
-	ld	hl, 0
-	ld	a, (posX+1)
-	neg
-	ld	l, a
-	ld	de, 4
-	push	de
-	push	hl
-	call	_PrintUInt
-	pop	de
-	pop	hl
-	ld	hl, (TextXPos_SMC)
-	ld	de, 8
-	add	hl, de
-	ld	(TextXPos_SMC), hl
-
-	ld	a, (posZ+1)
-	neg
-	ld	l, a
-	ld	de, 4
-	push	de
-	push	hl
-	call	_PrintUInt
-	pop	de
-	pop	hl
+; 	ld	bc, 320*8-1
+; 	ld	de, (vxFramebuffer)
+; 	or	a, a
+; 	sbc	hl, hl
+; 	add	hl, de
+; 	inc	de
+; 	ld	(hl), 0
+; 	ldir
+; 
+; 	ld	hl, 0
+; 	ld	(TextXPos_SMC), hl
+; 	ld	a, 0
+; 	ld	(TextYPos_SMC), a
+; 
+; 	call	vxTimerRead
+; ; do (ade/256)/187
+; 	ld	(Temp), de
+; 	ld	(Temp+3), a
+; 	ld	de, (Temp+1)
+; ; divide de by 187
+; 	ex	de, hl
+; 	ld	bc, 187
+; 	call	__idivs_ASM
+; 	ld	de, 4
+; 	push	de
+; 	push	hl
+; 	call	_PrintUInt
+; 	pop	de
+; 	pop	hl
+; 
+; 	ld	hl, (TextXPos_SMC)
+; 	ld	de, 8
+; 	add	hl, de
+; 	ld	(TextXPos_SMC), hl
+; 
+; triangle_count=$+1
+; 	ld	hl, 0
+; 	ld	de, 4
+; 	push	de
+; 	push	hl
+; 	call	_PrintUInt
+; 	pop	de
+; 	pop	hl
+; 	ld	hl, (TextXPos_SMC)
+; 	ld	de, 8
+; 	add	hl, de
+; 	ld	(TextXPos_SMC), hl
+; 
+; 	ld	hl, 0
+; 	ld	a, (posX+1)
+; 	neg
+; 	ld	l, a
+; 	ld	de, 4
+; 	push	de
+; 	push	hl
+; 	call	_PrintUInt
+; 	pop	de
+; 	pop	hl
+; 	ld	hl, (TextXPos_SMC)
+; 	ld	de, 8
+; 	add	hl, de
+; 	ld	(TextXPos_SMC), hl
+; 
+; 	ld	a, (posZ+1)
+; 	neg
+; 	ld	l, a
+; 	ld	de, 4
+; 	push	de
+; 	push	hl
+; 	call	_PrintUInt
+; 	pop	de
+; 	pop	hl
 
 
 	call	vxFlushLCD
@@ -202,65 +200,65 @@ triangle_count=$+1
 	jp	 MainLoop
 	ret
 
-#include	"vxMain.asm"
-#include	"graphics_lib.asm"
+include	"lib/vxMain.asm"
+; #include	"graphics_lib.asm"
 
 posX:
-	.dw	-3*256
+	dw	-3*256
 posY:
-	.dw	-1*256
+	dw	-1*256
 posZ:
-	.dw	-3*256
+	dw	-3*256
 
 posXt:
-	.dw	-3*256
+	dw	-3*256
 posYt:
-	.dw	-1*256
+	dw	-1*256
 posZt:
-	.dw	-3*256
+	dw	-3*256
 
 Temp:
-	.dl	0,0
+	dl	0,0
 
 VertexName:
-	.db	AppVarObj, "GYM0",0
+	db	ti.AppVarObj, "CITYV",0
 Vertex:
-	.dl	0
+	dl	0
 TriangleName:
-	.db	AppVarObj, "GYM1", 0
+	db	ti.AppVarObj, "CITYF", 0
 Triangle:
-	.dl	0
+	dl	0
 TextName:
-	.db	AppVarObj, "GYM2",0
+	db	ti.AppVarObj, "CITYT",0
 Texture:
-	.dl	0
+	dl	0
 UnitVector:
-	.dl	0,16384,0
+	dl	0,16384,0
 Quaternion:
-	.dl	0,0,0,0
+	dl	0,0,0,0
 QuatMatrix:
-	.dl	0,0,0,0,0,0
+	dl	0,0,0,0,0,0
 WorldMatrix:
-	.dl	0,0,0,0,0,0
+	dl	0,0,0,0,0,0
 ModelMatrix:
-	.db	64,0,0
-	.db	0,64,0
-	.db	0,0,64
-	.dw	0,0,0
+	db	64,0,0
+	db	0,64,0
+	db	0,0,64
+	dw	0,0,0
 BossMatrix:
-	.db	64,0,0
-	.db	0,64,0
-	.db	0,0,64
-	.dw	128,64,128
+	db	64,0,0
+	db	0,64,0
+	db	0,0,64
+	dw	128,64,128
 LaraMatrix:
-	.db	-64,0,0
-	.db	0,64,0
-	.db	0,0,-64
-	.dw	-1024,64,128
+	db	-64,0,0
+	db	0,64,0
+	db	0,0,-64
+	dw	-1024,64,128
 EulerAngle:
-	.dl	0,0,0
+	dl	0,0,0
 texture_frame:
-	.dl	0
+	dl	0
 
 Camera:
 	ld hl,$F50000 
@@ -403,31 +401,31 @@ _kskip7:
 	ld	a, h
 	ld	(posY+1), a
 
-#comment
-	call	GetHeightMap
-
-	ld	(smc_write), hl
-	ld	de, (posY)
-	or	a, a
-	sbc.s	hl, de
-	jp	p, _change
-	ld.s	bc, 129
-	or	a, a
-	adc.s	hl, bc
-	jp	m, _nochange
-_change:
-	ld	hl, posXt
-	ld	de, posX
-	ld	bc, 6
-	ldir
-smc_write=$+1
-	ld	hl, 0
-	ld	a, l
-	ld	(posY), a
-	ld	a, h
-	ld	(posY+1), a
-_nochange:
-#endcomment
+; #comment
+; 	call	GetHeightMap
+; 
+; 	ld	(smc_write), hl
+; 	ld	de, (posY)
+; 	or	a, a
+; 	sbc.s	hl, de
+; 	jp	p, _change
+; 	ld.s	bc, 129
+; 	or	a, a
+; 	adc.s	hl, bc
+; 	jp	m, _nochange
+; _change:
+; 	ld	hl, posXt
+; 	ld	de, posX
+; 	ld	bc, 6
+; 	ldir
+; smc_write=$+1
+; 	ld	hl, 0
+; 	ld	a, l
+; 	ld	(posY), a
+; 	ld	a, h
+; 	ld	(posY+1), a
+; _nochange:
+; #endcomment
 	ld	ix, WorldMatrix
 	ld	iy, posX
 	call	vxfTransform
@@ -461,21 +459,21 @@ GetHeightMap:
 	ret
 RoomMap:
 ;;	.db	12,15
-	.dw	4096,4096,4096,4096,4096,4096,4096,4096,4096,4096,4096,4096
-	.dw	4096,4096,4096,4096,4096,64,4096,4096,4096,4096,4096,4096
-	.dw	4096,4096,0,0,0,0,0,0,0,0,64,4096
-	.dw	4096,192,0,128,64,0,256,192,64,0,64,4096
-	.dw	4096,192,0,192,0,0,0,0,0,0,4096,4096
-	.dw	4096,4096,0,256,0,0,0,0,4096,64,4096,4096
-	.dw	4096,4096,0,0,0,0,0,0,0,32,4096,4096
-	.dw	4096,192,0,0,0,0,0,0,0,0,4096,4096
-	.dw	4096,192,0,256,0,256,256,0,0,0,4096,4096
-	.dw	4096,4096,0,256,0,192,0,0,0,128,4096,4096
-	.dw	4096,4096,0,0,0,64,0,0,4096,0,4096,4096
-	.dw	4096,4096,0,0,0,0,0,0,0,0,4096,4096
-	.dw	4096,4096,0,256,0,0,256,0,0,0,4096,4096
-	.dw	4096,4096,0,0,0,0,0,0,0,128,4096,4096
-	.dw	4096,4096,4096,4096,4096,4096,4096,4096,4096,4096,4096,4096
+	dw	4096,4096,4096,4096,4096,4096,4096,4096,4096,4096,4096,4096
+	dw	4096,4096,4096,4096,4096,64,4096,4096,4096,4096,4096,4096
+	dw	4096,4096,0,0,0,0,0,0,0,0,64,4096
+	dw	4096,192,0,128,64,0,256,192,64,0,64,4096
+	dw	4096,192,0,192,0,0,0,0,0,0,4096,4096
+	dw	4096,4096,0,256,0,0,0,0,4096,64,4096,4096
+	dw	4096,4096,0,0,0,0,0,0,0,32,4096,4096
+	dw	4096,192,0,0,0,0,0,0,0,0,4096,4096
+	dw	4096,192,0,256,0,256,256,0,0,0,4096,4096
+	dw	4096,4096,0,256,0,192,0,0,0,128,4096,4096
+	dw	4096,4096,0,0,0,64,0,0,4096,0,4096,4096
+	dw	4096,4096,0,0,0,0,0,0,0,0,4096,4096
+	dw	4096,4096,0,256,0,0,256,0,0,0,4096,4096
+	dw	4096,4096,0,0,0,0,0,0,0,128,4096,4096
+	dw	4096,4096,4096,4096,4096,4096,4096,4096,4096,4096,4096,4096
 
 
 ;#include "XML.ez80"
@@ -486,10 +484,10 @@ find:
 ; hl : file name
 ; hl = file adress
 ; if error : c set, a = error code
-	call	_mov9toOP1
-	call	_ChkFindSym
+	call	ti.Mov9ToOP1
+	call	ti.ChkFindSym
 	ret	c
-	call	_ChkInRam
+	call	ti.ChkInRam
 	ex de,hl
 	jr	z, unarchived
 ; 9 bytes - name size (1b), name string, appv size (2b)
