@@ -1,5 +1,7 @@
 include "lib/vxVSL.inc"
 
+define	VX_DEPTH_FAR_CULL	65536 * 9
+
 VX_GEOMETRY_SHADER_COPY:
 
 ; relocate the shader to fast VRAM ($E30800)
@@ -70,6 +72,11 @@ vxGeometryBufferRZ=$+1
 	or	a, a
 	sbc	hl, hl
 vxGeometryDepthClamp:
+; depth culling
+; 	ld	de, VX_DEPTH_FAR_CULL
+; 	sbc	hl, de
+; 	jr	nc, vxGeometryDiscard
+; 	add	hl, de
 ; write everything to tmp buffer
 	ld	(ix+VX_GEOMETRY_DEPTH), hl
 ; fill depth bucket

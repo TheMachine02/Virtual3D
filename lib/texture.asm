@@ -65,17 +65,15 @@ vxPrimitiveTextureRaster:
 ; inv = 65536/(y2-y0);
 	ld	a, (iy+VX_REGISTER_Y2)
 	sub	a, (iy+VX_REGISTER_Y0)
-	sbc	hl, hl
+	ld	hl, VX_LUT_INVERSE shr 1
 	ld	l, a
 	add	hl, hl
-	ld	de, VX_LUT_INVERSE
-	add	hl, de
 	ld	de, (hl)
 	inc.s	de
 .triangleCompute_dvdy:
 ; dvdy = (v2-v0)*inv/256;
 	ld	a, (iy+VX_REGISTER_V2)
-	sub	(iy+VX_REGISTER_V0)
+	sub	a, (iy+VX_REGISTER_V0)
 	ld	h, d
 	ld	l, a
 	mlt	hl
@@ -108,7 +106,7 @@ vxPrimitiveTextureRaster:
 .triangleCompute_dudy:
 ; dudy = (u2-u0)*inv/256;
 	ld	a, (iy+VX_REGISTER_U2)
-	sub	(iy+VX_REGISTER_U0)
+	sub	a, (iy+VX_REGISTER_U0)
 	ld	h, d
 	ld	l, a
 	mlt	hl
@@ -123,25 +121,24 @@ vxPrimitiveTextureRaster:
 	ld	d, 0
 	adc.s	hl, de
 .triangleNull_dudy:
-; compute us at longest span
-	ld	a, (iy+VX_REGISTER_Y1)
-	sub	(iy+VX_REGISTER_Y0)
-	ld	b, a
-	ld	c, h
-	ld	d, a
-	ld	e, l
-	mlt	bc
-	mlt	de
-	ld	a, (iy+VX_REGISTER_U0)
-	rl	e
-	adc	a, d
-	add	a, c
-	ld	(iy+VX_REGISTER_US), a
 ; now adapt because of the layout in memory : [lDVDY][hDVDY][lDUDY][hDUDY]
 	bit	7, (iy+VX_FDVDY+1)	; if dvdy is < 0 then adding will always propagate a carry inside dudy, which is a no-no
 	jr	z, $+4
 	dec.s	hl
 	ld	(iy+VX_FDUDY), hl
+; compute us at longest span
+	ld	a, (iy+VX_REGISTER_Y1)
+	sub	(iy+VX_REGISTER_Y0)
+	ld	b, a
+	ld	c, h
+	ld	h, a
+	mlt	bc
+	mlt	hl
+	ld	a, (iy+VX_REGISTER_U0)
+	rl	l
+	adc	a, h
+	add	a, c
+	ld	(iy+VX_REGISTER_US), a
 .edge0Setup:
 ; perform necessary computation to interpolate over the edge0, which is line(x0,y0,x2,y2)
 ; ~ 250cc
@@ -373,7 +370,7 @@ VX_SMC_EDGE2_INC=$
 	ld	hl, (iy+VX_REGISTER_OFFSET)
 	ld	de, (ix+VX_REGISTER0)
 	or	a, a
-	sbc hl, de
+	sbc	hl, de
 	jp	z, vxPixelShaderExit
 ; now abs(hl)
 	ld	a, $13
@@ -435,19 +432,21 @@ vxShaderAdress2Write=$+1
 	ld	e, d
 	xor	a, a
 	ld	d, a
-	add.s	hl, de
+	add	hl, de
 .triangleNull_dudx:
 	bit	7, c
-	jr	z, $+4
-	dec.s	hl
-	ld	(iy+VX_FDUDX), hl
-
+	jr	z, $+3
+	dec	hl
+	ld	(iy+VX_FDUDX), l
+	ld	(iy+VX_FDUDX+1), h
 .triangleGradient:
 	ld	a, (iy+VX_REGISTER_Y2)
 	sub	a, (iy+VX_REGISTER_Y0)
 	ld	b, a
 	ld	hl, (iy+VX_FDVDY)
 	ld	de, (iy+VX_FDVDX)
+; 	ld	hl, 0
+; 	ld	de, 0
 	or	a, a
 	sbc	hl, de
 	sra	h
@@ -458,6 +457,8 @@ vxShaderAdress2Write=$+1
 	ld	(iy+VX_REGISTER_TMP), hl
 	ld	hl, (iy+VX_FDUDY)
 	ld	de, (iy+VX_FDUDX)
+; 	ld	hl, 0
+; 	ld	de, 0
 	or	a, a
 	sbc	hl, de
 	sra	h

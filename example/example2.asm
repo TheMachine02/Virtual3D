@@ -49,8 +49,8 @@ define	DELTA	4096
 	ld	bc, VX_LIGHT_SIZE
 	ldir
 
-;	ld	ix, lightShader
-	ld	ix, alphaShader
+	ld	ix, lightShader
+;	ld	ix, alphaShader
 ;	ld	ix, gouraudShader
 	call	vxShaderLoad
 
@@ -60,6 +60,7 @@ define	DELTA	4096
 MainLoop:
 	call	vxTimerReset
 	call	vxTimerStart
+
 ;	call	Random
 ;	ld	a, l
 ;	and	31
@@ -266,15 +267,15 @@ Temp:
 ; choose mateus or tonberry
 
 VertexName:
-	db	ti.AppVarObj, "FRANV",0
+	db	ti.AppVarObj, "TONBV",0
 Vertex:
 	dl	0
 TriangleName:
-	db	ti.AppVarObj, "FRANF", 0
+	db	ti.AppVarObj, "TONBF", 0
 Triangle:
 	dl	0
 TextureName:
-	db	ti.AppVarObj, "FRANT", 0
+	db	ti.AppVarObj, "TONBT", 0
 Texture:
 	dl	0
 Light:

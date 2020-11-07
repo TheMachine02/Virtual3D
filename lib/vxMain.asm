@@ -176,6 +176,7 @@ include	"matrix.asm"
 include	"quaternion.asm"
 include	"vector.asm"
 include	"framebuffer.asm"
+include	"fma.asm"
 ; various LUT
 include	"data.inc"
 

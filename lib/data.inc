@@ -104,6 +104,7 @@ VX_LUT_SIN_DATA:
  db 63,63,63,63,63,63,63,63
  db 63,63,63,63,63,63,63,64
 
+align 512
 VX_LUT_INVERSE:
  dw 65534	; position 0, so nothing in fact (div by 0)
  dw 65534	; corrected
