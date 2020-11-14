@@ -1,11 +1,11 @@
 include	"include/ez80.inc"
 include	"include/ti84pceg.inc"
 include	"include/tiformat.inc"
-include	"lib/vx3D.inc"
 
 format	ti executable 'LVL'
 
 ; init the virtual 3d library
+
 	call	vxEngineInit
 	ret	c		; quit if error at init
 
@@ -38,8 +38,7 @@ format	ti executable 'LVL'
 	call	find
 	ret	c
 	ld	(cacheTexture), hl
-
-
+	
 	ld	a, VX_IMAGE_ZX7_COMPRESSED
 	ld	de, $D30000
 	call	vxImageCopy
@@ -55,8 +54,8 @@ format	ti executable 'LVL'
 	ld	bc, VX_LIGHT_SIZE
 	ldir
 
-;	ld	ix, lightShader
-;	call	vxShaderLoad
+; 	ld	ix, lightShader
+; 	call	vxShaderLoad
 ; broken somehow
 
 MainLoop:
@@ -74,6 +73,9 @@ renderLevel:
 ; get the psv
 ; render the psv
 
+	ld	hl, 0
+	ld	(triangle_count_tot), hl
+
 	ld	hl, VX_VERTEX_BUFFER
 	ld	(cacheAdress), hl
 
@@ -84,8 +86,8 @@ renderLevel:
 ;	ld	b, 3
 ;	ld	c, 2
 
-	ld	b, 2
-	ld	c, 0
+	ld	b, 1
+	ld	c, 1
 
 allrender:
 	push	bc
@@ -126,6 +128,20 @@ allrender:
 	ld	a, VX_GEOMETRY_TEXTURE
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
+	
+	push	hl
+	push	de
+	push	bc
+	ex	de, hl
+	inc	hl
+	ld	bc, (hl)
+	ld	hl, (triangle_count_tot)
+	add.s	hl, bc
+	ld	(triangle_count_tot), hl
+	pop	bc
+	pop	de
+	pop	hl
+	
 	call	vxGeometryQueue
 
 	pop	bc
@@ -138,10 +154,24 @@ allrender:
 	ld	bc, (cacheAdress)
 	ld	hl, (dataLaraVertex)
 	ld	de, (dataLaraTriangle)
+	
+	push	hl
+	push	de
+	push	bc
+	ex	de, hl
+	inc	hl
+	ld	bc, (hl)
+	ld	hl, (triangle_count_tot)
+	add.s	hl, bc
+	ld	(triangle_count_tot), hl
+	pop	bc
+	pop	de
+	pop	hl
+	
 	call	vxGeometryQueue
 
-; 	ld	hl, (vxGeometrySize)
-; 	ld	(triangle_count), hl
+	ld	hl, (vxGeometrySize)
+	ld	(triangle_count), hl
 
 	call	vxSortQueue
 
@@ -149,86 +179,94 @@ allrender:
 	call	vxClearBuffer
 	call	vxSubmitQueue
 
-; ; timer & counter
+; timer & counter
 ; 
-; 	ld	bc, 320*8-1
-; 	ld	de, (vxFramebuffer)
-; 	or	a, a
-; 	sbc	hl, hl
-; 	add	hl, de
-; 	inc	de
-; 	ld	(hl), 0
-; 	ldir
-; 
-; 	ld	hl, 0
-; 	ld	(TextXPos_SMC), hl
-; 	ld	a, 0
-; 	ld	(TextYPos_SMC), a
-; 
-; 	call	vxTimerRead
-; ; do (ade/256)/187
-; 	ld	(Temp), de
-; 	ld	(Temp+3), a
-; 	ld	de, (Temp+1)
-; ; divide de by 187
-; 	ex	de, hl
-; 	ld	bc, 187
-; 	call	__idivs_ASM
-; 	ld	de, 4
-; 	push	de
-; 	push	hl
-; 	call	_PrintUInt
-; 	pop	de
-; 	pop	hl
-; 
-; 	ld	hl, (TextXPos_SMC)
-; 	ld	de, 8
-; 	add	hl, de
-; 	ld	(TextXPos_SMC), hl
-; 
-; triangle_count=$+1
-; 	ld	hl, 0
-; 	ld	de, 4
-; 	push	de
-; 	push	hl
-; 	call	_PrintUInt
-; 	pop	de
-; 	pop	hl
-; 	ld	hl, (TextXPos_SMC)
-; 	ld	de, 8
-; 	add	hl, de
-; 	ld	(TextXPos_SMC), hl
-; 
-; 	ld	hl, 0
-; 	ld	a, (posX+1)
-; 	neg
-; 	ld	l, a
-; 	ld	de, 4
-; 	push	de
-; 	push	hl
-; 	call	_PrintUInt
-; 	pop	de
-; 	pop	hl
-; 	ld	hl, (TextXPos_SMC)
-; 	ld	de, 8
-; 	add	hl, de
-; 	ld	(TextXPos_SMC), hl
-; 
-; 	ld	a, (posZ+1)
-; 	neg
-; 	ld	l, a
-; 	ld	de, 4
-; 	push	de
-; 	push	hl
-; 	call	_PrintUInt
-; 	pop	de
-; 	pop	hl
+	ld	bc, 320*11-1
+	ld	de, (vxFramebuffer)
+	or	a, a
+	sbc	hl, hl
+	add	hl, de
+	inc	de
+	ld	(hl), 0
+	ldir
+ 
+	call	vxTimerRead
+; do (ade/256)/187
+	ld	(Temp), de
+	ld	(Temp+3), a
+	ld	de, (Temp+1)
+; divide de by 187
+	ex	de, hl
+	ld	bc, 187
+	call	__idivs
+	ld	a, 4
+	ld	(tri_ms), hl
+	push	hl
+	pop	bc
+	ld	hl, 0
+	ld	ix, $00FF00
+	call	font.glyph_integer_format
 
-	call	vxFlushLCD
+	ld	hl, 4
+	ld	bc, ms_string
+	ld	ix, $00FF00
+	call	font.glyph_string
+	
+triangle_count:=$+1
+	ld	bc, 0
+	ld	a, 4
+	ld	hl, 8
+	ld	ix, $00FF00
+	call	font.glyph_integer_format
+; 
+	ld	hl, 12
+	ld	bc, tri_string
+	ld	ix, $00FF00
+	call	font.glyph_string
+
+; 1000/ ms * triangle_count
+
+triangle_count_tot:=$+1
+	ld	hl, 0
+; *1024
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+tri_ms:=$+1
+	ld	bc, 0
+	call	__idivs
+	push	hl
+	pop	bc
+; hl = total / s	
+	ld	a, 6
+	ld	hl, 25
+	ld	ix, $00F000
+	call	font.glyph_integer_format
+	
+	ld	bc, tri_s
+	ld	hl, 31
+	ld	ix, $00F000
+	call	font.glyph_string
+	
+	call	vxSwapLCD
 	jp	 MainLoop
 
-include	"lib/vxMain.asm"
-;include	"graphics_lib.asm"
+ms_string:
+ db " ms",0
+tri_string:
+ db " visible tri", 0
+tri_s:
+ db " tri/s", 0 
+ 
+include	"lib/virtual.asm"
+include	"font/font.asm"
 
 posX:
  dw	0*256
@@ -268,8 +306,12 @@ cacheTexture:
 	dl	0
 UnitVector:
 	dl	0,16384,0
-Quaternion:
+UnitVector_2:
+	dl	16384, 0, 0
+Quaternion_x:
 	dl	0,0,0,0
+Quaternion_y:
+	dl	0,0,0,0	
 QuatMatrix:
 	dl	0,0,0,0,0,0
 WorldMatrix:
@@ -290,6 +332,11 @@ LaraMatrix0:
 	db	0,64,0
 	db	0,0,64
 	dw	0,0,0
+LaraMatrix1:
+	db	64,0,0
+	db	0,64,0
+	db	0,0,64
+	dw	0,0,0
 
 LaraStaticMatrix:
 	db	0,0,64
@@ -301,6 +348,12 @@ LaraAngle:
 CameraAngle:
 	dl	0,0,0
 
+Light:
+	db	0,0,64
+	db	18
+	db	64
+	dw	0,0,0
+	
 Camera:
 
 	ld hl,$F50000
@@ -341,8 +394,7 @@ _kskip2:
 skipit:
 
 	ld	hl, (LaraAngle)
-
-	ld	iy, Quaternion
+	ld	iy, Quaternion_x
 	ld	ix, UnitVector
 	call	vxQuaternionRotationAxis
 	ld	ix, LaraMatrix0
@@ -361,15 +413,15 @@ skipit:
 	sbc	hl, hl
 	sbc	hl, de
 
-	ld	iy, Quaternion
+	ld	iy, Quaternion_x
 	ld	ix, UnitVector
 	call	vxQuaternionRotationAxis
 	ld	ix, WorldMatrix
 	call	vxQuaternionGetMatrix
-;	ld	iy, WorldMatrix
-;	ld	ix, vxProjectionMatrix
-;	ld	hl, WorldMatrix
-;	call	vxMatrixMlt
+	ld	iy, WorldMatrix
+	ld	ix, vxProjectionMatrix
+	ld	hl, WorldMatrix
+	call	vxMatrixMlt
 
 	ld	a, ($F5001E)
 	bit	0, a
@@ -477,7 +529,8 @@ _kskip7:
 	call	vxfTransform
 
 	ld	hl, (vxPosition+6)
-	ld	de, 29184
+;	ld	de, 29184
+	ld	de, 20480+1024
 	add	hl, de
 	ld	(vxPosition+6), hl
 
@@ -679,13 +732,6 @@ StoreKey:
 	ld	(vxAnimationKey), a
 	ret
 
-
-Light:
-	db	64,0,0
-	db	8
-	db	255
-	dw	0,0,0
-
 find:
 ; load a file from an appv
 ; hl : file name
@@ -707,3 +753,22 @@ unarchived:
 	inc	hl
 	inc	hl
 	ret
+
+Render:
+
+
+
+.find_chamber:
+; find where the character is
+; character position is posX, posY, posY
+	ld	hl, (dataRoomVertex)
+	
+	push	hl
+	ld	hl, (hl)
+; this is the stream
+	
+
+
+
+
+.bounding_box:

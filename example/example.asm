@@ -1,7 +1,6 @@
 include	"include/ez80.inc"
 include	"include/ti84pceg.inc"
 include	"include/tiformat.inc"
-include	"lib/vx3D.inc"
 
 format	ti executable 'TEST'
 
@@ -48,11 +47,11 @@ format	ti executable 'TEST'
 	ld	a, 0
 	ld	(vxLightUniform+4), a
 
-;	ld	ix, alphaShader
-;	call	vxShaderLoad
+	ld	ix, alphaShader
+	call	vxShaderLoad
 
 MainLoop:
-
+	call	vxTimerReset
 	call	vxTimerStart
 	
 	call	Camera
@@ -79,12 +78,17 @@ MainLoop:
 ; 	add	a, 160+16
 ; 	ld	h, a
 ; 	ld	l, 0
-; 
-; 	ld	de, 160*256+0
-; 	ld	bc, 16*256+64
-; 	
-; 	call	vxImageSubCopy
+	
+	ld	hl, 0*256+128
+	ld	de, 0*256+160
+	ld	bc, 32*256+32
+	call	vxImageSubSwap
 
+	ld	hl, 128*256+128
+	ld	de, 128*256+160
+	ld	bc, 32*256+32
+	call	vxImageSubSwap	
+	
 	ld	a, VX_GEOMETRY_TEXTURE
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
@@ -111,7 +115,7 @@ MainLoop:
 ;	call	vxGeometryQueue
 
 	ld	hl, (vxGeometrySize)
-; 	ld	(triangle_count), hl
+	ld	(triangle_count), hl
 
 	call	vxSortQueue
 
@@ -120,88 +124,98 @@ MainLoop:
 	call	vxSubmitQueue
 
 ; timer & counter
+; 
+	ld	bc, 320*11-1
+	ld	de, (vxFramebuffer)
+	or	a, a
+	sbc	hl, hl
+	add	hl, de
+	inc	de
+	ld	(hl), 0
+	ldir
+ 
+	call	vxTimerRead
+; do (ade/256)/187
+	ld	(Temp), de
+	ld	(Temp+3), a
+	ld	de, (Temp+1)
+; divide de by 187
+	ex	de, hl
+	ld	bc, 187
+	call	__idivs
+	ld	a, 4
+	ld	(tri_ms), hl
+	push	hl
+	pop	bc
+	ld	hl, 0
+	ld	ix, $00FF00
+	call	font.glyph_integer_format
 
-; 	ld	bc, 320*8-1
-; 	ld	de, (vxFramebuffer)
-; 	or	a, a
-; 	sbc	hl, hl
-; 	add	hl, de
-; 	inc	de
-; 	ld	(hl), 0
-; 	ldir
+	ld	hl, 4
+	ld	bc, ms_string
+	ld	ix, $00FF00
+	call	font.glyph_string
+	
+triangle_count:=$+1
+	ld	bc, 0
+	ld	a, 4
+	ld	hl, 8
+	ld	ix, $00FF00
+	call	font.glyph_integer_format
 ; 
-; 	ld	hl, 0
-; 	ld	(TextXPos_SMC), hl
-; 	ld	a, 0
-; 	ld	(TextYPos_SMC), a
-; 
-; 	call	vxTimerRead
-; ; do (ade/256)/187
-; 	ld	(Temp), de
-; 	ld	(Temp+3), a
-; 	ld	de, (Temp+1)
-; ; divide de by 187
-; 	ex	de, hl
-; 	ld	bc, 187
-; 	call	__idivs_ASM
-; 	ld	de, 4
-; 	push	de
-; 	push	hl
-; 	call	_PrintUInt
-; 	pop	de
-; 	pop	hl
-; 
-; 	ld	hl, (TextXPos_SMC)
-; 	ld	de, 8
-; 	add	hl, de
-; 	ld	(TextXPos_SMC), hl
-; 
-; triangle_count=$+1
-; 	ld	hl, 0
-; 	ld	de, 4
-; 	push	de
-; 	push	hl
-; 	call	_PrintUInt
-; 	pop	de
-; 	pop	hl
-; 	ld	hl, (TextXPos_SMC)
-; 	ld	de, 8
-; 	add	hl, de
-; 	ld	(TextXPos_SMC), hl
-; 
-; 	ld	hl, 0
-; 	ld	a, (posX+1)
-; 	neg
-; 	ld	l, a
-; 	ld	de, 4
-; 	push	de
-; 	push	hl
-; 	call	_PrintUInt
-; 	pop	de
-; 	pop	hl
-; 	ld	hl, (TextXPos_SMC)
-; 	ld	de, 8
-; 	add	hl, de
-; 	ld	(TextXPos_SMC), hl
-; 
-; 	ld	a, (posZ+1)
-; 	neg
-; 	ld	l, a
-; 	ld	de, 4
-; 	push	de
-; 	push	hl
-; 	call	_PrintUInt
-; 	pop	de
-; 	pop	hl
+	ld	hl, 12
+	ld	bc, tri_string
+	ld	ix, $00FF00
+	call	font.glyph_string
 
+; 1000/ ms * triangle_count
+
+	ld	hl, (Triangle)
+	inc	hl
+	ld	hl, (hl)
+	inc.s	hl
+	dec.s	hl
+; *1024
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+tri_ms:=$+1
+	ld	bc, 0
+	call	__idivs
+	push	hl
+	pop	bc
+; hl = total / s	
+	ld	a, 6
+	ld	hl, 25
+	ld	ix, $00F000
+	call	font.glyph_integer_format
+	
+	ld	bc, tri_s
+	ld	hl, 31
+	ld	ix, $00F000
+	call	font.glyph_string
 
 	call	vxFlushLCD
 
 	jp	 MainLoop
 	ret
 
-include	"lib/vxMain.asm"
-; #include	"graphics_lib.asm"
+ms_string:
+ db " ms",0
+tri_string:
+ db " visible tri", 0
+tri_s:
+ db " tri/s", 0  
+	
+include	"lib/virtual.asm"
+include	"font/font.asm"
 
 posX:
 	dw	-3*256
@@ -221,15 +235,15 @@ Temp:
 	dl	0,0
 
 VertexName:
-	db	ti.AppVarObj, "CITYV",0
+	db	ti.AppVarObj, "POOLV",0
 Vertex:
 	dl	0
 TriangleName:
-	db	ti.AppVarObj, "CITYF", 0
+	db	ti.AppVarObj, "POOLF", 0
 Triangle:
 	dl	0
 TextName:
-	db	ti.AppVarObj, "CITYT",0
+	db	ti.AppVarObj, "POOLT",0
 Texture:
 	dl	0
 UnitVector:

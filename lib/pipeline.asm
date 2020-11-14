@@ -209,7 +209,7 @@ vxVertexStream:
 
 	ld	hl, vxModelView
 	ld	de, vxModelViewReverse
-	ld	c, VX_MATRIX_SIZE
+	ld	bc, VX_MATRIX_SIZE
 	ldir
 	ld	ix, vxModelViewReverse
 	call	vxMatrixTranspose
@@ -359,12 +359,19 @@ vxVertexBoxLoop:
 	ret
 
 vxSortQueue:
-; sort the current submission queue
 	ld	bc, (vxGeometrySize)
 	ld	a, b
-	or	c
+	or	a, c
 	ret	z
+	ld	hl, VX_QUEUE_BUFFER
+	ld	de, VX_VERTEX_SHADER_CODE
+	ld	bc, VX_QUEUE_SORT_SIZE
+	ldir
+	jp	VX_VERTEX_SHADER_CODE
 
+VX_QUEUE_BUFFER:=$
+relocate VX_VERTEX_SHADER_CODE
+; sort the current submission queue
 	ld	ix, (vxSubmissionQueue)
 	ld	hl, (vxDepthSortTemp)
 	ld	(vxCmdReadBuffer0), hl
@@ -618,8 +625,10 @@ vxCmdFillBucket2:
 	dec	a
 	jr	nz, vxCmdFillBucket2
 	djnz	vxCmdFillBucket2
-
 	ret
+	
+VX_QUEUE_SORT_SIZE := $ - VX_VERTEX_SHADER_CODE
+endrelocate
 
 vxNClip:
 ; we'll compute (y1-y0)*(x2-x1)+(y2-y1)*(x0-x1)

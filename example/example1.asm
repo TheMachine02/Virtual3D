@@ -1,9 +1,8 @@
 include	"include/ez80.inc"
 include	"include/ti84pceg.inc"
 include	"include/tiformat.inc"
-include	"lib/vx3D.inc"
 
-format	ti executable 'TEST'
+format	ti executable 'TEST1'
 
 #define	DELTA	4096
 
@@ -61,10 +60,10 @@ MainLoop:
 	call	vxQuaternionRotationAxis
 	ld	ix, WorldMatrix
 	call	vxQuaternionGetMatrix
-;	lea	iy, ix+0
-;	ld	ix, ScaleMatrix
-;	ld	hl, WorldMatrix
-;	call	vxMatrixMlt
+	lea	iy, ix+0
+	ld	ix, vxProjectionMatrix
+	ld	hl, WorldMatrix
+	call	vxMatrixMlt
 
 	ld	a, VX_GEOMETRY_COLOR
 	ld	ix, WorldMatrix
@@ -196,7 +195,7 @@ _kskip4:
 	jp	z, MainLoop
 	ret
 
-include	"lib/vxMain.asm"
+include	"lib/virtual.asm"
 ; include	"graphics_lib.asm"
 
 posX:
@@ -209,11 +208,11 @@ Temp:
 	dl	0,0
 
 VertexName:
-	db	ti.AppVarObj, "SUZAN0",0
+	db	ti.AppVarObj, "SUZANV",0
 Vertex:
 	dl	0
 TriangleName:
-	db	ti.AppVarObj, "SUZAN1", 0
+	db	ti.AppVarObj, "SUZANF", 0
 Triangle:
 	dl	0
 

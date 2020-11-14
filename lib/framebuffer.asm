@@ -75,18 +75,19 @@ vxFlushLCD:
 	ld	(vxFramebuffer), hl
 	ld	(VX_LCD_BUFFER), de
 
-vxWaitLCD:
+vxWaitVSync:
+	ld	hl, VX_LCD_ISR
+.wait_vcomp:
+	bit	2, (hl)
+	jr	z, .wait_vcomp
 ; wait until the LCD finish displaying the frame
 	ld	hl, VX_LCD_ICR
 	set	2, (hl)
-	ld	l, VX_LCD_ISR and $FF
-.wait:
-	bit	2, (hl)
-	jr	z, .wait
 	ret
 
 vxSwapLCD:
 ; swap buffer without LCD acknowledge
+; wait for the possibility to swap base pointer
 	ld	hl, (VX_LCD_BUFFER) 
 	ld	de, (vxFramebuffer)
 	ld	(vxFramebuffer), hl

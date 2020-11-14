@@ -83,17 +83,17 @@ vxPrimitiveRenderTriangle:
 ;  a = encoding format of triangle data
 ; nicely optimized for 3 points
 	and	a, 16
-	jp	z,_renderTriangleColor
+	jp	z, _inner_renderTriangleColor
 _inner_renderTriangleTexture:
 ; take iy as input, bc as vertex
 	lea	hl, iy+VX_TRIANGLE_UV0
 	ld	ix, (iy+VX_TRIANGLE_I0)
 	add	ix, bc
+	push	ix
 	lea	de, ix+VX_VERTEX_GPR0
 	ldi
 	ldi
 	ld	a, (de)
-	push	ix
 	ld	ix, (iy+VX_TRIANGLE_I1)
 	add	ix, bc
 	lea	de, ix+VX_VERTEX_GPR0+2
@@ -264,7 +264,7 @@ _inner_cyclicLoop:
 	djnz _inner_cyclicLoop
 	ret
 
-_renderTriangleColor:
+_inner_renderTriangleColor:
 	ld	ix, (iy+VX_TRIANGLE_I0)
 	add	ix, bc
 	ld	a, (ix+VX_VERTEX_UNIFORM)
@@ -287,9 +287,9 @@ _renderTriangleColor:
 	ld	(VX_PRIMITIVE_COLOR_RBG), a
 	lea	bc, ix+0
 	ld	a, (bc)
-	or	(hl)
+	or	a, (hl)
 	ex	de, hl
-	or	(hl)
+	or	a, (hl)
 	jr	nz, _inner_clipdrawColorTriangle
 ; fall through filling a triangle
 

@@ -427,6 +427,7 @@ vxSqAbsSkp:
 	ld	h, a
 	ld	l, e
 	ret
+
 vxCos:
 	inc	h
 vxSin:
@@ -437,23 +438,22 @@ vxSin:
 	jr	z, vxQuatIndexZero
 vxSinSkp1:
 	bit	1, h
-	ld	hl, VX_LUT_SIN
+	ld	hl, VX_LUT_SIN shr 1
 	jr	nz, vxSinNegate
 	ld	l, a
-	ld	c, (hl)
-	inc	h
-	ld	b, (hl)
+	add	hl, hl
+	ld	bc, (hl)
 	or	a, a
 	sbc	hl, hl
 	ld	h, b
 	ld	l, c
 	ret
 vxSinNegate:
-	inc.s	bc
 	ld	l, a
-	ld	c, (hl)
-	inc	h
-	ld	b, (hl)
+	add	hl, hl
+	ld	bc, (hl)
+	inc.s	bc
+	dec.s	bc
 	or	a, a
 	sbc	hl, hl
 	sbc	hl, bc

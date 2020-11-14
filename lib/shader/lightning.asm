@@ -1,5 +1,3 @@
-include	"lib/vxVSL.inc"
-
 lightShader:
 
 	db	VX_PIXEL_SHADER

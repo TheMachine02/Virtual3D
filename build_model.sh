@@ -2,6 +2,7 @@ mkdir bin
 
 echo "Converting Tomb Raider III test models..."
 ./tools/mdlconv  file/CavesOfKaliyaTRIII.obj -T -N -S -B
+
 spasm -I lib/ file/CavesOfKaliyaTRIII0.inc bin/KALIYAV.8xv -E -S
 spasm -I lib/ file/CavesOfKaliyaTRIII1.inc bin/KALIYAF.8xv -E -S
 

@@ -1,5 +1,3 @@
-include	"lib/vxVSL.inc"
-
 alphaShader:
 	db	VX_PIXEL_SHADER		; shader type
 	dl	alphaEnd-alphaCode	; shader size

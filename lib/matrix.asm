@@ -4,8 +4,8 @@ vxIdentityMatrix:
  db	0,0,64
  dl	0,0,0
 vxProjectionMatrix:
- db	64,0,0
- db	0,85,0
+ db	48,0,0
+ db	0,64,0
  db	0,0,64
  dl	0,0,0
 vxTmpVector:
@@ -151,6 +151,62 @@ vxMatrixRowLoop:
 	add	hl, bc
 	ret
 
+vxMatrixScale:
+; ix is matrix, iy is vector, hl is matrix result
+	ld	c, 3
+	ex	de, hl
+.out_loop:
+	ld	b, 3
+.in_loop:
+; row
+	ld	h, (ix+0)
+	ld	l, (iy+0)
+	xor	a, a
+	bit	7, h
+	jr	z, $+3
+	sub	a, l
+	bit	7, l
+	jr	z, $+3
+	sub	a, h
+	mlt	hl
+	add	a, h
+	ld	h, a
+	add	hl, hl
+	add	hl, hl
+	ld	a, h
+	ld	(de), a
+	inc	de
+	inc	ix
+	djnz	.in_loop
+	inc	iy
+	dec	c
+	jr	nz, .out_loop
+; ; also need to scale the translation part
+; ; those are 24 bits * 8 bits / 64
+; ; hl * a / 64
+; ; hlu*a*65536/64+h*a*256/64+l*a/64
+; ; de:hl is the result
+; 	ld	a, (iy+0)
+; 	ld	l, a
+; 	ld	h, (ix+1)
+; 	mlt	hl
+; 	ld	e, h
+; 	ld	h, l
+; 	ld	l, 0
+; 	ld	c, a
+; 	ld	b, (ix+0)
+; 	mlt	bc
+; 	add	hl, bc
+; ; hl = correct lower bytes
+; 	ld	c, a
+; 	ld	b, (ix+2)
+; 	mlt	bc
+; 	
+; 
+; 
+; 
+	ret
+	
 vxMatrixTransform:
 ; (hl) = (iy)*(ix) with translation
 ; iy is a animation matrix, ix is a world matrix, hl is world matrix

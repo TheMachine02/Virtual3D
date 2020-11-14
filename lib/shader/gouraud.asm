@@ -1,5 +1,3 @@
-include	"lib/vxVSL.inc"
-
 gouraudShader:
 
 	db	VX_PIXEL_SHADER

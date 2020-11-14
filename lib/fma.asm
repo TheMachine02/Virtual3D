@@ -10,7 +10,7 @@ define	VX_SIGNED_MATRIX_SM1		7
 define	VX_SIGNED_MATRIX_C6		8
 define	VX_SIGNED_MATRIX_C7		9
 define	VX_SIGNED_MATRIX_C8		10
-define	VX_SIGNED_MATRIX_S2		11
+define	VX_SIGNED_MATRIX_SM2		11
 define	VX_SIGNED_MATRIX_TX		12
 define	VX_SIGNED_MATRIX_TY		15
 define	VX_SIGNED_MATRIX_TZ		18
@@ -20,18 +20,79 @@ define	VX_SIGNED_VECTOR_WY		2
 define	VX_SIGNED_VECTOR_WZ		4
 define	VX_SIGNED_VECTOR_SM		6
 
-fma:
-; ix is an 8 bit signed vector, iy is a 16 bit signed vector
-; 99 (-4) cycles >> total 291 cycles min (+24 worst 315)+ jump or call (inline // not)
+vxfma_copy:
+
+relocate VX_VERTEX_SHADER_CODE
+
+vxModelView:
+ db    0,0,0,0
+ db    0,0,0,0
+ db    0,0,0,0
+ dl    0,0,0
+vxLight:
+ db    0,0,0
+ db    0,0,0
+ dw    0,0,0
+
+vxfma:
+	ld	ix, VX_VERTEX_SHADER_DATA
+	push	de
+	
+	ld	ixl, vxfma_trampoline_0
 	ld	a, (iy+VX_SIGNED_VECTOR_SM)
-	xor	a, (ix+VX_SIGNED_MATRIX_SM0)
+	xor	a, (ix+VX_SIGNED_MATRIX_SM0 - vxfma_trampoline_0)
 	ld	hl, .engine_000 shr 1
 	ld	l, a
 	add	hl, hl
-	ld	de, (ix+VX_SIGNED_MATRIX_C0)
-	ld	a, (ix+VX_SIGNED_MATRIX_C2)
+	ld	de, (ix+VX_SIGNED_MATRIX_C0 - vxfma_trampoline_0)
+	ld	a, (ix+VX_SIGNED_MATRIX_C2 - vxfma_trampoline_0)
+	jp	(hl)
+vxfma_trampoline_0:= $ and $FF
+	ld	de, (ix+VX_SIGNED_MATRIX_TX - vxfma_trampoline_1)
+	add	hl, de
+	push	hl
+
+	ld	ixl, vxfma_trampoline_1
+	ld	a, (iy+VX_SIGNED_VECTOR_SM)
+	xor	a, (ix+VX_SIGNED_MATRIX_SM1 - vxfma_trampoline_1)
+	ld	hl, .engine_000 shr 1
+	ld	l, a
+	add	hl, hl
+	ld	de, (ix+VX_SIGNED_MATRIX_C3 - vxfma_trampoline_1)
+	ld	a, (ix+VX_SIGNED_MATRIX_C5 - vxfma_trampoline_1)
+	jp	(hl)
+vxfma_trampoline_1:= $ and $FF
+	ld	de, (ix+VX_SIGNED_MATRIX_TY - vxfma_trampoline_1)
+	add	hl, de
+	push	hl
+
+	ld	ixl, vxfma_trampoline_2
+	ld	a, (iy+VX_SIGNED_VECTOR_SM)
+	xor	a, (ix+VX_SIGNED_MATRIX_SM2 - vxfma_trampoline_2)
+	ld	hl, .engine_000 shr 1
+	ld	l, a
+	add	hl, hl
+	ld	de, (ix+VX_SIGNED_MATRIX_C6 - vxfma_trampoline_2)
+	ld	a, (ix+VX_SIGNED_MATRIX_C8 - vxfma_trampoline_2)
 ; carry will be reset when jumping
 	jp	(hl)
+vxfma_trampoline_2:= $ and $FF
+	ld	de, (ix+VX_SIGNED_MATRIX_TZ - vxfma_trampoline_2)
+	add	hl, de
+	
+; 
+; 
+; ; ix is an 8 bit signed vector, iy is a 16 bit signed vector
+; ; 99 (-4) cycles >> total 291 cycles min (+24 worst 315)+ jump or call (inline // not)
+; 	ld	a, (iy+VX_SIGNED_VECTOR_SM)
+; 	xor	a, (ix+VX_SIGNED_MATRIX_SM0)
+; 	ld	hl, .engine_000 shr 1
+; 	ld	l, a
+; 	add	hl, hl
+; 	ld	de, (ix+VX_SIGNED_MATRIX_C0)
+; 	ld	a, (ix+VX_SIGNED_MATRIX_C2)
+; ; carry will be reset when jumping
+; 	jp	(hl)
 
 ; 0-0-0
 ; X-Y-Z
@@ -70,7 +131,7 @@ align 512
 	ld	c, a
 	mlt	bc
 	add	hl, bc
-	ret
+	jp	(ix)
 
 align 64
 .engine_001:
@@ -105,7 +166,7 @@ align 64
 	mlt	bc
 	or	a, a
 	sbc	hl, bc
-	ret
+	jp	(ix)
  
 align 64
 .engine_010:
@@ -140,7 +201,7 @@ align 64
 	ld	c, a
 	mlt	bc
 	add	hl, bc
-	ret
+	jp	(ix)
 	
 align 64
 .engine_100:
@@ -175,7 +236,7 @@ align 64
 	ld	c, a
 	mlt	bc
 	add	hl, bc
-	ret
+	jp	(ix)
 	
 align 64
 .engine_110:
@@ -212,7 +273,7 @@ align 64
 	ld	c, a
 	mlt	bc
 	add	hl, bc
-	ret
+	jp	(ix)
  
 align 64
 .engine_011:
@@ -249,7 +310,7 @@ align 64
 	mlt	bc
 	or	a, a
 	sbc	hl, bc
-	ret
+	jp	(ix)
  
 align 64
 .engine_101:
@@ -286,7 +347,7 @@ align 64
 	mlt	bc
 	or	a, a
 	sbc	hl, bc
-	ret
+	jp	(ix)
 
 align 64
 .engine_111:
@@ -323,4 +384,6 @@ align 64
 	ex	de, hl
 	sbc	hl, hl
 	sbc	hl, de
-	ret 
+	jp	(ix) 
+
+endrelocate

@@ -1,5 +1,3 @@
-include	"lib/vxVSL.inc"
-
 vxPixelShader:
 	db	VX_PIXEL_SHADER
 	dl	vxPixelEnd-vxPixelCode

@@ -35,6 +35,38 @@ vxImageSubCopy:
 	dec	a
 	jr	nz, .copyLoop
 	ret
+	
+vxImageSubSwap:
+; hl : org, bc : rect size, de : copy
+	push	bc
+	ld	bc, VX_IMAGE_PAGE
+	add	hl, bc
+	ex	de, hl
+	add	hl, bc
+	ex	de, hl
+	pop	bc
+	ld	a, b
+	ld	b, 0
+; ready to copy
+.swap_loop:
+	push	af
+	push	bc	
+	push	de
+	push	hl
+.swap_inner:
+	ld	a, (de)
+	ldi
+	ld	(hl), a
+	jp	pe, .swap_inner
+	pop	hl
+	pop	de
+	pop	bc
+	inc	h
+	inc	d
+	pop	af
+	dec	a
+	jr	nz, .swap_loop
+	ret	
 
 vxImageClear:
 	ld	bc, 65535

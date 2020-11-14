@@ -1,5 +1,3 @@
-include "lib/vxVSL.inc"
-
 define	VX_DEPTH_FAR_CULL	65536 * 9
 
 VX_GEOMETRY_SHADER_COPY:

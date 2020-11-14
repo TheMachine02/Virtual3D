@@ -1,5 +1,3 @@
-include "lib/vxVSL.inc"
-
 ; shader will copy 1024 bytes from global_data to VX_VRAM. This load occurs at begin of stream instruction, to ensure maximum vertex throughput. About 2200 cycles per vertex are needed.
 
 VX_VERTEX_SHADER_COPY:
@@ -8,12 +6,12 @@ VX_VERTEX_SHADER_COPY:
 
 relocate VX_VERTEX_SHADER_CODE
 
-vxModelView:
+;vxModelView:
  db    0,0,0
  db    0,0,0
  db    0,0,0
  dl    0,0,0
-vxLight:
+;vxLight:
  db    0,0,0
  db    0,0,0
  dw    0,0,0
