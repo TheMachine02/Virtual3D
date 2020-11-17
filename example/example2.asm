@@ -46,10 +46,10 @@ define	DELTA	4096
 	ld	bc, VX_LIGHT_SIZE
 	ldir
 
-;	ld	ix, lightShader
+	ld	ix, lightShader
 ;	ld	ix, alphaShader
 ;	ld	ix, gouraudShader
-;	call	vxShaderLoad
+	call	vxShaderLoad
 
 	ld	a, 0
 	ld	(vxAnimationKey), a
@@ -58,18 +58,18 @@ MainLoop:
 	call	vxTimerReset
 	call	vxTimerStart
 
-;	call	Random
-;	ld	a, l
-;	and	31
-;	add	a, 224
-;	ld	(vxLightUniform+4), a
+	call	Random
+	ld	a, l
+	and	a, 31
+	add	a, 224
+	ld	(vxLightUniform+4), a
 
-	ld	a, (vxAnimationKey)
-	inc	a
-	cp	a, 22
-	jr	nz, $+3
-	xor	a, a
-	ld	(vxAnimationKey), a
+; 	ld	a, (vxAnimationKey)
+; 	inc	a
+; 	cp	a, 22
+; 	jr	nz, $+3
+; 	xor	a, a
+; 	ld	(vxAnimationKey), a
 
 	ld	hl, (EulerAngle)
 	ld	iy, Quaternion
@@ -82,7 +82,7 @@ MainLoop:
 	ld	hl, WorldMatrix
 	call	vxMatrixMlt
 
-	ld	a, VX_GEOMETRY_TEXTURE
+	ld	a, VX_FORMAT_TEXTURE
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
 ;	ld	bc, VX_VERTEX_BUFFER
@@ -304,20 +304,20 @@ Temp:
 ; choose mateus or tonberry
 
 VertexName:
-	db	ti.AppVarObj, "MIDNAV",0
+	db	ti.AppVarObj, "TONBV",0
 Vertex:
 	dl	0
 TriangleName:
-	db	ti.AppVarObj, "MIDNAF", 0
+	db	ti.AppVarObj, "TONBF", 0
 Triangle:
 	dl	0
 TextureName:
-	db	ti.AppVarObj, "MIDNAT", 0
+	db	ti.AppVarObj, "TONBT", 0
 Texture:
 	dl	0
 Light:
 	db	0,0,-64
-	db	8
+	db	4
 	db	255
 	dw	0,0,0
 

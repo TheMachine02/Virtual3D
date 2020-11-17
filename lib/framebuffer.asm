@@ -52,6 +52,13 @@ vxSetPalette:
 	ldir
 	ret
 
+vxClearFramebuffer:
+	ld	de, (vxFramebuffer)
+	ld	hl, $E40000
+	ld	bc, VX_FRAMEBUFFER_SIZE
+	ldir
+	ret
+	
 vxClearBuffer:
 ; reset framebuffer with color
 ; input : c

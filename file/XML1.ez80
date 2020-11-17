@@ -1,4 +1,8 @@
-#include "vxModel.inc"
+#macro face(x,y,z)
+ .dl x*16, y*16, z*16
+#endmacro
+#define .f face(
+
 RIDATA:
 .dl 169472
 .f 2,17,16

@@ -34,6 +34,11 @@ format	ti executable 'LVL'
 	ret	c
 	ld	(dataLaraVertex), hl
 
+	ld	hl, SkyName
+	call	find
+	ret	c
+	ld	(Skybox), hl
+	
 	ld	hl, textureName
 	call	find
 	ret	c
@@ -125,7 +130,7 @@ allrender:
 	ld	(cacheAdress), hl
 	pop	hl
 
-	ld	a, VX_GEOMETRY_TEXTURE
+	ld	a, VX_FORMAT_TEXTURE
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
 	
@@ -148,7 +153,7 @@ allrender:
 	inc	c
 	djnz	allrender
 
-	ld	a, VX_GEOMETRY_TEXTURE
+	ld	a, VX_FORMAT_TEXTURE
 	ld	ix, WorldMatrix
 	ld	iy, LaraMatrix
 	ld	bc, (cacheAdress)
@@ -175,8 +180,15 @@ allrender:
 
 	call	vxSortQueue
 
-	ld	c, 00000000b
-	call	vxClearBuffer
+	call	vxClearFramebuffer
+; 	ld	hl, (Skybox)
+; 	ld	de, (vxFramebuffer)
+; 	ld	bc, 320*160
+; 	ldir
+; 	ld	hl, $E40000
+; 	ld	bc, 320*80
+; 	ldir
+	
 	call	vxSubmitQueue
 
 ; timer & counter
@@ -289,7 +301,11 @@ laraVertexName:
 	db	ti.AppVarObj, "LARAV", 0
 laraIndexName:
 	db	ti.AppVarObj, "LARAF", 0
-
+SkyName:
+	db	ti.AppVarObj, "SKYBOX", 0
+	
+Skybox:
+	dl	0
 dataRoomIndex:
 	dl	0
 dataRoomVertex:
@@ -533,6 +549,11 @@ _kskip7:
 	ld	de, 20480+1024
 	add	hl, de
 	ld	(vxPosition+6), hl
+	
+	ld	hl, (vxPosition+3)
+	ld	de, 192
+	add	hl, de
+	ld	(vxPosition+3), hl
 
 	ld	hl, vxPosition
 	ld	de, WorldMatrix+9

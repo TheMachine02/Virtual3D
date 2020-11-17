@@ -82,7 +82,7 @@ vxPrimitiveRenderTriangle:
 ; bc = vertex cache adress
 ;  a = encoding format of triangle data
 ; nicely optimized for 3 points
-	and	a, 16
+	bit	7, a		; VX_FORMAT_INTERPOLATION_MASK
 	jp	z, _inner_renderTriangleColor
 _inner_renderTriangleTexture:
 ; take iy as input, bc as vertex
@@ -118,9 +118,9 @@ _inner_renderTriangleTexture:
 	lea	de, ix+2
 	pop	hl
 	ld	a, (bc)
-	or	(hl)
+	or	a, (hl)
 	ex	de, hl
-	or	(hl)
+	or	a, (hl)
 	jp	nz, _inner_clipdrawTextureTriangle
 vxPrimitiveTextureTriangle:
 ; hl = p0 adress
@@ -135,7 +135,7 @@ vxPrimitiveRenderPolygon:
 ; bc = vertex cache adress
 ;  a = encoding format of triangle data
 ;  d = point count
-	and	a, 16
+	bit	7, a		; VX_FORMAT_INTERPOLATION_MASK
 	jp	z, _inner_renderPolygonColor
 _inner_renderPolygonTexture:
 	ret

@@ -2,9 +2,6 @@ include	"shader/vertex.asm"
 include	"shader/geometry.asm"
 
 define	VX_GEOMETRY_QUEUE		$D10000	; 4*4096 (16K)
-define	VX_GEOMETRY_TEXTURE		16
-define	VX_GEOMETRY_COLOR		10
-
 define	VX_VERTEX_BUFFER		$D08000	; 16*2048 (32K)
 
 define	vxDepthSortTemp		$E30014

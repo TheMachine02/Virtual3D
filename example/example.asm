@@ -18,11 +18,16 @@ format	ti executable 'TEST'
 	ret	c
 	ld	(Triangle), hl
 
+	ld	hl, SkyName
+	call	find
+	ret	c
+	ld	(Skybox), hl
+	
 	ld	hl, TextName
 	call	find
 	ret	c
 	ld	(Texture), hl
-
+	
 	ld	a, VX_IMAGE_ZX7_COMPRESSED
 	ld	de, $D30000
 	call	vxImageCopy
@@ -56,28 +61,6 @@ MainLoop:
 	
 	call	Camera
 	ret	nz
-
-; 	ld	a, (vxAnimationKey)
-; 	inc a
-; 	cp	13
-; 	jr	nz, $+3
-; 	xor	a, a
-; 	ld	(vxAnimationKey), a
-; ; animate the texture
-; 	ld	a, (texture_frame)
-; 	inc	a
-; 	cp	4
-; 	jr	nz, $+3
-; 	xor	a, a
-; 	ld	(texture_frame), a
-; ; texture_frame*16
-; 	ld	l, a
-; 	ld	h, 16
-; 	mlt	hl
-; 	ld	a, l
-; 	add	a, 160+16
-; 	ld	h, a
-; 	ld	l, 0
 	
 	ld	hl, 0*256+128
 	ld	de, 0*256+160
@@ -87,9 +70,9 @@ MainLoop:
 	ld	hl, 128*256+128
 	ld	de, 128*256+160
 	ld	bc, 32*256+32
-	call	vxImageSubSwap	
+	call	vxImageSubSwap
 	
-	ld	a, VX_GEOMETRY_TEXTURE
+	ld	a, VX_FORMAT_TEXTURE
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
 	ld	bc, VX_VERTEX_BUFFER
@@ -119,8 +102,16 @@ MainLoop:
 
 	call	vxSortQueue
 
-	ld	c, 00000000b
-	call	vxClearBuffer
+;	ld	c, 11100000b
+;	call	vxClearBuffer
+;	call	vxClearFramebuffer
+	ld	hl, (Skybox)
+	ld	de, (vxFramebuffer)
+	ld	bc, 320*160
+	ldir
+	ld	hl, $E40000
+	ld	bc, 320*80
+	ldir
 	call	vxSubmitQueue
 
 ; timer & counter
@@ -244,6 +235,10 @@ Triangle:
 	dl	0
 TextName:
 	db	ti.AppVarObj, "POOLT",0
+SkyName:
+	db	ti.AppVarObj, "SKYBOX",0
+Skybox:
+	dl	0
 Texture:
 	dl	0
 UnitVector:

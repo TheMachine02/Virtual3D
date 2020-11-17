@@ -65,7 +65,7 @@ MainLoop:
 	ld	hl, WorldMatrix
 	call	vxMatrixMlt
 
-	ld	a, VX_GEOMETRY_COLOR
+	ld	a, VX_FORMAT_COLOR
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
 	ld	bc, VX_VERTEX_BUFFER

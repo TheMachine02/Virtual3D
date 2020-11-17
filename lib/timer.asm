@@ -26,7 +26,7 @@ vxTimerReset:
 	ret
 vxTimerStart:
 	ld	hl, VX_TIMER_CTRL
-	; start timer
+; start timer
 	set	0, (hl)
 	ret
 vxTimerRead:
@@ -36,7 +36,7 @@ vxTimerRead:
 ; read 24 bits value in the counter register
 	ld	hl, VX_TIMER_COUNT
 	ld	de, (hl)
-	ld	l,3
+	ld	l, 3
 	ld	a, (hl)
 ; full 32bits value is now ade
 	ret

@@ -87,37 +87,39 @@ spasm -I lib/ file/NabooruZelda0.inc bin/NABOORUV.8xv -E -S
 spasm -I lib/ file/NabooruZelda1.inc bin/NABOORUF.8xv -E -S
 
 echo "Converting CavesOfKaliyaTRIII.png"
-./tools/texconv -D file/CavesOfKaliyaTRIII.png
+./tools/texconv -D -C file/CavesOfKaliyaTRIII.png
 echo "Converting CityTRIII.png"
-./tools/texconv -D file/CityTRIII.png
+./tools/texconv -D -C file/CityTRIII.png
 echo "Converting TrainRoomTRIII.png"
-./tools/texconv -D file/TrainRoomTRIII.png
+./tools/texconv -D -C file/TrainRoomTRIII.png
 echo "Converting PoolTRIII.png"
-./tools/texconv -A file/PoolTRIII.png
+./tools/texconv -A -C file/PoolTRIII.png
 echo "Converting LaraTRIII.png"
-./tools/texconv -D file/LaraTRIII.png
+./tools/texconv -A -C file/LaraTRIII.png
 echo "Converting texture.png"
-./tools/texconv -D file/texture.png
+./tools/texconv -D -C file/texture.png
 echo "Converting FranFFXII.png"
-./tools/texconv -A file/FranFFXII.png
+./tools/texconv -A -C file/FranFFXII.png
 echo "Converting MjrnFFXII.png"
-./tools/texconv -A file/MjrnFFXII.png
+./tools/texconv -A -C file/MjrnFFXII.png
 echo "Converting BunnyFFXII.png"
-./tools/texconv -A file/BunnyFFXII.png
+./tools/texconv -A -C file/BunnyFFXII.png
 echo "Converting MateusFFXII.png"
-./tools/texconv -A file/MateusFFXII.png
+./tools/texconv -A -C file/MateusFFXII.png
 echo "Converting VieraSceneFFXII.png"
-./tools/texconv -D file/VieraSceneFFXII.png
+./tools/texconv -D -C file/VieraSceneFFXII.png
 echo "Converting LuluFFX.png"
-./tools/texconv -D file/LuluFFX.png
+./tools/texconv -D -C file/LuluFFX.png
 echo "Converting TonberryFFVIII.png"
-./tools/texconv -D file/TonberryFFVIII.png
+./tools/texconv -D -C file/TonberryFFVIII.png
 echo "Converting UltimeciaFFVIII.png"
-./tools/texconv -D file/UltimeciaFFVIII.png
+./tools/texconv -D -C file/UltimeciaFFVIII.png
 echo "Converting MidnaZelda.png"
-./tools/texconv -D file/MidnaZelda.png
+./tools/texconv -D -C file/MidnaZelda.png
 echo "Converting NabooruZelda.png"
-./tools/texconv -D file/NabooruZelda.png
+./tools/texconv -D -C file/NabooruZelda.png
+echo "Converting Background.png"
+./tools/texconv -D file/Background.png
 
 spasm -I lib/ file/CavesOfKaliyaTRIII.inc bin/KALIYAT.8xv -E -S
 spasm -I lib/ file/CityTRIII.inc bin/CITYT.8xv -E -S
@@ -135,4 +137,5 @@ spasm -I lib/ file/TonberryFFVIII.inc bin/TONBT.8xv -E -S
 spasm -I lib/ file/UltimeciaFFVIII.inc bin/ULTIMT.8xv -E -S
 spasm -I lib/ file/MidnaZelda.inc bin/MIDNAT.8xv -E -S
 spasm -I lib/ file/NabooruZelda.inc bin/NABOORUT.8xv -E -S
- 
+spasm -I lib/ file/Background.inc bin/SKYBOX.8xv -E -S
+

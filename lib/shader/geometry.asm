@@ -1,5 +1,7 @@
 define	VX_DEPTH_FAR_CULL	65536 * 9
 
+; 402 -- 882 :: 900
+
 VX_GEOMETRY_SHADER_COPY:
 
 ; relocate the shader to fast VRAM ($E30800)
@@ -11,6 +13,7 @@ vxGeometryShader:
 	ld	hl, (vxGeometryBatchID)
 	ld	ix, (vxSubmissionQueue)
 	ld	a, (hl)
+	and	a, VX_FORMAT_STRIDE
 	ld	(vxGeometryFormat), a
 	ld	a, l
 	ld	(vxGeometryBatch), a
@@ -41,9 +44,9 @@ vxGeometryBuffer=$+1
 	and	(hl)
 	jr	nz, vxGeometryDiscard
 	ld	a, (bc)
-	or	(hl)
+	or	a, (hl)
 	ex	de, hl
-	or	(hl)
+	or	a, (hl)
 	jr	z, vxGeometryNClip
 vxGeometryNext:
 	jr	c, vxGeometryDiscard

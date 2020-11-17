@@ -110,6 +110,21 @@ define	VX_GEOMETRY_DEPTH		4
 define	VX_GEOMETRY_FORMAT		0
 define	VX_GEOMETRY_BUFFER		1
 
+; geometry format ;
+
+; format mask
+define	VX_FORMAT_STRIDE		31	; the triangle stride value
+define	VX_FORMAT_UNPACK_UV		64	; unpack UV from the triangle data
+define	VX_FORMAT_INTERPOLATION		128	; use the interpolation routine
+
+; bits
+define	VX_FORMAT_INTERPOLATION_BIT	7
+define	VX_FORMAT_UNPACK_UV_BIT		6
+
+; default
+define	VX_FORMAT_TEXTURE		16 or VX_FORMAT_INTERPOLATION or VX_FORMAT_UNPACK_UV
+define	VX_FORMAT_COLOR			10
+
 ; stream header ;
 
 define	VX_STREAM_HEADER_SIZE 		3

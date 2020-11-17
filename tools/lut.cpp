@@ -16,11 +16,13 @@ using namespace std;
 unsigned char subPixel(unsigned char red, unsigned char green,unsigned char blue);
 void generate_convolve();
 void generate_sinus();
+void generate_inverse();
 
 int main(int argc, char* argv[])
 {
 	generate_sinus();
 	generate_convolve();
+	generate_inverse();
 }
 
 void generate_sinus()
@@ -41,6 +43,28 @@ void generate_sinus()
 		out << "\n";
 		angle+=0.25f;
 	}
+}
+
+void generate_inverse()
+{
+	ofstream out;
+	out.open("inverse.asm");
+	if (!(out.good())) {
+		cout << "Can't open output file" << std::endl;
+		return;
+	}
+
+	float inverse=0.0f;
+	
+	for(int i=0;i<322;i++)
+	{
+		out << " dw ";
+		out << (int)round(65536.0f/inverse)-1;
+		out << "\n";
+		inverse+=1.0f;
+	}
+	
+	
 }
 
 void generate_convolve()

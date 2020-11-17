@@ -32,24 +32,24 @@ vxPrimitiveClipFrustrum:
 	ld	(vxPatchVertexCache), hl
 	rla
 	jr	nc, .nextPlane0
-	ex	af,af'
+	ex	af, af'
 	ld	a, VX_PLANE_BIT0
 	call	vxPrimitiveClipPlane
-	ex	af,af'
+	ex	af, af'
 .nextPlane0:
 	rla
 	jr	nc, .nextPlane1
-	ex	af,af'
+	ex	af, af'
 	ld	a, VX_PLANE_BIT1
 	call	vxPrimitiveClipPlane
-	ex	af,af'
+	ex	af, af'
 .nextPlane1:
 	rla
 	jr	nc, .nextPlane2
-	ex	af,af'
+	ex	af, af'
 	ld	a, VX_PLANE_BIT2
 	call	vxPrimitiveClipPlane
-	ex	af,af'
+	ex	af, af'
 .nextPlane2:
 	rla
 	ret	nc
@@ -88,11 +88,11 @@ vxPrimitiveClipPlane:
 	ld	de, (iy+VX_POLYGON_I0)
 	ld	a, (de)
 	and	(hl)
-	and	c
+	and	a, c
 	jr	nz, .noEdge
 	ld	a, (de)
 	or	a, (hl)
-	and	c
+	and	a, c
 	jr	nz, .clipEdge
 	ld	(ix+VX_POLYGON_I0), de
 	ld	a, (vxPatchSize)
@@ -194,48 +194,47 @@ vxPrimitiveClipPlane:
 	sbc	hl, hl
 	sbc	hl, de
 	or	a, a
-
 	sbc	hl, bc
 	jr	c, .nextcarry1
 	sbc	hl, bc
 	jr	nc, .equal1
 	or	a, a
 .nextcarry1:
-	adc	a,a
-	add	hl,bc
-	add	hl,hl
-	sbc	hl,bc
-	jr	nc,$+3
-	add	hl,bc
-	adc	a,a
-	add	hl,hl
-	sbc	hl,bc
-	jr	nc,$+3
-	add	hl,bc
-	adc	a,a
-	add	hl,hl
-	sbc	hl,bc
-	jr	nc,$+3
-	add	hl,bc
-	adc	a,a
-	add	hl,hl	
-	sbc	hl,bc
-	jr	nc,$+3
-	add	hl,bc
-	adc	a,a
-	add	hl,hl	
-	sbc	hl,bc
-	jr	nc,$+3
-	add	hl,bc
-	adc	a,a
-	add	hl,hl	
-	sbc	hl,bc
-	jr	nc,$+3
-	add	hl,bc
-	adc	a,a
-	add	hl,hl	
-	sbc	hl,bc
-	adc	a,a
+	adc	a, a
+	add	hl, bc
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	adc	a, a
 	cpl
 	ld	e, a
 	ld	d, VX_SCREEN_WIDTH/2+1
@@ -263,18 +262,18 @@ vxPrimitiveClipPlane:
 	pop	bc
 	ld	hl, VX_PATCH_VERTEX + VX_VERTEX_GPR0
 ; parameter 0
-	ld	a, (iy+VX_VERTEX_GPR0); a = p1
-	ld	d, (ix+VX_VERTEX_GPR0); d = p0
-	sub	a, d				; a = p1-p0
-	ld	e, a				; e = p1-p0
-	ld	a, d				; a = p0
+	ld	a, (iy+VX_VERTEX_GPR0)	; a = p1
+	ld	d, (ix+VX_VERTEX_GPR0)	; d = p0
+	sub	a, d			; a = p1-p0
+	ld	e, a			; e = p1-p0
+	ld	a, d			; a = p0
 	jr	nc, $+3			; sign correction
-	sub	a, b				;
-	ld	d, b				;
-	mlt	de				; de = (unsigned)(p1-p0)*b
-	add	a, d				; a = (signed)(p1-p0)*b/256+p0
+	sub	a, b			;
+	ld	d, b			;
+	mlt	de			; de = (unsigned)(p1-p0)*b
+	add	a, d			; a = (signed)(p1-p0)*b/256+p0
 	ld	(hl), a			; and write result
-	inc	hl				; next parameter
+	inc	hl			; next parameter
 ; parameter 1
 	ld	a, (iy+VX_VERTEX_GPR1)
 	ld	d, (ix+VX_VERTEX_GPR1)
@@ -337,10 +336,9 @@ vxPrimitiveClipPlane:
 	ld	hl, (hl)
 	sbc	hl, bc
 	tst	a, 10000000b
-	jr	nz, .vinv1
+	jr	nz, .parametricVCompute
 	add	hl, bc
 	add	hl, bc
-.vinv1:
 .parametricVCompute:
 	push	ix
 	push	iy
@@ -397,36 +395,36 @@ vxPrimitiveClipPlane:
 	jr	nc, .equal0
 	or	a, a
 .nextcarry0:
-	adc	a,a
-	add	hl,bc
-	add	hl,hl
-	sbc	hl,bc
-	jr	nc,$+3
-	add	hl,bc
-	adc	a,a
-	add	hl,hl
-	sbc	hl,bc
-	jr	nc,$+3
-	add	hl,bc
-	adc	a,a
-	add	hl,hl
-	sbc	hl,bc
-	jr	nc,$+3
-	add	hl,bc
-	adc	a,a
-	add	hl,hl
-	sbc	hl,bc
-	jr	nc,$+3
-	add	hl,bc
-	adc	a,a
-	add	hl,hl
-	sbc	hl,bc
-	jr	nc,$+3
-	add	hl,bc
-	adc	a,a
-	add	hl,hl
-	sbc	hl,bc
-	adc	a,a
+	adc	a, a
+	add	hl, bc
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	adc	a, a
 	cpl
 	add	a, a
 	ld	l, VX_SCREEN_HEIGHT/2+1
@@ -546,85 +544,85 @@ vxParametricFactor:
 	sbc	hl, de
 	pop	de
 .absValue:
-	sbc	hl,de
-	jr	nc,$+3
-	add	hl,de
-	adc	a,a
-	add	hl,hl
-	sbc	hl,de
-	jr	nc,$+3
-	add	hl,de
-	adc	a,a
-	add	hl,hl
-	sbc	hl,de
-	jr	nc,$+3
-	add	hl,de
-	adc	a,a
-	add	hl,hl
-	sbc	hl,de
-	jr	nc,$+3
-	add	hl,de
-	adc	a,a
-	add	hl,hl
-	sbc	hl,de
-	jr	nc,$+3
-	add	hl,de
-	adc	a,a
-	add	hl,hl
-	sbc	hl,de
-	jr	nc,$+3
-	add	hl,de
-	adc	a,a
-	add	hl,hl
-	sbc	hl,de
-	jr	nc,$+3
-	add	hl,de
-	adc	a,a
-	add	hl,hl
-	sbc	hl,de
-	jr	nc,$+3
-	add	hl,de
-	adc	a,a
+	sbc	hl, de
+	jr	nc, $+3
+	add	hl, de
+	adc	a, a
+	add	hl, hl
+	sbc	hl, de
+	jr	nc, $+3
+	add	hl, de
+	adc	a, a
+	add	hl, hl
+	sbc	hl, de
+	jr	nc, $+3
+	add	hl, de
+	adc	a, a
+	add	hl, hl
+	sbc	hl, de
+	jr	nc, $+3
+	add	hl, de
+	adc	a, a
+	add	hl, hl
+	sbc	hl, de
+	jr	nc, $+3
+	add	hl, de
+	adc	a, a
+	add	hl, hl
+	sbc	hl, de
+	jr	nc, $+3
+	add	hl, de
+	adc	a, a
+	add	hl, hl
+	sbc	hl, de
+	jr	nc, $+3
+	add	hl, de
+	adc	a, a
+	add	hl, hl
+	sbc	hl, de
+	jr	nc, $+3
+	add	hl, de
+	adc	a, a
 	cpl
 	ld	b, a
-	add	hl,hl
-	sbc	hl,de
-	jr	nc,$+3
-	add	hl,de
-	adc	a,a
-	add	hl,hl
-	sbc	hl,de
-	jr	nc,$+3
-	add	hl,de
-	adc	a,a
-	add	hl,hl
-	sbc	hl,de
-	jr	nc,$+3
-	add	hl,de
-	adc	a,a
-	add	hl,hl
-	sbc	hl,de
-	jr	nc,$+3
-	add	hl,de
-	adc	a,a
-	add	hl,hl
-	sbc	hl,de
-	jr	nc,$+3
-	add	hl,de
-	adc	a,a
-	add	  hl,hl
-	sbc	hl,de
-	jr	nc,$+3
-	add	hl,de
-	adc	a,a
-	add	hl,hl
-	sbc	hl,de
-	jr	nc,$+3
-	add	hl,de
-	adc	a,a
-	add	hl,hl
-	sbc	hl,de
-	adc	a,a
+	add	hl, hl
+	sbc	hl, de
+	jr	nc, $+3
+	add	hl, de
+	adc	a, a
+	add	hl, hl
+	sbc	hl, de
+	jr	nc, $+3
+	add	hl, de
+	adc	a, a
+	add	hl, hl
+	sbc	hl, de
+	jr	nc, $+3
+	add	hl, de
+	adc	a, a
+	add	hl, hl
+	sbc	hl, de
+	jr	nc, $+3
+	add	hl, de
+	adc	a, a
+	add	hl, hl
+	sbc	hl, de
+	jr	nc, $+3
+	add	hl, de
+	adc	a, a
+	add	hl, hl
+	sbc	hl, de
+	jr	nc, $+3
+	add	hl, de
+	adc	a, a
+	add	hl, hl
+	sbc	hl, de
+	jr	nc, $+3
+	add	hl, de
+	adc	a, a
+	add	hl, hl
+	sbc	hl, de
+	adc	a, a
 	cpl
 	ld	c, a
 	ret

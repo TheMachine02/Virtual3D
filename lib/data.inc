@@ -298,45 +298,45 @@ VX_LUT_SIN_DATA:
 
 align 512
 VX_LUT_INVERSE:
- dw 65534	; position 0, so nothing in fact (div by 0)
- dw 65534	; corrected
+ dw 65534
+ dw 65534
  dw 32767
  dw 21844
  dw 16383
  dw 13106
- dw 10921
+ dw 10922
  dw 9361
  dw 8191
- dw 7280
- dw 6552
- dw 5956
+ dw 7281
+ dw 6553
+ dw 5957
  dw 5460
  dw 5040
  dw 4680
  dw 4368
  dw 4095
  dw 3854
- dw 3639
+ dw 3640
  dw 3448
- dw 3275
- dw 3119
- dw 2977
+ dw 3276
+ dw 3120
+ dw 2978
  dw 2848
- dw 2729
+ dw 2730
  dw 2620
- dw 2519
+ dw 2520
  dw 2426
- dw 2339
- dw 2258
- dw 2183
+ dw 2340
+ dw 2259
+ dw 2184
  dw 2113
  dw 2047
- dw 1984
- dw 1926
+ dw 1985
+ dw 1927
  dw 1871
  dw 1819
  dw 1770
- dw 1723
+ dw 1724
  dw 1679
  dw 1637
  dw 1597
@@ -344,85 +344,85 @@ VX_LUT_INVERSE:
  dw 1523
  dw 1488
  dw 1455
- dw 1423
+ dw 1424
  dw 1393
  dw 1364
  dw 1336
- dw 1309
+ dw 1310
  dw 1284
  dw 1259
- dw 1235
- dw 1212
- dw 1190
+ dw 1236
+ dw 1213
+ dw 1191
  dw 1169
- dw 1148
- dw 1128
- dw 1109
+ dw 1149
+ dw 1129
+ dw 1110
  dw 1091
  dw 1073
  dw 1056
  dw 1039
  dw 1023
  dw 1007
- dw 991
+ dw 992
  dw 977
- dw 962
- dw 948
+ dw 963
+ dw 949
  dw 935
  dw 922
  dw 909
- dw 896
- dw 884
- dw 872
+ dw 897
+ dw 885
+ dw 873
  dw 861
  dw 850
  dw 839
- dw 828
+ dw 829
  dw 818
  dw 808
  dw 798
- dw 788
+ dw 789
  dw 779
  dw 770
  dw 761
  dw 752
- dw 743
+ dw 744
  dw 735
  dw 727
  dw 719
  dw 711
- dw 703
+ dw 704
  dw 696
- dw 688
- dw 681
- dw 674
- dw 667
- dw 660
+ dw 689
+ dw 682
+ dw 675
+ dw 668
+ dw 661
  dw 654
- dw 647
- dw 641
+ dw 648
+ dw 642
  dw 635
  dw 629
  dw 623
  dw 617
  dw 611
- dw 605
+ dw 606
  dw 600
- dw 594
+ dw 595
  dw 589
  dw 584
- dw 578
- dw 573
- dw 568
- dw 563
+ dw 579
+ dw 574
+ dw 569
+ dw 564
  dw 559
  dw 554
- dw 549
+ dw 550
  dw 545
- dw 540
+ dw 541
  dw 536
- dw 531
- dw 527
+ dw 532
+ dw 528
  dw 523
  dw 519
  dw 515
@@ -431,48 +431,48 @@ VX_LUT_INVERSE:
  dw 503
  dw 499
  dw 495
- dw 491
+ dw 492
  dw 488
  dw 484
- dw 480
+ dw 481
  dw 477
- dw 473
+ dw 474
  dw 470
  dw 467
- dw 463
- dw 460
+ dw 464
+ dw 461
  dw 457
  dw 454
- dw 450
- dw 447
- dw 444
- dw 441
- dw 438
- dw 435
+ dw 451
+ dw 448
+ dw 445
+ dw 442
+ dw 439
+ dw 436
  dw 433
  dw 430
  dw 427
- dw 424
- dw 421
+ dw 425
+ dw 422
  dw 419
  dw 416
- dw 413
+ dw 414
  dw 411
- dw 408
+ dw 409
  dw 406
- dw 403
+ dw 404
  dw 401
- dw 398
+ dw 399
  dw 396
- dw 393
+ dw 394
  dw 391
  dw 389
- dw 386
- dw 384
+ dw 387
+ dw 385
  dw 382
  dw 380
- dw 377
- dw 375
+ dw 378
+ dw 376
  dw 373
  dw 371
  dw 369
@@ -486,63 +486,63 @@ VX_LUT_INVERSE:
  dw 353
  dw 351
  dw 349
- dw 347
- dw 345
- dw 343
+ dw 348
+ dw 346
+ dw 344
  dw 342
  dw 340
- dw 338
- dw 336
+ dw 339
+ dw 337
  dw 335
  dw 333
- dw 331
- dw 329
+ dw 332
+ dw 330
  dw 328
- dw 326
+ dw 327
  dw 325
  dw 323
- dw 321
+ dw 322
  dw 320
- dw 318
+ dw 319
  dw 317
- dw 315
+ dw 316
  dw 314
- dw 312
+ dw 313
  dw 311
- dw 309
+ dw 310
  dw 308
- dw 306
+ dw 307
  dw 305
- dw 303
+ dw 304
  dw 302
  dw 301
- dw 299
+ dw 300
  dw 298
+ dw 297
  dw 296
- dw 295
  dw 294
+ dw 293
  dw 292
- dw 291
  dw 290
+ dw 289
  dw 288
- dw 287
  dw 286
  dw 285
+ dw 284
  dw 283
- dw 282
  dw 281
  dw 280
  dw 279
+ dw 278
  dw 277
  dw 276
- dw 275
  dw 274
  dw 273
  dw 272
+ dw 271
  dw 270
  dw 269
  dw 268
- dw 267
  dw 266
  dw 265
  dw 264
@@ -566,56 +566,58 @@ VX_LUT_INVERSE:
  dw 246
  dw 245
  dw 244
+ dw 244
  dw 243
  dw 242
  dw 241
  dw 240
  dw 239
- dw 239
  dw 238
  dw 237
+ dw 236
  dw 236
  dw 235
  dw 234
  dw 233
- dw 233
  dw 232
+ dw 231
  dw 231
  dw 230
  dw 229
  dw 228
- dw 228
+ dw 227
  dw 227
  dw 226
  dw 225
  dw 224
- dw 224
+ dw 223
  dw 223
  dw 222
  dw 221
- dw 221
+ dw 220
  dw 220
  dw 219
  dw 218
- dw 218
+ dw 217
  dw 217
  dw 216
- dw 216
+ dw 215
  dw 215
  dw 214
  dw 213
- dw 213
+ dw 212
  dw 212
  dw 211
- dw 211
+ dw 210
  dw 210
  dw 209
- dw 209
+ dw 208
  dw 208
  dw 207
- dw 207
+ dw 206
  dw 206
  dw 205
- dw 205
  dw 204
-
+ dw 204
+ dw 203
+ 

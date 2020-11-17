@@ -24,15 +24,17 @@ vxfma_copy:
 
 relocate VX_VERTEX_SHADER_CODE
 
-vxModelView:
- db    0,0,0,0
- db    0,0,0,0
- db    0,0,0,0
- dl    0,0,0
-vxLight:
- db    0,0,0
- db    0,0,0
- dw    0,0,0
+; vxModelView:
+;  db    0,0,0,0
+;  db    0,0,0,0
+;  db    0,0,0,0
+;  dl    0,0,0
+; vxLight:
+;  db    0,0,0
+;  db    0,0,0
+;  dw    0,0,0
+
+; TODO : we can write direct value for the matrix and free up ix ++
 
 vxfma:
 	ld	ix, VX_VERTEX_SHADER_DATA

@@ -6,12 +6,12 @@ VX_VERTEX_SHADER_COPY:
 
 relocate VX_VERTEX_SHADER_CODE
 
-;vxModelView:
+vxModelView:
  db    0,0,0
  db    0,0,0
  db    0,0,0
  dl    0,0,0
-;vxLight:
+vxLight:
  db    0,0,0
  db    0,0,0
  dw    0,0,0
@@ -272,7 +272,7 @@ vxVertexShader:
 	add	hl, hl
 	add	hl, hl
 	add	hl, de
-
+	
 ; lightning model is here, infinite directionnal light, no pow
 	xor	a, a
 	ld	c, (iy+VX_VERTEX_NX)
@@ -305,7 +305,6 @@ vxVertexShader:
 	sub a,c
 	mlt	bc
 	add	a, b
-
 ; max(a,0)
 	jp	p, $+5
 	xor	a, a

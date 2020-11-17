@@ -447,7 +447,7 @@ vxShaderAdress2Write=$+1
 	ld	de, (iy+VX_FDVDX)
 ; 	ld	hl, 0
 ; 	ld	de, 0
-	or	a, a
+; 	or	a, a
 	sbc	hl, de
 	sra	h
 	rr	l
@@ -457,9 +457,9 @@ vxShaderAdress2Write=$+1
 	ld	(iy+VX_REGISTER_TMP), hl
 	ld	hl, (iy+VX_FDUDY)
 	ld	de, (iy+VX_FDUDX)
-; 	ld	hl, 0
-; 	ld	de, 0
-	or	a, a
+; ; 	ld	hl, 0
+; ; 	ld	de, 0
+; 	or	a, a
 	sbc	hl, de
 	sra	h
 	rr	l
@@ -498,7 +498,7 @@ vxShaderAdress2Write=$+1
 	ld	sp, hl
 	exx
 vxShaderUniform0=$+1
-	ld	bc, VX_PIXEL_SHADER_DATA + 255
+	ld	bc, VX_PIXEL_SHADER_DATA
 	exx
 vxShaderJumpWrite=$+1
 	jp	$000000

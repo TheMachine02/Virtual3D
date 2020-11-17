@@ -1,6 +1,6 @@
 ; Virtual-3D library, version 1.0
 ;
-; Copyright (c) 2017 TheMachine02
+; Copyright (c) 2020 TheMachine02
 
 ; Permission is hereby granted, free of charge, to any person obtaining a copy
 ; of this software and associated documentation files (the "Software"), to deal
@@ -19,14 +19,16 @@
 ; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
+
 include	"vsl.inc"
 
-define	OS__FLAGS           $D00080
-
+define	OS__FLAGS	$D00080
 ; standard defines ;
-define VX_VERSION	$10
-define VX_TRUE		$01
-define VX_FALSE		$00
+define	VX_VERSION	$10
+define	VX_TRUE		$01
+define	VX_FALSE	$00
+
+define	OBLIVION	$E40000
 
 ; geometry ;
 
@@ -48,8 +50,6 @@ define VX_FALSE		$00
 
 ; static variables ;
 
-;.addinstr  ld a,hlu 3BF133E5 4
-
 macro align bound
  rb bound-($ mod bound)
 end macro
@@ -63,13 +63,6 @@ end macro
 macro endrelocate
 	org	$ - norg + oorg
 end macro
-
-; global compilation variable ;
-
-define	VX_PS_1.0
-define	VX_VS_1.0
-define	VX_VS_1.x
-define	VX_GS_1.0
 
 ; functions
 
@@ -115,6 +108,10 @@ vxEngineInit:
 	inc	b
 	dec	c
 	ldir
+	ld	hl, VX_VERTEX_BUFFER
+	ld	de, OBLIVION
+	ld	bc, VX_MAX_VERTEX * VX_VERTEX_SIZE
+	ldir	
 ; various other data
 	ld	hl, VX_FRAMEBUFFER_AUX1
 	ld	(vxSubmissionQueue), hl
@@ -134,32 +131,32 @@ vxEngineInit:
 	jp	(hl)
 vxEngineQuit:
 ;	call	vxMemoryLockPrivilege
-	ld hl,$F50000
-	ld (hl),h	; Mode 0
-	inc l		; 0F50001h
-	ld (hl),15	; Wait 15*256 APB cycles before scanning each row
-	inc l		; 0F50002h
-	ld (hl),h
- 	inc l		; 0F50003h
-	ld (hl),15	; Wait 15 APB cycles before each scan
-	inc l		; 0F50004h
+	ld	hl,$F50000
+	ld	(hl),h	; Mode 0
+	inc	l		; 0F50001h
+	ld	(hl),15	; Wait 15*256 APB cycles before scanning each row
+	inc	l		; 0F50002h
+	ld	(hl),h
+	inc	l		; 0F50003h
+	ld	(hl),15	; Wait 15 APB cycles before each scan
+	inc	l		; 0F50004h
 	ld (hl),8	; Number of rows to scan
-	inc l		; 0F50005h
-	ld (hl),8	; Number of columns to scan
-	ld iy, OS__FLAGS
-	ld a, VX_BPP16
-	ld (VX_LCD_CTRL),a
+	inc	l		; 0F50005h
+	ld	(hl),8	; Number of columns to scan
+	ld	iy, OS__FLAGS
+	ld	a, VX_BPP16
+	ld	(VX_LCD_CTRL),a
 	ld	hl, VX_FRAMEBUFFER_AUX0
 	ld	(VX_LCD_BUFFER), hl
 	call	vxMemoryDestroyDevice
 	ld	hl, $E00005
 	ld	(hl), 4	; Set flash wait states to 5 + 4 = 9 (total access time = 10)
-	call ti.HomeUp
-	call ti.ClrScrn
-	call ti.DrawStatusBar
-	call ti.RunIndicOn
+	call	ti.HomeUp
+	call	ti.ClrScrn
+	call	ti.DrawStatusBar
+	call	ti.RunIndicOn
 	ei
-	jp ti.DrawBatteryIndicator
+	jp	ti.DrawBatteryIndicator
 
 ; memory backing function
 	

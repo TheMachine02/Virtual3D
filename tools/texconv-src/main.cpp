@@ -122,7 +122,7 @@ unsigned int subPixelAlpha(unsigned char red, unsigned char green, unsigned char
     red=(min((int)red,255)*alpha)/255;
     green=(min((int)green,255)*alpha)/255;
     blue=(min((int)blue,255)*alpha)/255;
-    alpha=(unsigned char)floor(15.0-((float)alpha/17));
+    alpha=floor(15.0f-alpha/17.0f);
     return (((red>>5)<<5)|((blue>>6)<<3)|(green>>5))*256+alpha;
 }
 unsigned int subPixelDitherAlpha(unsigned int x,unsigned int y,unsigned char red, unsigned char green, unsigned char blue,unsigned char alpha)
