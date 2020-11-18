@@ -6,9 +6,6 @@ format	ti executable 'TEST1'
 
 #define	DELTA	4096
 
-; init the virtual 3d library
-	call	vxEngineInit
-	ret	c		; qui if error at init
 
 	ld	hl, VertexName
 	call	find
@@ -20,6 +17,9 @@ format	ti executable 'TEST1'
 	ret	c
 	ld	(Triangle), hl
 
+; init the virtual 3d library
+	call	vxEngineInit
+	ret	c		; qui if error at init
 
 ; setup global variable for rendering, euler angle and the translation of WorldMatrix
 

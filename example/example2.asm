@@ -64,13 +64,6 @@ MainLoop:
 	add	a, 224
 	ld	(vxLightUniform+4), a
 
-; 	ld	a, (vxAnimationKey)
-; 	inc	a
-; 	cp	a, 22
-; 	jr	nz, $+3
-; 	xor	a, a
-; 	ld	(vxAnimationKey), a
-
 	ld	hl, (EulerAngle)
 	ld	iy, Quaternion
 	ld	ix, UnitVector

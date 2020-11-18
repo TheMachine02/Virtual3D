@@ -4,9 +4,6 @@ include	"include/tiformat.inc"
 
 format	ti executable 'TEST'
 
-; init the virtual 3d library
-	call	vxEngineInit
-	ret	c		; quit if error at init
 
 	ld	hl, VertexName
 	call	find
@@ -28,10 +25,16 @@ format	ti executable 'TEST'
 	ret	c
 	ld	(Texture), hl
 	
+; init the virtual 3d library (please init after OS issue)
+	call	vxEngineInit
+	ret	c		; quit if error at init
+
+	ld	hl, (Texture)
 	ld	a, VX_IMAGE_ZX7_COMPRESSED
 	ld	de, $D30000
 	call	vxImageCopy
 
+	
 ; about vertex coordinate :
 ; the format inputed in glib is pure integer 16 bits coordinates, ]-32768,32768[
 ; A 1.0 coordinate in blender is equivalent to 256 in glib

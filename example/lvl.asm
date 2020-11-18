@@ -6,9 +6,6 @@ format	ti executable 'LVL'
 
 ; init the virtual 3d library
 
-	call	vxEngineInit
-	ret	c		; quit if error at init
-
 	ld	hl, dataRoomIndexName
 	call	find
 	ret	c
@@ -34,16 +31,20 @@ format	ti executable 'LVL'
 	ret	c
 	ld	(dataLaraVertex), hl
 
-	ld	hl, SkyName
-	call	find
-	ret	c
-	ld	(Skybox), hl
+; 	ld	hl, SkyName
+; 	call	find
+; 	ret	c
+; 	ld	(Skybox), hl
 	
 	ld	hl, textureName
 	call	find
 	ret	c
 	ld	(cacheTexture), hl
+
+	call	vxEngineInit
+	ret	c		; quit if error at init	
 	
+	ld	hl, (cacheTexture)
 	ld	a, VX_IMAGE_ZX7_COMPRESSED
 	ld	de, $D30000
 	call	vxImageCopy
@@ -81,18 +82,15 @@ renderLevel:
 	ld	hl, 0
 	ld	(triangle_count_tot), hl
 
-	ld	hl, VX_VERTEX_BUFFER
+	ld	hl, $D22000
 	ld	(cacheAdress), hl
 
 	ld	hl, (dataLevel)
 	ld	b, (hl)
 
 
-;	ld	b, 3
-;	ld	c, 2
-
-	ld	b, 1
-	ld	c, 1
+	ld	b, 2
+	ld	c, 0
 
 allrender:
 	push	bc
