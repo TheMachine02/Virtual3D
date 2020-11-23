@@ -50,19 +50,24 @@ vxImageSubSwap:
 ; ready to copy
 .swap_loop:
 	push	af
-	push	bc	
+	push	bc
 	push	de
 	push	hl
 .swap_inner:
 	ld	a, (de)
 	ldi
+	dec	hl
 	ld	(hl), a
+	inc	hl
 	jp	pe, .swap_inner
 	pop	hl
+	ld	bc, 256
+	add	hl, bc
 	pop	de
+	ex	de, hl
+	add	hl, bc
+	ex	de, hl
 	pop	bc
-	inc	h
-	inc	d
 	pop	af
 	dec	a
 	jr	nz, .swap_loop

@@ -12,8 +12,6 @@ vxShaderAdress1:
  dl	0		; second sub adress
 vxShaderAdress2:
  dl	0		; sub adress to change inc/dec
-vxShaderAdress3:
- dl	0		; second sub adress
 
 vxShaderLoad:
 	ld	hl, vxPixelShaderExit
@@ -30,7 +28,6 @@ vxShaderLoad:
 	ld	hl, VX_SMC_EDGEFIX - vxShaderGeneralInterpolation0
 	add hl, de
 	ld	(vxShaderAdress2), hl
-	ld	(vxShaderAdress3), hl
 
 ; TODO : generation of the shading table
 ; VX_CALL1_NEG
@@ -56,21 +53,18 @@ vxShaderCreate0:
 	ld	(vxShaderJump), hl
 	lea	iy, iy+4
 
-; de = VX_CALL1_POS
 	ld	de, 0
-
 	ld	e, (ix+VX_SHADER_DATA1)
 	ld	hl, VX_PIXEL_SHADER_CODE
 	add	hl, de
-	dec hl
-	dec hl
+	dec	hl
+	dec	hl
 	ld	(vxShaderAdress0), hl
 	ex	de, hl
-; hl = VX_CALL0_POS
-	add hl, de
+	add	hl, de
 	ld	(vxShaderAdress1), hl
 	ld	b, 160
-
+	
 	inc hl
 	inc hl
 	inc de
@@ -81,7 +75,6 @@ vxShaderCreate1:
 	ld	(iy+5), hl
 	lea	iy, iy+8
 	djnz vxShaderCreate1
-
 	ret
 
 vxShaderGeneralInterpolation0:

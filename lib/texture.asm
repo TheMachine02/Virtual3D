@@ -24,23 +24,33 @@ vxPrimitiveTextureRaster:
 .hcull:
 ; cull if dy=0
 	ld	a, (bc)
-	sub	(hl)
+	sub	a, (hl)
 	ret	z
 .cacheRegister:
+	cce	ge_pxl_raster
 	ld	(VX_SMC_STACK_REGISTER), sp
 ; copy x&y u&v to constant area
 	ld	iy, VX_REGISTER_DATA
 	push	bc
 	push	de
 	lea	de, iy-32
-	ld	bc, 6
+	ld	bc, 3
 	ldir
+	inc	de
+	ld	c, 2
+	ldir	
 	pop	hl
-	ld	c, 6
+	ld	bc, 3
 	ldir
+	inc	de
+	ld	c, 2
+	ldir	
 	pop	hl
-	ld	c, 6
+	ld	bc, 3
 	ldir
+	inc	de
+	ld	c, 2
+	ldir	
 .triangleSetup:
 ; debug_mark_gouraud:
 ;	ld	a, (iy+VX_REGISTER_C0)
@@ -63,8 +73,8 @@ vxPrimitiveTextureRaster:
 .triangleInv_dy:
 ; ~ 500 cc
 ; inv = 65536/(y2-y0);
-	ld	a, (iy+VX_REGISTER_Y2)
-	sub	a, (iy+VX_REGISTER_Y0)
+; 	ld	a, (iy+VX_REGISTER_Y2)
+; 	sub	a, (iy+VX_REGISTER_Y0)
 	ld	hl, VX_LUT_INVERSE shr 1
 	ld	l, a
 	add	hl, hl
@@ -92,7 +102,7 @@ vxPrimitiveTextureRaster:
 	ld	(iy+VX_FDVDY), hl
 ; compute vs at longest span
 	ld	a, (iy+VX_REGISTER_Y1)
-	sub	(iy+VX_REGISTER_Y0)
+	sub	a, (iy+VX_REGISTER_Y0)
 	ld	b, a
 	ld	c, h
 	ld	h, a
@@ -144,11 +154,10 @@ vxPrimitiveTextureRaster:
 ; ~ 250cc
 .edge0Compute_offset:
 ; register_offset=320*y0+x0+framebuffer;
-	ld	hl, (iy+VX_REGISTER_X0)
-	ld	e, (iy+VX_REGISTER_Y0)
-	ld	d, 160
-	mlt	de
-	ex.s	de, hl
+	ld	de, (iy+VX_REGISTER_X0)
+	ld	l, (iy+VX_REGISTER_Y0)
+	ld	h, 160
+	mlt	hl
 	add	hl, hl
 	add	hl, de
 	ex	de, hl
@@ -161,15 +170,14 @@ vxPrimitiveTextureRaster:
 	ld	de, (iy+VX_REGISTER_X2)	; load x2
 ; hl already hold _x0
 ;	ld	hl, (iy+VX_REGISTER_X0)	; load x0
-	ex.s	de, hl
-	ld	a, $23	; inc ix
+	ld	a, $23 or $08	; inc ix
 ; carry reseted by add ix, de
 ;	or	a, a
 	sbc	hl, de	; hl = x2-x0
 	jr	nc, .edge0Swap
 	add	hl, de	;
 	ex	de, hl	;
-	or	a, $08	; dec ix
+	xor	a, $08	; dec ix
 	sbc	hl, de	; hl = x0-x2
 .edge0Swap:
 	ld	(VX_SMC_EDGE0_INC), a
@@ -208,11 +216,10 @@ VX_SMC_EDGE0_INC=$
 	jr	nz, .edge0loop
 .edge0magic:
 	ld	ix, VX_REGISTER_DATA
-	ld	hl, (ix+VX_REGISTER_X2)
-	ld	e, (ix+VX_REGISTER_Y2)
-	ld	d, 160
-	mlt	de
-	ex.s	de, hl
+	ld	de, (ix+VX_REGISTER_X2)
+	ld	l, (ix+VX_REGISTER_Y2)
+	ld	h, 160
+	mlt	hl
 	add	hl, hl
 	add	hl, de
 	ld	de, (vxFramebuffer)
@@ -236,9 +243,8 @@ VX_SMC_EDGE0_INC=$
 	ld	ix, VX_LUT_PIXEL_LENGTH/4 + 2 ; (+2 is double carry sbc)
 	add	ix, de
 .edge1Compute_dx:
-	ld	de, (iy+VX_REGISTER_X0)
-	ld	hl, (iy+VX_REGISTER_X1)
-	ex.s	de, hl
+	ld	hl, (iy+VX_REGISTER_X0)
+	ld	de, (iy+VX_REGISTER_X1)
 	ld	a, $23	; dec ix
 	or	a, a
 	sbc	hl, de	; hl = x1-x0
@@ -286,15 +292,14 @@ VX_SMC_EDGE1_INC=$
 	ld	(ix+VX_REGISTER_MIDPOINT), iy
 .edge2Compute_dy:
 	ld	a, (ix+VX_REGISTER_Y1)
-	ld	e, a
+	ld	l, a
 	sub	a, (ix+VX_REGISTER_Y2)
 .edge2Compute_offset:
-	ld	hl, (ix+VX_REGISTER_X1)
-	ld	b, h
-	ld	c, l
-	ld	d, 160
-	mlt	de
-	ex.s	de, hl
+	ld	de, (ix+VX_REGISTER_X1)
+	ld	b, d
+	ld	c, e
+	ld	h, 160
+	mlt	hl
 	add	hl, hl
 	add	hl, de
 	ld	de, (vxFramebuffer)
@@ -432,13 +437,12 @@ vxShaderAdress2Write=$+1
 	ld	e, d
 	xor	a, a
 	ld	d, a
-	add	hl, de
+	add.s	hl, de
 .triangleNull_dudx:
 	bit	7, c
-	jr	z, $+3
-	dec	hl
-	ld	(iy+VX_FDUDX), l
-	ld	(iy+VX_FDUDX+1), h
+	jr	z, $+4
+	dec.s	hl
+	ld	(iy+VX_FDUDX), hl	
 .triangleGradient:
 	ld	a, (iy+VX_REGISTER_Y2)
 	sub	a, (iy+VX_REGISTER_Y0)
@@ -484,7 +488,9 @@ vxShaderAdress2Write=$+1
 	lea	ix, ix+(VX_REGISTER_SIZE*2)
 	djnz	.triangleGradientLoop
 .triangleGradientEnd:
+	ccr	ge_pxl_raster
 .triangleRenderPixel:
+	cce	ge_pxl_shading
 ; initialise drawing
 ; hl'= texture page and accumulator for dux	LOADED
 ; bc'= low byte is dux						INIT
@@ -505,4 +511,8 @@ vxShaderJumpWrite=$+1
 vxPixelShaderExit:
 VX_SMC_STACK_REGISTER=$+1
 	ld	sp, $000000
+	ccr	ge_pxl_shading
 	ret
+
+; lara : 15 ms raster, 4 ms pixel write
+; room + lara : 90 ms raster, 83 ms render : overdraw hell

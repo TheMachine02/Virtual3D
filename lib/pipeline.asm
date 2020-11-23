@@ -65,6 +65,7 @@ vxModelViewReverse:
 
 vxSubmitQueue:
 	ld	hl, (VX_LCD_BUFFER)
+;	ld	hl, (vxFramebuffer)
 	ld	(vxSubmissionQueue), hl
 
 	ld	iy, VX_GEOMETRY_QUEUE
@@ -90,11 +91,6 @@ vxSubmitQueue:
 	ld	(vxShaderAdress1Write), hl
 	ld	hl, (vxShaderAdress2)
 	ld	(vxShaderAdress2Write), hl
-
-;	ld	hl, VX_PIXEL_SHADER_COPY
-;	ld	de, VX_PIXEL_SHADER_CODE
-;	ld	bc, VX_PIXEL_SHADER_SIZE
-;	ldir
 
 	ld	bc, (vxGeometrySize)
 	or	a, a
@@ -161,8 +157,10 @@ vxGeometryQueue:
 	ld	c, b
 	ld	b, a
 	lea iy, iy+VX_STREAM_HEADER_SIZE
+	cce	ge_pri_transform
 ;would be nice to encode the format within
 	call	vxGeometryShader
+	ccr	ge_pri_transform
 ; need to update count & queue position
 ; simple : new-previous / 8
 	ld	de, (vxSubmissionQueue)
@@ -273,6 +271,7 @@ vxVertexStream:
 	call	nz, vxVertexStreamBox
 	pop	de
 	ret	c
+	cce	ge_vtx_transform
 	ld	a, c
 	dec	bc
 	inc	b
@@ -294,6 +293,7 @@ vxVertexStreamLoop:
 	djnz	vxVertexStreamLoop
 	dec	c
 	jr	nz, vxVertexStreamLoop
+	ccr	ge_vtx_transform
 	or	a, a
 	ret
 vxVertexLoadBone:
@@ -360,6 +360,7 @@ vxSortQueue:
 	ld	a, b
 	or	a, c
 	ret	z
+	cce	ge_z_sort
 	ld	hl, VX_QUEUE_BUFFER
 	ld	de, VX_VERTEX_SHADER_CODE
 	ld	bc, VX_QUEUE_SORT_SIZE
@@ -622,6 +623,7 @@ vxCmdFillBucket2:
 	dec	a
 	jr	nz, vxCmdFillBucket2
 	djnz	vxCmdFillBucket2
+	ccr	ge_z_sort
 	ret
 	
 VX_QUEUE_SORT_SIZE := $ - VX_VERTEX_SHADER_CODE

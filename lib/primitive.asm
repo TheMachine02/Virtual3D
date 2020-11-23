@@ -6,19 +6,19 @@ define	VX_REGISTER_MIDPOINT -36-3
 define	VX_REGISTER_TMP	-36+0
 define	VX_REGISTER_Y0	-32+0
 define	VX_REGISTER_X0	-32+1
-define	VX_REGISTER_U0	-32+3
-define	VX_REGISTER_V0	-32+4
-define	VX_REGISTER_C0	-32+5
+define	VX_REGISTER_C0	-32+3
+define	VX_REGISTER_U0	-32+4
+define	VX_REGISTER_V0	-32+5
 define	VX_REGISTER_Y1	-26+0
 define	VX_REGISTER_X1	-26+1
-define	VX_REGISTER_U1	-26+3
-define	VX_REGISTER_V1	-26+4
-define	VX_REGISTER_C1	-26+5
+define	VX_REGISTER_C1	-26+3
+define	VX_REGISTER_U1	-26+4
+define	VX_REGISTER_V1	-26+5
 define	VX_REGISTER_Y2	-20+0
 define	VX_REGISTER_X2	-20+1
-define	VX_REGISTER_U2	-20+3
-define	VX_REGISTER_V2	-20+4
-define	VX_REGISTER_C2	-20+5
+define	VX_REGISTER_C2	-20+3
+define	VX_REGISTER_U2	-20+4
+define	VX_REGISTER_V2	-20+5
 
 define	VX_FDVDY	-12
 define	VX_FDUDY	-10
@@ -45,7 +45,9 @@ _inner_clipdrawTextureTriangle:
 ; make patch cyclic
 	ld	(iy+VX_TRIANGLE_I2+3), de
 	ld	b, 3
+	cce	ge_pri_clip
 	call	vxPrimitiveClipFrustrum
+	ccr	ge_pri_clip
 ; fall through drawing polygon :
 
 vxPrimitiveTexturePolygon:
@@ -231,7 +233,9 @@ _inner_clipdrawColorTriangle:
 	ld	(iy+VX_TRIANGLE_I2+3), de
 	ld	b, 3
 _inner_clipdrawColorPolygon:
+	cce	ge_pri_clip
 	call	vxPrimitiveClipFrustrum
+	ccr	ge_pri_clip
 ; fall through filling polygons
 
 vxPrimitiveFillPolygon:
@@ -290,7 +294,7 @@ _inner_renderTriangleColor:
 	or	a, (hl)
 	ex	de, hl
 	or	a, (hl)
-	jr	nz, _inner_clipdrawColorTriangle
+	jp	nz, _inner_clipdrawColorTriangle
 ; fall through filling a triangle
 
 vxPrimitiveFillTriangle:

@@ -2,6 +2,8 @@ include	"include/ez80.inc"
 include	"include/ti84pceg.inc"
 include	"include/tiformat.inc"
 
+define	VX_DEBUG_CC_INSTRUCTION
+
 format	ti executable 'LVL'
 
 ; init the virtual 3d library
@@ -65,10 +67,11 @@ format	ti executable 'LVL'
 ; broken somehow
 
 MainLoop:
-
-	call	vxTimerReset
-	call	vxTimerStart
-
+; reset the cycle counter
+	call	vxTimer.reset
+; enable cc counter
+;	call	vxTimer.enable
+	
 	call	Camera
 	ret	nz
 
@@ -80,7 +83,7 @@ renderLevel:
 ; render the psv
 
 	ld	hl, 0
-	ld	(triangle_count_tot), hl
+	ld	(debug.triangle_count), hl
 
 	ld	hl, $D22000
 	ld	(cacheAdress), hl
@@ -89,8 +92,8 @@ renderLevel:
 	ld	b, (hl)
 
 
-	ld	b, 2
-	ld	c, 0
+	ld	b, 1
+	ld	c, 1
 
 allrender:
 	push	bc
@@ -138,9 +141,9 @@ allrender:
 	ex	de, hl
 	inc	hl
 	ld	bc, (hl)
-	ld	hl, (triangle_count_tot)
+	ld	hl, (debug.triangle_count)
 	add.s	hl, bc
-	ld	(triangle_count_tot), hl
+	ld	(debug.triangle_count), hl
 	pop	bc
 	pop	de
 	pop	hl
@@ -164,20 +167,19 @@ allrender:
 	ex	de, hl
 	inc	hl
 	ld	bc, (hl)
-	ld	hl, (triangle_count_tot)
+	ld	hl, (debug.triangle_count)
 	add.s	hl, bc
-	ld	(triangle_count_tot), hl
+	ld	(debug.triangle_count), hl
 	pop	bc
 	pop	de
 	pop	hl
-	
+
 	call	vxGeometryQueue
 
 	ld	hl, (vxGeometrySize)
-	ld	(triangle_count), hl
+	ld	(debug.visible_count), hl
 
 	call	vxSortQueue
-
 	call	vxClearFramebuffer
 ; 	ld	hl, (Skybox)
 ; 	ld	de, (vxFramebuffer)
@@ -188,55 +190,74 @@ allrender:
 ; 	ldir
 	
 	call	vxSubmitQueue
-
+	
 ; timer & counter
 ; 
-	ld	bc, 320*11-1
-	ld	de, (vxFramebuffer)
-	or	a, a
-	sbc	hl, hl
-	add	hl, de
-	inc	de
-	ld	(hl), 0
-	ldir
- 
-	call	vxTimerRead
-; do (ade/256)/187
-	ld	(Temp), de
-	ld	(Temp+3), a
-	ld	de, (Temp+1)
-; divide de by 187
-	ex	de, hl
-	ld	bc, 187
-	call	__idivs
-	ld	a, 4
-	ld	(tri_ms), hl
-	push	hl
-	pop	bc
-	ld	hl, 0
-	ld	ix, $00FF00
-	call	font.glyph_integer_format
-
-	ld	hl, 4
-	ld	bc, ms_string
-	ld	ix, $00FF00
-	call	font.glyph_string
+; 	call	vxBuffer.scale2x2
 	
-triangle_count:=$+1
+	call	debug.display_panel
+
+	call	vxSwapLCD
+	jp	 MainLoop
+ 
+debug:
+.display_frame:
+	call	vxTimer.read
+	ld	bc, .frame_ms
+	ld	hl, 0
+	call	.display_timer
+	jr	.display_triangle
+
+.display_panel:
+	call	vxTimer.read
+	ld	bc, .frame_ms
+	ld	hl, 0
+	call	.display_timer
+	ld	bc, .ge_vtx
+	ld	hl, 256
+	ld	de, (ge_vtx_transform)
+	xor	a, a
+	call	.display_timer
+	ld	bc, .ge_pri
+	ld	hl, 512
+	ld	de, (ge_pri_transform)
+	xor	a, a
+	call	.display_timer
+	ld	bc, .ge_clip
+	ld	hl, 768
+	ld	de, (ge_pri_clip)
+	xor	a, a
+	call	.display_timer
+	ld	bc, .ge_zsort
+	ld	hl, 1024
+	ld	de, (ge_z_sort)
+	xor	a, a
+	call	.display_timer
+	ld	bc, .ge_raster
+	ld	hl, 1024+256
+	ld	de, (ge_pxl_raster)
+	xor	a, a
+	call	.display_timer
+	ld	bc, .ge_pxl
+	ld	hl, 1024+512
+	ld	de, (ge_pxl_shading)
+	xor	a, a
+	call	.display_timer
+.display_triangle:
+; display visible triangle count
+.visible_count:=$+1
 	ld	bc, 0
 	ld	a, 4
-	ld	hl, 8
+	ld	hl, 16
 	ld	ix, $00FF00
 	call	font.glyph_integer_format
-; 
-	ld	hl, 12
-	ld	bc, tri_string
+	ld	hl, 20
+	ld	bc, .tri_string
 	ld	ix, $00FF00
 	call	font.glyph_string
-
+; compute the number of triangle per frame
 ; 1000/ ms * triangle_count
-
-triangle_count_tot:=$+1
+.triangle_count:=$+1
 	ld	hl, 0
 ; *1024
 	add	hl, hl
@@ -249,31 +270,87 @@ triangle_count_tot:=$+1
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
-tri_ms:=$+1
-	ld	bc, 0
+	push	hl
+	call	.frame_time
+	ex	(sp), hl
+	pop	bc
 	call	__idivs
 	push	hl
 	pop	bc
 ; hl = total / s	
 	ld	a, 6
-	ld	hl, 25
+	ld	hl, 29
 	ld	ix, $00F000
 	call	font.glyph_integer_format
-	
-	ld	bc, tri_s
-	ld	hl, 31
+	ld	bc, .tri_s
+	ld	hl, 35
 	ld	ix, $00F000
 	call	font.glyph_string
-	
-	call	vxSwapLCD
-	jp	 MainLoop
+	ret
 
-ms_string:
- db " ms",0
-tri_string:
- db " visible tri", 0
-tri_s:
+.frame_time:
+	call	vxTimer.read
+	ld	(.tmp), de
+	ld	(.tmp+3), a
+	ld	de, (.tmp+1)
+; divide de by 187
+	ex	de, hl
+	ld	bc, 187
+	jp	__idivs
+
+; bc : string, hl : position, de : counter
+.display_timer:
+	ld	(.tmp), de
+	ld	(.tmp+3), a
+	push	hl
+	ld	ix, $00FF00
+	call	font.glyph_string
+	pop	hl
+	ld	bc, 8
+	add	hl, bc
+	push	hl
+	ld	de, (.tmp+1)
+; divide de by 187
+	ex	de, hl
+	ld	bc, 187
+	call	__idivs
+	ld	a, 4
+	push	hl
+	pop	bc
+	pop	hl
+	push	hl
+	ld	ix, $00FF00
+	call	font.glyph_integer_format
+	pop	hl
+	ld	bc, 4
+	add	hl, bc
+	ld	bc, .ms_string
+	ld	ix, $00FF00
+	jp	font.glyph_string
+
+.tmp:
+ dl	0,0
+.ms_string:
+ db " ms ",0
+.tri_string:
+ db " visible ", 0
+.tri_s:
  db " tri/s", 0 
+.frame_ms:
+ db " timing ", 0
+; timer name
+.ge_vtx:
+ db " ge_vtx ", 0
+.ge_pri:
+ db " ge_pri ", 0
+.ge_clip:
+ db " ge_clp ", 0
+.ge_zsort:
+ db " ge_zst ", 0
+.ge_raster:
+ db " ge_rst ", 0
+.ge_pxl: 
+ db " ge_pxl ", 0
  
 include	"lib/virtual.asm"
 include	"font/font.asm"
@@ -284,8 +361,6 @@ posY:
  dw	-704 ; 2*256 // offset 192
 posZ:
  dw	0*256
-Temp:
- dl	0,0
 
 dataRoomVertexName:
 	db	ti.AppVarObj, "GYM0",0

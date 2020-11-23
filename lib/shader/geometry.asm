@@ -1,4 +1,4 @@
-define	VX_DEPTH_FAR_CULL	65536 * 9
+define	VX_DEPTH_FAR_CULL	65536 * 6
 
 ; 402 -- 882 :: 900
 

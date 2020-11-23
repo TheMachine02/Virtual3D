@@ -57,6 +57,10 @@ spasm -I lib/ file/FranFFXII_LOD11.inc bin/FRANLF.8xv -E -S
 spasm -I lib/ file/VieraSceneFFXII0.inc bin/VIERAV.8xv -E -S
 spasm -I lib/ file/VieraSceneFFXII1.inc bin/VIERAF.8xv -E -S
 
+./tools/mdlconv  file/BomboFFXII.obj -T -N -S -B
+spasm -I lib/ file/BomboFFXII0.inc bin/BOMBOV.8xv -E -S
+spasm -I lib/ file/BomboFFXII1.inc bin/BOMBOF.8xv -E -S
+
 echo "Converting FFX test models..."
 
 ./tools/mdlconv  file/LuluFFX.obj -T -N -S -B
@@ -101,11 +105,11 @@ echo "Converting texture.png"
 echo "Converting FranFFXII.png"
 ./tools/texconv -A -C file/FranFFXII.png
 echo "Converting MjrnFFXII.png"
-./tools/texconv -A -C file/MjrnFFXII.png
+./tools/texconv -A -D -C file/MjrnFFXII.png
 echo "Converting BunnyFFXII.png"
 ./tools/texconv -A -C file/BunnyFFXII.png
 echo "Converting MateusFFXII.png"
-./tools/texconv -A -C file/MateusFFXII.png
+./tools/texconv -D -C file/MateusFFXII.png
 echo "Converting VieraSceneFFXII.png"
 ./tools/texconv -D -C file/VieraSceneFFXII.png
 echo "Converting LuluFFX.png"
@@ -120,6 +124,8 @@ echo "Converting NabooruZelda.png"
 ./tools/texconv -D -C file/NabooruZelda.png
 echo "Converting Background.png"
 ./tools/texconv -D file/Background.png
+echo "Converting BomboFFXII.png"
+./tools/texconv -A -D -C file/BomboFFXII.png
 
 spasm -I lib/ file/CavesOfKaliyaTRIII.inc bin/KALIYAT.8xv -E -S
 spasm -I lib/ file/CityTRIII.inc bin/CITYT.8xv -E -S
@@ -138,4 +144,4 @@ spasm -I lib/ file/UltimeciaFFVIII.inc bin/ULTIMT.8xv -E -S
 spasm -I lib/ file/MidnaZelda.inc bin/MIDNAT.8xv -E -S
 spasm -I lib/ file/NabooruZelda.inc bin/NABOORUT.8xv -E -S
 spasm -I lib/ file/Background.inc bin/SKYBOX.8xv -E -S
-
+spasm -I lib/ file/BomboFFXII.inc bin/BOMBOT.8xv -E -S

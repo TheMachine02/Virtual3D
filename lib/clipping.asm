@@ -6,8 +6,8 @@ define	VX_PLANE_BIT4		00001000b
 define	VX_VERTEX_DIRTY		00000001b
 define	VX_SCREEN_WIDTH         320
 define	VX_SCREEN_HEIGHT        240
-define	VX_SCREEN_WCENTER       160
-define	VX_SCREEN_HCENTER       120
+define	VX_SCREEN_WCENTER       VX_SCREEN_WIDTH shr 1
+define	VX_SCREEN_HCENTER       VX_SCREEN_HEIGHT shr 1
 define 	VX_MAX_PATCH_VERTEX    	8
 define 	VX_MAX_PATCH_SIZE    	64
 define	VX_PATCH_INPUT		$D03480
@@ -375,11 +375,10 @@ vxPrimitiveClipPlane:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SX), bc
 	ld	hl, (VX_PATCH_VERTEX+VX_VERTEX_RY)
 	ld	bc, (VX_PATCH_VERTEX+VX_VERTEX_RZ)
-; beware, RZ can be negative here. If so, it block stuff up, so, set bc = 1
+; beware, RZ can be negative here. If so, it block stuff up, so, set code accordingly
 	ld	a, (VX_PATCH_VERTEX+VX_VERTEX_RZ+2)
 	rla
-	jr	nc, $+6
-	ld	bc, 1
+	jr	c, .clipz0
 .parametricDivide0:
 	xor	a, a
 	add	hl, hl
@@ -445,6 +444,9 @@ vxPrimitiveClipPlane:
 	ld	a, VX_SCREEN_HCENTER+(VX_SCREEN_HEIGHT/2)
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SY), a
 	jp	.parametricCCompute
+.clipz0:
+	add	hl, hl
+	rla
 .clipy0:
 ; we need to take care of extra clipping incurring on y plane only, since vertical plane will be both clipped proprely at first (and it doesn't change anything)
 ; so when it moves on to the y code, x won't be clipped anymore, only clamped, which is more than enough

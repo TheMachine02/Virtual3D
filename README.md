@@ -21,11 +21,10 @@ Feel free to ask for a new feature
 # Planned feature
 
 1. Mipmap
-2. Bloom and godray
-3. Antialiasing
-4. Per material shader
-5. 2D shaderized sprite engine
-6. Better lightning
+2. Antialiasing
+3. Per material shader
+4. 2D shaderized sprite engine
+5. Better lightning
 
 # Screen
 

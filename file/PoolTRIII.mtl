@@ -10,7 +10,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd Pool.png
+map_Kd /home/blossom/Dev/ez80project/TRIII-rip/house/pool/TexturePage.png
 
 newmtl None.002
 Ns 0.000000
@@ -21,7 +21,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd Pool.png
+map_Kd /home/blossom/Dev/ez80project/TRIII-rip/house/pool/TexturePage.png
 
 newmtl None.004
 Ns 0.000000
@@ -32,14 +32,15 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd Pool.png
+map_Kd /home/blossom/Dev/ez80project/TRIII-rip/house/pool/TexturePage.png
 
 newmtl None_TexturePage.png.001
-Ns 96.078431
-Ka 1.000000 1.000000 1.000000
-Kd 0.640000 0.640000 0.640000
-Ks 0.500000 0.500000 0.500000
+Ns 0.000000
+Ka 0.000000 0.000000 0.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.800000 0.800000 0.800000
 Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
+map_Kd /home/blossom/Dev/ez80project/TRIII-rip/house/pool/TexturePage.png

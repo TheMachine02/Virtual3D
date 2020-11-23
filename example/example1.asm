@@ -40,7 +40,7 @@ format	ti executable 'TEST1'
 
 MainLoop:
 
-	call	vxTimerStart
+	call	vxTimer.reset
 
 	ld	hl, (LightAngle)
 	ld	de, 16

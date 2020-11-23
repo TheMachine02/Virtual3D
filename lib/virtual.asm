@@ -124,7 +124,7 @@ vxEngineInit:
 	ld	ix, vxPixelShader
 	call	vxShaderLoad
 ; init timer
-	call	vxTimerInit
+	call	vxTimer.init
 ; insert stack position
 	ld	hl, vxEngineQuit
 	ex	(sp), hl

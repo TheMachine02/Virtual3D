@@ -19,6 +19,48 @@ define	VX_BLUE_BITS		00011000b
 define	VX_COLOR_LOW_BIT	00101001b
 define	vxFramebuffer		$E30014
 
+vxBuffer:
+
+.scale2x2:
+	ld	hl, (vxFramebuffer)
+	ld	de, (VX_LCD_BUFFER)
+	ld	bc, 0
+	ld	a, 120
+.outer_write_vram:
+	push	af
+	ld	c, 160
+	push	de
+.inner_write_vram:
+	ld	a, (hl)
+	ldi
+	ld	(de), a
+	inc	de
+	ld	a, (hl)
+	ldi
+	ld	(de), a
+	inc	de
+	ld	a, (hl)
+	ldi
+	ld	(de), a
+	inc	de
+	ld	a, (hl)
+	ldi
+	ld	(de), a
+	inc	de
+	jp	pe, .inner_write_vram
+; copy the line just writed
+	ex	(sp), hl
+	ld	c, 64
+	inc	b
+	ldir
+	pop	hl
+	ld	c, 160
+	add	hl, bc
+	pop	af
+	dec	a
+	jr	nz, .outer_write_vram
+	ret
+
 vxResetPalette:
 ; load palette :
 ; color is 3-3-2 format, RGB
@@ -53,10 +95,12 @@ vxSetPalette:
 	ret
 
 vxClearFramebuffer:
+	cce	fb_clear
 	ld	de, (vxFramebuffer)
 	ld	hl, $E40000
 	ld	bc, VX_FRAMEBUFFER_SIZE
 	ldir
+	ccr	fb_clear
 	ret
 	
 vxClearBuffer:
@@ -64,6 +108,7 @@ vxClearBuffer:
 ; input : c
 ; output : none
 ; destroyed : all except ix,iy
+	cce	fb_clear
 	ld	hl, (vxFramebuffer)
 	ld	(hl), c
 	ex	de, hl
@@ -73,6 +118,7 @@ vxClearBuffer:
 	inc	de
 	ld	bc, 76799
 	ldir
+	ccr	fb_clear
 	ret
 
 vxFlushLCD:
@@ -107,3 +153,4 @@ vxLitRBG:
 	ld	h, a
 	ld	a, (hl)
 	ret
+

@@ -15,10 +15,10 @@ format	ti executable 'TEST'
 	ret	c
 	ld	(Triangle), hl
 
-	ld	hl, SkyName
+	ld	hl, Skybox.name
 	call	find
 	ret	c
-	ld	(Skybox), hl
+	ld	(Skybox.cache), hl
 	
 	ld	hl, TextName
 	call	find
@@ -59,8 +59,7 @@ format	ti executable 'TEST'
 	call	vxShaderLoad
 
 MainLoop:
-	call	vxTimerReset
-	call	vxTimerStart
+	call	vxTimer.reset
 	
 	call	Camera
 	ret	nz
@@ -74,6 +73,17 @@ MainLoop:
 	ld	de, 128*256+160
 	ld	bc, 32*256+32
 	call	vxImageSubSwap
+	
+	ld	hl, 104*256+128
+	ld	de, 104*256+128+16
+	ld	bc, 16*256+16
+	call	vxImageSubSwap
+
+	ld	hl, (104+128)*256+128
+	ld	de, (104+128)*256+128+16
+	ld	bc, 16*256+16
+	call	vxImageSubSwap
+		
 	
 	ld	a, VX_FORMAT_TEXTURE
 	ld	ix, WorldMatrix
@@ -102,19 +112,15 @@ MainLoop:
 
 	ld	hl, (vxGeometrySize)
 	ld	(triangle_count), hl
-
 	call	vxSortQueue
-
+	
 ;	ld	c, 11100000b
 ;	call	vxClearBuffer
 ;	call	vxClearFramebuffer
-	ld	hl, (Skybox)
-	ld	de, (vxFramebuffer)
-	ld	bc, 320*160
-	ldir
-	ld	hl, $E40000
-	ld	bc, 320*80
-	ldir
+	ld	bc, (EulerAngle)
+	inc	b
+	call	Skybox.render
+	
 	call	vxSubmitQueue
 
 ; timer & counter
@@ -128,7 +134,7 @@ MainLoop:
 	ld	(hl), 0
 	ldir
  
-	call	vxTimerRead
+	call	vxTimer.read
 ; do (ade/256)/187
 	ld	(Temp), de
 	ld	(Temp+3), a
@@ -185,7 +191,7 @@ tri_ms:=$+1
 	call	__idivs
 	push	hl
 	pop	bc
-; hl = total / s	
+; hl = total / s
 	ld	a, 6
 	ld	hl, 25
 	ld	ix, $00F000
@@ -196,11 +202,84 @@ tri_ms:=$+1
 	ld	ix, $00F000
 	call	font.glyph_string
 
-	call	vxFlushLCD
+;	call	vxFlushLCD
+	call	vxSwapLCD
 
 	jp	 MainLoop
 	ret
 
+Filter:
+.apply:
+; adapt the palette for water filter etc
+	ret
+	
+Skybox:
+.render:
+; get angle, between 0 - 511 : bc
+; hl *320 / 512 + modulo
+	ld	h, 160
+	ld	a, b
+	and	a, 1
+	ld	l, a
+	mlt	hl
+	ld	b, 160
+	mlt	bc
+	ld	c, b
+	ld	b, 0
+	add	hl, bc
+; hl = the offset into the skybox (pseudo rotation)
+	push	hl
+	pop	ix
+	ld	de, (vxFramebuffer)	
+	ld	hl, (.cache)
+	ld	a, 160
+.loop:
+	push	af
+; copy hl to de + ix for bc = 320 - ix then the following to de for ix
+	push	hl
+	lea	bc, ix+0
+	ld	hl, 320
+	or	a, a
+	sbc	hl, bc
+	ld	b, h
+	ld	c, l
+	pop	hl
+	jr	z, .loop_en0
+	push	de
+	ex	de, hl
+	push	bc
+	lea	bc, ix+0
+	add	hl, bc
+	pop	bc
+	ex	de, hl
+	ldir
+	pop	de
+.loop_en0:
+	lea	bc, ix+0
+	ld	a, b
+	or	a, c
+	jr	z, .loop_en1
+	push	de
+	ldir
+	pop	de
+.loop_en1:
+	ex	de, hl
+	ld	bc, 320
+	add	hl, bc
+	ex	de, hl
+	pop	af
+	dec	a
+	jr	nz, .loop
+	ld	hl, $E40000
+	ld	bc, 320*80
+	ldir
+	ret
+
+.name:
+	db	ti.AppVarObj, "SKYBOX",0
+.cache:
+	dl	0
+	
 ms_string:
  db " ms",0
 tri_string:
@@ -238,10 +317,6 @@ Triangle:
 	dl	0
 TextName:
 	db	ti.AppVarObj, "POOLT",0
-SkyName:
-	db	ti.AppVarObj, "SKYBOX",0
-Skybox:
-	dl	0
 Texture:
 	dl	0
 UnitVector:
