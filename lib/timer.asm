@@ -23,7 +23,8 @@ end macro
 
 macro	ccr	register			; cycle counter read
 if defined VX_DEBUG_CC_INSTRUCTION
-	ld	(vxTimer.register_save), hl
+	ld	(.rrs), hl
+	ld	(.rre), de
 	ld	hl, VX_TIMER_CTRL
 ; stop timer
 	res	0, (hl)
@@ -32,7 +33,10 @@ if defined VX_DEBUG_CC_INSTRUCTION
 	ld	hl, (register)
 	add	hl, de
 	ld	(register), hl
-	ld	hl, (vxTimer.register_save)
+.rrs=$+1
+	ld	hl, 0
+.rre=$+1
+	ld	de, 0
 end if
 end macro
 
@@ -54,6 +58,8 @@ fb_clear:
 vxTimer:
 
 .register_save:
+ dl	0 
+.register_save_2:
  dl	0 
 
 .init:

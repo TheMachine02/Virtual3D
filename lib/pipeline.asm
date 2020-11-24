@@ -330,7 +330,7 @@ vxVertexLoadBone:
 	add	iy, de
 	pop	de
 	pop	bc
-	jr	vxVertexStreamLoop
+	jp	vxVertexStreamLoop
 
 vxVertexStreamBox:
 	push	bc

@@ -34,8 +34,10 @@ VX_REGISTER_DATA:
 
 vxPrimitive:
 
+if ~defined VX_DEBUG_CC_INSTRUCTION
 VX_REGISTER_INTERPOLATION_COPY:
 relocate VX_REGISTER_INTERPOLATION_CODE
+end if
 
 _inner_clipdrawTextureTriangle:
 	ld	iy, VX_PATCH_INPUT
@@ -78,6 +80,12 @@ _inner_cyclicLoop0:
 	pop	bc
 	djnz	_inner_cyclicLoop0
 	ret
+
+if defined VX_DEBUG_CC_INSTRUCTION
+; sadly enough, we run out of space in this code scope with cc enabled
+VX_REGISTER_INTERPOLATION_COPY:
+relocate VX_REGISTER_INTERPOLATION_CODE
+end if
 
 vxPrimitiveRenderTriangle:
 ; iy = triangle data (as stored in memory)
@@ -302,6 +310,6 @@ vxPrimitiveFillTriangle:
 ; de = p1 adress
 ; bc = p2 adress
 ; use global VX_COLOR_PRIMITIVE_RBG color
-#include "color.asm"
+include "color.asm"
 
-#include "clipping.asm"
+include "clipping.asm"

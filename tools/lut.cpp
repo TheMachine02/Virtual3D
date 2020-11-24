@@ -339,20 +339,20 @@ void generate_convolve()
     int i,j;
     int intensity=0;
     unsigned char red,blue,green;
-    out <<".db ";
-    for(j=0;j<16;j++)
+    out <<" db ";
+    for(j=0;j<32;j++)
     {
         for(i=0;i<256;i++)
         {
-            red=min(((xlibc_palette[i*4]*intensity)/255),255);
-            green=min(((xlibc_palette[i*4+1]*intensity)/255),255);
-            blue=min(((xlibc_palette[i*4+2]*intensity)/255),255);
+            red=min(((xlibc_palette[i*4]*intensity)/256),255);
+            green=min(((xlibc_palette[i*4+1]*intensity)/256),255);
+            blue=min(((xlibc_palette[i*4+2]*intensity)/256),255);
  //           convolveTable[j*256+i]=subPixel(red,green,blue);
         out << (int)subPixel(red,green,blue);
         if(i!=255) out << ",";
         }
-        if(j!=15) out << "\n db ";
-        intensity+=17;
+        if(j!=31) out << "\n db ";
+        intensity+=16;
     }
 }
 

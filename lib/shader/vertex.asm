@@ -313,7 +313,6 @@ vxVertexShader:
 	mlt	bc
 	ld	a, b
 	rl	c
-; ambiant lightning=12
 	adc	a, (ix+VX_LIGHT0_AMBIENT)
 ; min(a,15)
 	cp	32

@@ -4,6 +4,7 @@ include	"include/tiformat.inc"
 
 format	ti executable 'TEST2'
 define	DELTA	4096
+define	VX_DEBUG_CC_INSTRUCTION
 
 	ld	hl, VertexName
 	call	find
@@ -38,7 +39,7 @@ define	DELTA	4096
 	ld	ix, WorldMatrix
 	lea	hl, ix+0
 	call	vxMatrixLoadIdentity
-	ld	hl, 32768
+	ld	hl, 65536
 	ld	(ix+15), hl		; Z translation of the matrix
 
 	ld	hl, Light
@@ -46,8 +47,8 @@ define	DELTA	4096
 	ld	bc, VX_LIGHT_SIZE
 	ldir
 
-;	ld	ix, lightShader
-	ld	ix, alphaShader
+	ld	ix, lightShader
+;	ld	ix, alphaShader
 ;	ld	ix, gouraudShader
 	call	vxShaderLoad
 
@@ -57,11 +58,11 @@ define	DELTA	4096
 MainLoop:
 	call	vxTimer.reset
 
-	call	Random
-	ld	a, l
-	and	a, 31
-	add	a, 224
-	ld	(vxLightUniform+4), a
+; 	call	Random
+; 	ld	a, l
+; 	and	a, 31
+; 	add	a, 224
+; 	ld	(vxLightUniform+4), a
 
 	ld	hl, (EulerAngle)
 	ld	iy, Quaternion
@@ -86,91 +87,19 @@ MainLoop:
 	call	vxGeometryQueue
 
 	ld	hl, (vxGeometrySize)
-	ld	(triangle_count), hl
+	ld	(debug.visible_count), hl
+	ld	hl, (Triangle)
+	inc	hl
+	ld	hl, (hl)
+	ld	(debug.triangle_count), hl
 
 	call	vxSortQueue
 
 	ld	c, $00
 	call	vxClearBuffer
 	call	vxSubmitQueue
-; timer & counter
-; 
-	ld	bc, 320*11-1
-	ld	de, (vxFramebuffer)
-	or	a, a
-	sbc	hl, hl
-	add	hl, de
-	inc	de
-	ld	(hl), 0
-	ldir
- 
-	call	vxTimer.read
-; do (ade/256)/187
-	ld	(Temp), de
-	ld	(Temp+3), a
-	ld	de, (Temp+1)
-; divide de by 187
-	ex	de, hl
-	ld	bc, 187
-	call	__idivs
-	ld	a, 4
-	ld	(tri_ms), hl
-	push	hl
-	pop	bc
-	ld	hl, 0
-	ld	ix, $00FF00
-	call	font.glyph_integer_format
 
-	ld	hl, 4
-	ld	bc, ms_string
-	ld	ix, $00FF00
-	call	font.glyph_string
-	
-triangle_count:=$+1
-	ld	bc, 0
-	ld	a, 4
-	ld	hl, 8
-	ld	ix, $00FF00
-	call	font.glyph_integer_format
-; 
-	ld	hl, 12
-	ld	bc, tri_string
-	ld	ix, $00FF00
-	call	font.glyph_string
-
-; 1000/ ms * triangle_count
-
-	ld	hl, (Triangle)
-	inc	hl
-	ld	hl, (hl)
-	inc.s	hl
-	dec.s	hl
-; *1024
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-tri_ms:=$+1
-	ld	bc, 0
-	call	__idivs
-	push	hl
-	pop	bc
-; hl = total / s	
-	ld	a, 6
-	ld	hl, 25
-	ld	ix, $00F000
-	call	font.glyph_integer_format
-	
-	ld	bc, tri_s
-	ld	hl, 31
-	ld	ix, $00F000
-	call	font.glyph_string
+	call	debug.display_panel
 
 	call	vxFlushLCD
 
@@ -273,16 +202,10 @@ Random:
     ret
 rand1:
  rb	12
-
-ms_string:
- db " ms",0
-tri_string:
- db " visible tri", 0
-tri_s:
- db " tri/s", 0  
  
 include	"lib/virtual.asm"
 include	"font/font.asm"
+include	"debug.asm"
 
 posX:
 	dw	0
@@ -296,15 +219,15 @@ Temp:
 ; choose mateus or tonberry
 
 VertexName:
-	db	ti.AppVarObj, "BOMBOV",0
+	db	ti.AppVarObj, "ULTIMV",0
 Vertex:
 	dl	0
 TriangleName:
-	db	ti.AppVarObj, "BOMBOF", 0
+	db	ti.AppVarObj, "ULTIMF", 0
 Triangle:
 	dl	0
 TextureName:
-	db	ti.AppVarObj, "BOMBOT", 0
+	db	ti.AppVarObj, "ULTIMT", 0
 Texture:
 	dl	0
 Light:
