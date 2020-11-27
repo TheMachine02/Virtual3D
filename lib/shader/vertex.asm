@@ -273,56 +273,56 @@ vxVertexShader:
 	add	hl, hl
 	add	hl, de
 	
-; lightning model is here, infinite directionnal light, no pow
-	xor	a, a
-	ld	c, (iy+VX_VERTEX_NX)
-	ld	b, (ix+VX_LIGHT0_VECTOR+0)
-	bit	7, c
-	jr z, $+3
-	sub a,b
-	bit	7, b
-	jr z, $+3
-	sub a,c
-	mlt	bc
-	add	a, b
-	ld	c, (iy+VX_VERTEX_NY)
-	ld	b, (ix+VX_LIGHT0_VECTOR+1)
-	bit	7, c
-	jr z, $+3
-	sub a,b
-	bit	7, b
-	jr z, $+3
-	sub a,c
-	mlt	bc
-	add	a, b
-	ld	c, (iy+VX_VERTEX_NZ)
-	ld	b, (ix+VX_LIGHT0_VECTOR+2)
-	bit	7, c
-	jr z, $+3
-	sub a,b
-	bit	7, b
-	jr z, $+3
-	sub a,c
-	mlt	bc
-	add	a, b
-; max(a,0)
-	jp	p, $+5
-	xor	a, a
-	ld	c, a
-	ld	b, (ix+VX_LIGHT0_POW)
-	mlt	bc
-	ld	a, b
-	rl	c
-	adc	a, (ix+VX_LIGHT0_AMBIENT)
-; min(a,15)
-	cp	32
-	jr	c, $+4
-	ld	a, 31
+; ; lightning model is here, infinite directionnal light, no pow
+; 	xor	a, a
+; 	ld	c, (iy+VX_VERTEX_NX)
+; 	ld	b, (ix+VX_LIGHT0_VECTOR+0)
+; 	bit	7, c
+; 	jr z, $+3
+; 	sub a,b
+; 	bit	7, b
+; 	jr z, $+3
+; 	sub a,c
+; 	mlt	bc
+; 	add	a, b
+; 	ld	c, (iy+VX_VERTEX_NY)
+; 	ld	b, (ix+VX_LIGHT0_VECTOR+1)
+; 	bit	7, c
+; 	jr z, $+3
+; 	sub a,b
+; 	bit	7, b
+; 	jr z, $+3
+; 	sub a,c
+; 	mlt	bc
+; 	add	a, b
+; 	ld	c, (iy+VX_VERTEX_NZ)
+; 	ld	b, (ix+VX_LIGHT0_VECTOR+2)
+; 	bit	7, c
+; 	jr z, $+3
+; 	sub a,b
+; 	bit	7, b
+; 	jr z, $+3
+; 	sub a,c
+; 	mlt	bc
+; 	add	a, b
+; ; max(a,0)
+; 	jp	p, $+5
+; 	xor	a, a
+; 	ld	c, a
+; 	ld	b, (ix+VX_LIGHT0_POW)
+; 	mlt	bc
+; 	ld	a, b
+; 	rl	c
+; 	adc	a, (ix+VX_LIGHT0_AMBIENT)
+; ; min(a,15)
+; 	cp	32
+; 	jr	c, $+4
+; 	ld	a, 31
 
 	pop	bc
 	pop	de
 	pop	ix
-	ld	(ix+VX_VERTEX_UNIFORM), a
+; 	ld	(ix+VX_VERTEX_UNIFORM), a
 	ld	(ix+VX_VERTEX_RX), de
 	ld	(ix+VX_VERTEX_RY), hl
 	ld	(ix+VX_VERTEX_RZ), bc

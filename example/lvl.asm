@@ -77,6 +77,27 @@ MainLoop:
 
 	call	advanceFrame
 
+; 	di
+; 	halt
+; ;-102,4
+; 	ld	hl, -270
+; 	ld	de, 65536/25 ; 2621
+; 	scf
+; 	ld	a, h
+; 	ld	h, d
+; 	ld	c, l
+; 	mlt	hl
+; 	jr	nc, $+6
+; 	or	a, a
+; 	sbc	hl, de
+; 	ld	b, e
+; 	mlt	bc
+; 	rl	c
+; 	ld	c, b
+; 	ld	b, 0
+; 	adc	hl, bc
+; ; + - de based on sign of the difference and the bit
+
 renderLevel:
 ; get bounding box and the room
 ; get the psv
@@ -88,71 +109,12 @@ renderLevel:
 	ld	hl, $D22000
 	ld	(cacheAdress), hl
 
-	ld	hl, (dataLevel)
-	ld	b, (hl)
-
-
+; 	ld	hl, (dataLevel)
+; 	ld	b, (hl)
 	ld	b, 1
-	ld	c, 1
+	ld	c, 0
 
-allrender:
-	push	bc
-; get the triangle & vertex data
-	ld	hl, 0
-	ld	l, c
-	add	hl, hl
-	add	hl, hl
-	ld	de, (dataRoomIndex)
-	add	hl, de
-	ld	hl, (hl)
-	add	hl, de
-	ex	de, hl
-; vertex data
-	ld	hl, 0
-	ld	l, c
-	add	hl, hl
-	add	hl, hl
-	ld	bc, (dataRoomVertex)
-	add	hl, bc
-	ld	hl, (hl)
-	add	hl, bc
-
-	ld	bc, (cacheAdress)
-	push	hl
-	inc	hl
-	ld	hl, (hl)
-	inc.s	hl
-	dec.s	hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, bc
-	ld	(cacheAdress), hl
-	pop	hl
-
-	ld	a, VX_FORMAT_TEXTURE
-	ld	ix, WorldMatrix
-	ld	iy, ModelMatrix
-	
-	push	hl
-	push	de
-	push	bc
-	ex	de, hl
-	inc	hl
-	ld	bc, (hl)
-	ld	hl, (debug.triangle_count)
-	add.s	hl, bc
-	ld	(debug.triangle_count), hl
-	pop	bc
-	pop	de
-	pop	hl
-	
-	call	vxGeometryQueue
-
-	pop	bc
-	inc	c
-	djnz	allrender
+	call	Render.room_list
 
 	ld	a, VX_FORMAT_TEXTURE
 	ld	ix, WorldMatrix
@@ -180,7 +142,7 @@ allrender:
 	ld	(debug.visible_count), hl
 
 	call	vxSortQueue
-	call	vxClearFramebuffer
+	call	vxBuffer.clear
 ; 	ld	hl, (Skybox)
 ; 	ld	de, (vxFramebuffer)
 ; 	ld	bc, 320*160
@@ -197,7 +159,7 @@ allrender:
 	
 	call	debug.display_panel
 
-	call	vxSwapLCD
+	call	vxBuffer.swap
 	jp	 MainLoop
 
 include	"lib/virtual.asm"
@@ -218,7 +180,7 @@ dataRoomIndexName:
 dataLevelName:
 	db	ti.AppVarObj, "GYMHEAD",0
 textureName:
-	db	ti.AppVarObj, "GYM2",0
+	db	ti.AppVarObj, "ROOMT",0
 laraVertexName:
 	db	ti.AppVarObj, "LARAV", 0
 laraIndexName:
@@ -699,8 +661,66 @@ unarchived:
 
 Render:
 
+.room_list:
+	push	bc
+; get the triangle & vertex data
+	ld	hl, 0
+	ld	l, c
+	add	hl, hl
+	add	hl, hl
+	ld	de, (dataRoomIndex)
+	add	hl, de
+	ld	hl, (hl)
+	add	hl, de
+	ex	de, hl
+; vertex data
+	ld	hl, 0
+	ld	l, c
+	add	hl, hl
+	add	hl, hl
+	ld	bc, (dataRoomVertex)
+	add	hl, bc
+	ld	hl, (hl)
+	add	hl, bc
 
+	ld	bc, (cacheAdress)
+	push	hl
+	inc	hl
+	ld	hl, (hl)
+	inc.s	hl
+	dec.s	hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, bc
+	ld	(cacheAdress), hl
+	pop	hl
 
+	ld	a, VX_FORMAT_TEXTURE
+	ld	ix, WorldMatrix
+	ld	iy, ModelMatrix
+	
+	push	hl
+	push	de
+	push	bc
+	ex	de, hl
+	inc	hl
+	ld	bc, (hl)
+	ld	hl, (debug.triangle_count)
+	add.s	hl, bc
+	ld	(debug.triangle_count), hl
+	pop	bc
+	pop	de
+	pop	hl
+	
+	call	vxGeometryQueue
+
+	pop	bc
+	inc	c
+	djnz	.room_list
+	ret
+	
 .find_chamber:
 ; find where the character is
 ; character position is posX, posY, posY
@@ -710,8 +730,4 @@ Render:
 	ld	hl, (hl)
 ; this is the stream
 	
-
-
-
-
 .bounding_box:

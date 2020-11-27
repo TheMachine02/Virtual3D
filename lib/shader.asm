@@ -29,8 +29,6 @@ vxShaderLoad:
 	add hl, de
 	ld	(vxShaderAdress2), hl
 
-; TODO : generation of the shading table
-; VX_CALL1_NEG
 	ld	c, (ix+VX_SHADER_DATA1)
 	ld	hl, VX_PIXEL_SHADER_CODE
 	add	hl, bc
@@ -44,6 +42,9 @@ vxShaderCreate0:
 	lea	iy, iy+8
 	djnz vxShaderCreate0
 
+	push	de
+	push	hl
+	
 	ld	a, (ix+VX_SHADER_DATA1)
 	inc	a
 	add	a, a
@@ -62,13 +63,10 @@ vxShaderCreate0:
 	ld	(vxShaderAdress0), hl
 	ex	de, hl
 	add	hl, de
-	ld	(vxShaderAdress1), hl
+	ld	(vxShaderAdress1), hl	
+	pop	de
+	pop	hl
 	ld	b, 160
-	
-	inc hl
-	inc hl
-	inc de
-	inc de
 
 vxShaderCreate1:
 	ld	(iy+1), de
@@ -78,7 +76,6 @@ vxShaderCreate1:
 	ret
 
 vxShaderGeneralInterpolation0:
-	ld	hl, (iy+VX_REGISTER2)	; v
 	exx
 	ld	hl, (iy+VX_REGISTER1) ; lut adress
 	ld	de, (iy+VX_REGISTER0)	; screen adress
@@ -90,8 +87,9 @@ VX_SMC_EDGEFIX=$
 	ld	a, (hl)			; fetch correct size
 	inc	hl
 	ld	ix, (hl)			; fetch jump \o/
-	ld	hl, (iy+VX_REGISTER3)	; u
+	ld	hl, (iy+VX_REGISTER3)
 	exx
+	ld	hl, (iy+VX_REGISTER2)	; v
 	ld	b, a
 	lea	iy, iy+VX_REGISTER_SIZE
 	jp	(ix)
@@ -740,6 +738,8 @@ VX_LUT_PIXEL_TABLE:
  dl 0
 VX_LUT_PIXEL_LENGTH:
  db 0
+ dl 0
+ db 1
  dl 0
  db 1
  dl 0

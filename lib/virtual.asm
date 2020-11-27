@@ -76,20 +76,9 @@ vxEngineInit:
 	di
 	ld	hl, $E00005
 	ld	(hl), 2	; Set flash wait states to 5 + 2 = 7 (total access time = 8)
-; LCD initialisation
-	call	vxResetPalette
-; start LCD interrupt
 	call	ti.boot.ClearVRAM
-	ld	hl, VX_LCD_IMSC
-	set	2, (hl)
-; setup 8bpp mode
-	ld	a, VX_BPP8
-	ld	(VX_LCD_CTRL), a
-; load vram buffer
-	ld	hl, VX_FRAMEBUFFER_AUX0
-	ld	(VX_LCD_BUFFER), hl
-	ld	hl, VX_FRAMEBUFFER_AUX1	;used to be 1
-	ld	(vxFramebuffer), hl
+; LCD init
+	call	vxBuffer.setup
 ; memory initialisation
 	call	vxMemoryCreateDevice
 ;	call	vxMemoryUnlockPrivilege
@@ -144,10 +133,7 @@ vxEngineQuit:
 	inc	l		; 0F50005h
 	ld	(hl),8	; Number of columns to scan
 	ld	iy, OS__FLAGS
-	ld	a, VX_BPP16
-	ld	(VX_LCD_CTRL),a
-	ld	hl, VX_FRAMEBUFFER_AUX0
-	ld	(VX_LCD_BUFFER), hl
+	call	vxBuffer.restore
 	call	vxMemoryDestroyDevice
 	ld	hl, $E00005
 	ld	(hl), 4	; Set flash wait states to 5 + 4 = 9 (total access time = 10)
@@ -232,7 +218,7 @@ _inner_read:
 	ld	hl, $0D1887C - 3
 	ld	(hl), de
 	jp	(hl)
-
+	
 ; include texture, clipping, color
 include	"primitive.asm"
 include	"pipeline.asm"

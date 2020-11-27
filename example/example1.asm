@@ -79,7 +79,7 @@ MainLoop:
 	call	vxSortQueue
 
 	ld	c, 00000000b
-	call	vxClearBuffer
+	call	vxBuffer.clearColor
 	call	vxSubmitQueue
 
 ; ; timer & counter
@@ -128,7 +128,7 @@ MainLoop:
 ; 	pop	de
 ; 	pop	hl
 
-	call	vxFlushLCD
+	call	vxBuffer.swap
 
 KeyboardTest:
 	ld hl,$F50000

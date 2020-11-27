@@ -5,7 +5,7 @@ define	RAM_NULL	$E40000
 
 macro	cce	register			; cycle counter enable
 if defined VX_DEBUG_CC_INSTRUCTION
-	ld	(vxTimer.register_save), hl
+	ld	(vxTimer.rrs), hl
 	ld	hl, VX_TIMER_COUNTER_GP
 	ld	(hl), h
 	inc	hl
@@ -17,14 +17,13 @@ if defined VX_DEBUG_CC_INSTRUCTION
 	ld	l, VX_TIMER_CTRL and $FF
 ; start timer
 	set	0, (hl)
-	ld	hl, (vxTimer.register_save)
+	ld	hl, (vxTimer.rrs)
 end if
 end macro
 
-macro	ccr	register			; cycle counter read
+macro	ccr	register			; cycle counter read, destroy de
 if defined VX_DEBUG_CC_INSTRUCTION
-	ld	(.rrs), hl
-	ld	(.rre), de
+	ld	(vxTimer.rrs), hl
 	ld	hl, VX_TIMER_CTRL
 ; stop timer
 	res	0, (hl)
@@ -33,10 +32,7 @@ if defined VX_DEBUG_CC_INSTRUCTION
 	ld	hl, (register)
 	add	hl, de
 	ld	(register), hl
-.rrs=$+1
-	ld	hl, 0
-.rre=$+1
-	ld	de, 0
+	ld	hl, (vxTimer.rrs)
 end if
 end macro
 
@@ -57,11 +53,9 @@ fb_clear:
  
 vxTimer:
 
-.register_save:
- dl	0 
-.register_save_2:
- dl	0 
-
+.rrs:
+ dl	0
+ 
 .init:
 ; now intialise timer (1) (2)
 	ld	hl, VX_TIMER_CTRL

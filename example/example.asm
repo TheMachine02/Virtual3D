@@ -57,8 +57,8 @@ define	VX_DEBUG_CC_INSTRUCTION
 	ld	a, 0
 	ld	(vxLightUniform+4), a
 
-	ld	ix, alphaShader
-	call	vxShaderLoad
+; 	ld	ix, alphaShader
+; 	call	vxShaderLoad
 
 MainLoop:
 	call	vxTimer.reset
@@ -66,25 +66,25 @@ MainLoop:
 	call	Camera
 	ret	nz
 	
-	ld	hl, 0*256+128
-	ld	de, 0*256+160
-	ld	bc, 32*256+32
-	call	vxImageSubSwap
-
-	ld	hl, 128*256+128
-	ld	de, 128*256+160
-	ld	bc, 32*256+32
-	call	vxImageSubSwap
-	
-	ld	hl, 104*256+128
-	ld	de, 104*256+128+16
-	ld	bc, 16*256+16
-	call	vxImageSubSwap
-
-	ld	hl, (104+128)*256+128
-	ld	de, (104+128)*256+128+16
-	ld	bc, 16*256+16
-	call	vxImageSubSwap
+; 	ld	hl, 0*256+128
+; 	ld	de, 0*256+160
+; 	ld	bc, 32*256+32
+; 	call	vxImageSubSwap
+; 
+; 	ld	hl, 128*256+128
+; 	ld	de, 128*256+160
+; 	ld	bc, 32*256+32
+; 	call	vxImageSubSwap
+; 	
+; 	ld	hl, 104*256+128
+; 	ld	de, 104*256+128+16
+; 	ld	bc, 16*256+16
+; 	call	vxImageSubSwap
+; 
+; 	ld	hl, (104+128)*256+128
+; 	ld	de, (104+128)*256+128+16
+; 	ld	bc, 16*256+16
+; 	call	vxImageSubSwap
 		
 	
 	ld	a, VX_FORMAT_TEXTURE
@@ -122,17 +122,16 @@ MainLoop:
 	
 ;	ld	c, 11100000b
 ;	call	vxClearBuffer
-;	call	vxClearFramebuffer
-	ld	bc, (EulerAngle)
-	inc	b
-	call	Skybox.render
+	call	vxBuffer.clear
+; 	ld	bc, (EulerAngle)
+; 	inc	b
+; 	call	Skybox.render
 	
 	call	vxSubmitQueue
 
 	call	debug.display_panel
 
-;	call	vxFlushLCD
-	call	vxSwapLCD
+	call	vxBuffer.swap
 
 	jp	 MainLoop
 	ret
@@ -231,15 +230,15 @@ Temp:
 	dl	0,0
 
 VertexName:
-	db	ti.AppVarObj, "POOLV",0
+	db	ti.AppVarObj, "KALIYAV",0
 Vertex:
 	dl	0
 TriangleName:
-	db	ti.AppVarObj, "POOLF", 0
+	db	ti.AppVarObj, "KALIYAF", 0
 Triangle:
 	dl	0
 TextName:
-	db	ti.AppVarObj, "POOLT",0
+	db	ti.AppVarObj, "KALIYAT",0
 Texture:
 	dl	0
 UnitVector:

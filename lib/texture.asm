@@ -446,6 +446,8 @@ vxShaderAdress2Write=$+1
 .triangleGradient:
 	ld	a, (iy+VX_REGISTER_Y2)
 	sub	a, (iy+VX_REGISTER_Y0)
+	rra
+	adc	a, 0
 	ld	b, a
 	ld	hl, (iy+VX_FDVDY)
 	ld	de, (iy+VX_FDVDX)
@@ -479,8 +481,6 @@ vxShaderAdress2Write=$+1
 	ld	(ix+VX_REGISTER3), a
 	add	hl, de
 	adc	a, c
-	dec	b
-	jr	z, .triangleGradientEnd
 	ld	(ix+VX_REGISTER2+VX_REGISTER_SIZE), hl
 	ld	(ix+VX_REGISTER3+VX_REGISTER_SIZE), a
 	add	hl, de

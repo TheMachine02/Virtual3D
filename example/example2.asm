@@ -96,12 +96,12 @@ MainLoop:
 	call	vxSortQueue
 
 	ld	c, $00
-	call	vxClearBuffer
+	call	vxBuffer.clearColor
 	call	vxSubmitQueue
 
 	call	debug.display_panel
 
-	call	vxFlushLCD
+	call	vxBuffer.swap
 
 KeyboardTest:
 	ld hl,$F50000
