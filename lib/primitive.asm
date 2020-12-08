@@ -66,15 +66,15 @@ _inner_cyclicLoop0:
 	ld	bc, (iy+VX_POLYGON_I2)
 	push	hl
 	pea	iy+3
-	push	hl
-	push	bc
-	push	de
-	call	vxNClip
-	pop	de
-	pop	bc
-	pop	hl
-	call	nc, vxPrimitiveTextureTriangle
-;	call	vxPrimitiveTextureTriangle
+; 	push	hl
+; 	push	bc
+; 	push	de
+; 	call	vxNClip
+; 	pop	de
+; 	pop	bc
+; 	pop	hl
+;	call	nc, vxPrimitiveTextureTriangle
+	call	vxPrimitiveTextureTriangle
 	pop	iy
 	pop	hl
 	pop	bc

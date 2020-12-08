@@ -36,6 +36,7 @@ define	VX_DEBUG_CC_INSTRUCTION
 	ld	de, $D30000
 	call	vxImageCopy
 
+	call	Filter.generate
 	
 ; about vertex coordinate :
 ; the format inputed in glib is pure integer 16 bits coordinates, ]-32768,32768[
@@ -57,8 +58,8 @@ define	VX_DEBUG_CC_INSTRUCTION
 	ld	a, 0
 	ld	(vxLightUniform+4), a
 
-; 	ld	ix, alphaShader
-; 	call	vxShaderLoad
+	ld	ix, alphaShader
+	call	vxShaderLoad
 
 MainLoop:
 	call	vxTimer.reset
@@ -66,15 +67,15 @@ MainLoop:
 	call	Camera
 	ret	nz
 	
-; 	ld	hl, 0*256+128
-; 	ld	de, 0*256+160
-; 	ld	bc, 32*256+32
-; 	call	vxImageSubSwap
+	ld	hl, 0*256+128
+	ld	de, 0*256+160
+	ld	bc, 32*256+32
+	call	vxImageSubSwap
 ; 
-; 	ld	hl, 128*256+128
-; 	ld	de, 128*256+160
-; 	ld	bc, 32*256+32
-; 	call	vxImageSubSwap
+	ld	hl, 128*256+128
+	ld	de, 128*256+160
+	ld	bc, 32*256+32
+ 	call	vxImageSubSwap
 ; 	
 ; 	ld	hl, 104*256+128
 ; 	ld	de, 104*256+128+16
@@ -85,8 +86,7 @@ MainLoop:
 ; 	ld	de, (104+128)*256+128+16
 ; 	ld	bc, 16*256+16
 ; 	call	vxImageSubSwap
-		
-	
+
 	ld	a, VX_FORMAT_TEXTURE
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
@@ -122,25 +122,133 @@ MainLoop:
 	
 ;	ld	c, 11100000b
 ;	call	vxClearBuffer
-	call	vxBuffer.clear
-; 	ld	bc, (EulerAngle)
-; 	inc	b
-; 	call	Skybox.render
+;	call	vxFramebufferClear
+	ld	bc, (EulerAngle)
+	inc	b
+	call	Skybox.render
 	
 	call	vxSubmitQueue
 
 	call	debug.display_panel
 
-	call	vxBuffer.swap
+; apply filter
+	ld	a, (posY+1)
+	rla
+	sbc	hl, hl
+	ld	a, (posY+1)
+	ld	h, a
+	ld	a, (posY)
+	ld	l, a
+; if posY >= $180, apply water palette
+	ld	de, $17F
+	or	a, a
+	sbc	hl, de
+	jp	p, .water
+	call	Filter.apply_air
+	jr	.end
+.water:
+	call	Filter.apply_water_caustic
+.end:
+
+	call	vxFramebufferSwap
 
 	jp	 MainLoop
 	ret
 
 Filter:
-.apply:
-; adapt the palette for water filter etc
-	ret
+
+.generate:
+	call	vxFramebufferResetPalette
+	ld	hl, VX_LCD_PALETTE
+	ld	de, .PALETTE_AIR
+	ld	bc, 512
+	ldir
+; now generate the water palette, apply a 	
+; 144 blue, 128 green, 0 red at 50% alpha
+; 1555 format
+	ld	hl, .PALETTE_AIR
+	ld	ix, .PALETTE_CAUSTIC_WATER
+	ld	b, 0
+.lloop:
+	push	bc
+	ld	de, (hl)
+	ld	a, e
+	and	a, 00011111b
+	add	a, 168/8		; blue
+	rra
+	and	a, 00011111b
+	ld	c, a
+	rr	d
+	rr	e
+	rr	d
+	rr	e
+	ld	a, e
+	and	a, 11111000b
+	add	a, (132/8)*8			; green
+	rra
+	and	a, 11111000b
+	ld	b, a
 	
+	ld	a, d
+	and	a, 00011111b
+	add	a, 0			; red
+	rra
+	and	a, 00011111b
+	rlca
+	rlca
+	ld	d, a
+	ld	a, b
+	rlca
+	rlca
+	and	a, 00000011b
+	or	a, d
+	ld	d, a
+	ld	a, b
+	rlca
+	rlca
+	and	a, 11100000b
+	or	a, c
+	ld	e, a
+	set	7, d
+	ld	(ix+0), de
+	lea	ix, ix+2
+	inc	hl
+	inc	hl	
+	pop	bc
+	djnz	.lloop
+	ret
+
+.SWITCH:
+ db	0
+;8001
+.apply_water_caustic:
+; adapt the palette for water filter
+; palette already set
+	ld	hl, .SWITCH
+	ld	a, (hl)
+	rla
+	ret	c
+	set	7, (hl)
+	ld	hl, .PALETTE_CAUSTIC_WATER
+	jp	vxFramebufferSetPalette
+
+.apply_air:
+	ld	hl, .SWITCH
+	ld	a, (hl)
+	rla
+	ret	nc
+	res	7, (hl)
+; restore the correct palette color
+	ld	hl, .PALETTE_AIR
+	jp	vxFramebufferSetPalette
+	
+.PALETTE_CAUSTIC_WATER:
+ rb	512
+ db	0
+ db	0
+.PALETTE_AIR:
+ rb	512
+
 Skybox:
 .render:
 ; get angle, between 0 - 511 : bc
@@ -204,13 +312,20 @@ Skybox:
 	ret
 
 .name:
-	db	ti.AppVarObj, "SKYBOX",0
+	db	ti.AppVarObj, "SKYBOX0",0
 .cache:
 	dl	0
 
 include	"lib/virtual.asm"
 include	"font/font.asm"
 include	"debug.asm"
+
+material:
+	db	VX_FORMAT_TEXTURE
+	dl	VX_VERTEX_BUFFER
+; 	dl	VX_VERTEX_SHADER_DEFAULT
+; 	dl	VX_PIXEL_SHADER_DEFAULT
+	dl	0
 
 posX:
 	dw	-3*256
@@ -230,15 +345,15 @@ Temp:
 	dl	0,0
 
 VertexName:
-	db	ti.AppVarObj, "KALIYAV",0
+	db	ti.AppVarObj, "POOLV",0
 Vertex:
 	dl	0
 TriangleName:
-	db	ti.AppVarObj, "KALIYAF", 0
+	db	ti.AppVarObj, "POOLF", 0
 Triangle:
 	dl	0
 TextName:
-	db	ti.AppVarObj, "KALIYAT",0
+	db	ti.AppVarObj, "POOLT",0
 Texture:
 	dl	0
 UnitVector:
@@ -303,10 +418,10 @@ _kskip2:
 	call	vxQuaternionRotationAxis
 	ld	ix, WorldMatrix
 	call	vxQuaternionGetMatrix
-	ld	iy, WorldMatrix
-	ld	ix, vxProjectionMatrix
-	ld	hl, WorldMatrix
-	call	vxMatrixMlt
+; 	ld	iy, WorldMatrix
+; 	ld	ix, vxProjectionMatrix
+; 	ld	hl, WorldMatrix
+; 	call	vxMatrixMlt
 
 	ld	a, ($F5001E)
 	bit	0, a
@@ -390,7 +505,6 @@ _kskip3:
 	ld	(posZ), hl
 _kskip4:
 
-
 	ld	hl, (posY)
 	ld	de, 32
 	ld	a, ($F50012)
@@ -467,7 +581,6 @@ GetHeightMap:
 	sbc.s	hl, bc
 	ret
 RoomMap:
-;;	.db	12,15
 	dw	4096,4096,4096,4096,4096,4096,4096,4096,4096,4096,4096,4096
 	dw	4096,4096,4096,4096,4096,64,4096,4096,4096,4096,4096,4096
 	dw	4096,4096,0,0,0,0,0,0,0,0,64,4096
@@ -497,7 +610,7 @@ find:
 	call	ti.ChkFindSym
 	ret	c
 	call	ti.ChkInRam
-	ex de,hl
+	ex	de,hl
 	jr	z, unarchived
 ; 9 bytes - name size (1b), name string, appv size (2b)
 	ld	de, 9

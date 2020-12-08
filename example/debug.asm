@@ -20,7 +20,7 @@ debug:
 	call	.display_timer
 	ld	bc, .ge_pri
 	ld	hl, 512
-	ld	de, (ge_pri_transform)
+	ld	de, (ge_pri_assembly)
 	xor	a, a
 	call	.display_timer
 	ld	bc, .ge_clip
@@ -142,7 +142,7 @@ debug:
 .ge_vtx:
  db " ge_vtx ", 0
 .ge_pri:
- db " ge_pri ", 0
+ db " ge_asm ", 0
 .ge_clip:
  db " ge_clp ", 0
 .ge_zsort:

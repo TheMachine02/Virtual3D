@@ -111,8 +111,8 @@ renderLevel:
 
 ; 	ld	hl, (dataLevel)
 ; 	ld	b, (hl)
-	ld	b, 1
-	ld	c, 0
+	ld	b, 3
+	ld	c, 2
 
 	call	Render.room_list
 
@@ -142,7 +142,7 @@ renderLevel:
 	ld	(debug.visible_count), hl
 
 	call	vxSortQueue
-	call	vxBuffer.clear
+	call	vxFramebufferClear
 ; 	ld	hl, (Skybox)
 ; 	ld	de, (vxFramebuffer)
 ; 	ld	bc, 320*160
@@ -154,12 +154,11 @@ renderLevel:
 	call	vxSubmitQueue
 	
 ; timer & counter
-; 
-; 	call	vxBuffer.scale2x2
-	
+; 	
 	call	debug.display_panel
-
-	call	vxBuffer.swap
+;	call	vxFramebufferScale2x
+	
+	call	vxFramebufferSwap
 	jp	 MainLoop
 
 include	"lib/virtual.asm"

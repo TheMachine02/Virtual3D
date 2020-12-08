@@ -67,7 +67,7 @@ end macro
 ; functions
 
 vxEngine:
-	jp	__end
+	jp	vxEngineEnd
 
 vxEngineInit:
 ; get indic off
@@ -78,7 +78,7 @@ vxEngineInit:
 	ld	(hl), 2	; Set flash wait states to 5 + 2 = 7 (total access time = 8)
 	call	ti.boot.ClearVRAM
 ; LCD init
-	call	vxBuffer.setup
+	call	vxFramebufferSetup
 ; memory initialisation
 	call	vxMemoryCreateDevice
 ;	call	vxMemoryUnlockPrivilege
@@ -133,7 +133,7 @@ vxEngineQuit:
 	inc	l		; 0F50005h
 	ld	(hl),8	; Number of columns to scan
 	ld	iy, OS__FLAGS
-	call	vxBuffer.restore
+	call	vxFramebufferRestore
 	call	vxMemoryDestroyDevice
 	ld	hl, $E00005
 	ld	(hl), 4	; Set flash wait states to 5 + 4 = 9 (total access time = 10)
@@ -189,7 +189,7 @@ vxMemoryUnlock:
 	call	_inner_write
 	ld	bc, $28
 	ld	a, $4
-	jp	_inner_write
+	jr	_inner_write
 vxMemoryLock:
 	ld	bc, $28
 	xor	a, a
@@ -200,11 +200,11 @@ vxMemoryLock:
 	call	_inner_write
 	ld	bc, $24
 	ld	a, $88
-	jp	_inner_write	
+	jr	_inner_write	
 vxMemoryUnlockPrivilege:
 	ld	bc, $28
 	ld	a, $4
-	jp	_inner_write
+	jr	_inner_write
 vxMemoryLockPrivilege:
 	ld	bc, $28
 	xor	a, a
@@ -234,4 +234,4 @@ include	"material.asm"
 ; various LUT
 include	"data.inc"
 
-__end:
+vxEngineEnd:

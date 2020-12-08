@@ -94,7 +94,12 @@ VX_SMC_EDGEFIX=$
 	lea	iy, iy+VX_REGISTER_SIZE
 	jp	(ix)
 
-align  4
+align	4
+vxPixelShaderExitLUT:
+ db 0
+ dl vxPixelShaderExit
+
+align	4
 VX_LUT_PIXEL_TABLE:
  db 160
  dl 0
@@ -1381,6 +1386,3 @@ VX_LUT_PIXEL_LENGTH:
  dl 0
  db 161
  dl 0
-vxPixelShaderExitLUT:
- db 0
- dl vxPixelShaderExit

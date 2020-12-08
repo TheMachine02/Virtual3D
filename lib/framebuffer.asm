@@ -16,12 +16,14 @@ define	VX_LCD_TIMING		$E30000
 define	VX_GREEN_BITS		00000111b
 define	VX_RED_BITS		11100000b
 define	VX_BLUE_BITS		00011000b
-define	VX_COLOR_LOW_BIT	00101001b
 define	vxFramebuffer		$E30014
+define	vxFrontbuffer		$E30010
 
-vxBuffer:
+; w x h x option
+VX_LCD_SETTING:
+ db	0, 0, 0
 
-.setup:
+vxFramebufferSetup:
 	ld	hl, VX_LCD_IMSC
 	set	2, (hl)
 	ld	l, VX_LCD_ICR and $FF
@@ -34,12 +36,12 @@ vxBuffer:
 	ld	l, VX_LCD_BUFFER and $FF
 	ld	bc, VX_FRAMEBUFFER_AUX0
 	ld	(hl), bc
-	call	.allocate
+	call	vxFramebufferAllocate
 ; setup LCD timings
 ; assume c is 0
 .swapTiming:
-	ld	l, VX_LCD_TIMING and $FF
-	ld	de, .LCD_TIMING
+	ld	l, (VX_LCD_TIMING+1) and $FF
+	ld	de, VX_LCD_TIMING_CACHE
 	ex	de, hl
 	ld	b, 8 + 1
 .swapLoop:			; exchange stored and active timing
@@ -51,7 +53,7 @@ vxBuffer:
 	djnz	.swapLoop
 ; continue
 	
-.resetPalette:
+vxFramebufferResetPalette:
 ; load palette :
 ; color is 3-3-2 format, RGB
 ; calculate 1555 format color
@@ -75,7 +77,7 @@ vxBuffer:
 	jr	nz, .resetLoop
 	ret
 
-.restore:
+vxFramebufferRestore:
 ; restore timings and other
 	ld	hl, VX_LCD_IMSC
 	res	2, (hl)
@@ -88,9 +90,9 @@ vxBuffer:
 	ld	l, VX_LCD_BUFFER and $FF
 	ld	(hl), bc
 ; c is 0 here
-	jr	.swapTiming
+	jr	vxFramebufferSetup.swapTiming
 	
-.setPalette:
+vxFramebufferSetPalette:
 ; set the framebuffer palette
 ; input : hl
 	ld	de, VX_LCD_PALETTE
@@ -98,21 +100,27 @@ vxBuffer:
 	ldir
 	ret
 	
-.allocate:
+vxFramebufferAllocate:
+; setup buffer of correct resolution
+; 160x120 : we need one buffer for rendering, one buffer for DMA with screen
+; 320x240 : two buffer, one back buffer, one front buffer
+
+
+
 	ld	bc, VX_FRAMEBUFFER_AUX0
 	ld	(VX_LCD_BUFFER), bc
 	ld	bc, VX_FRAMEBUFFER_AUX1
 	ld	(vxFramebuffer), bc
 	ret
 
-.swap:
+vxFramebufferSwap:
 ; wait for the possibility to swap base pointer ?
 	ld	hl, (VX_LCD_BUFFER) 
 	ld	de, (vxFramebuffer)
 	ld	(vxFramebuffer), hl
 	ld	(VX_LCD_BUFFER), de
 
-.vsync:
+vxFramebufferVsync:
 	ld	hl, VX_LCD_ISR
 .waitVcomp:
 	bit	2, (hl)
@@ -122,35 +130,21 @@ vxBuffer:
 	set	2, (hl)
 	ret
 
-.LCD_TIMING:
-;	db	14 shl 2		; PPL shl 2
-	db	7			; HSW
-	db	87			; HFP
-	db	63			; HBP
-	dw	(0 shl 10)+319		; (VSW shl 10)+LPP
-	db	179			; VFP
-	db	0			; VBP
-	db	(0 shl 6)+(0 shl 5)+0	; (ACB shl 6)+(CLKSEL shl 5)+PCD_LO
-;  H = ((PPL+1)*16)+(HSW+1)+(HFP+1)+(HBP+1) = 240+8+88+64 = 400
-;  V = (LPP+1)+(VSW+1)+VFP+VBP = 320+1+179+0 = 500
-; CC = H*V*PCD*2 = 400*500*2*2 = 800000
-; Hz = 48000000/CC = 60
-
-.clear:
-	cce	fb_clear
+vxFramebufferClear:
+	cce	fb_ops
 	ld	de, (vxFramebuffer)
 	ld	hl, $E40000
 	ld	bc, VX_FRAMEBUFFER_SIZE
 	ldir
-	ccr	fb_clear
+	ccr	fb_ops
 	ret
 
-.clearColor:
+vxFramebufferClearColor:
 ; reset framebuffer with color
 ; input : c
 ; output : none
 ; destroyed : all except ix,iy
-	cce	fb_clear
+	cce	fb_ops
 	ld	hl, (vxFramebuffer)
 	ld	(hl), c
 	ex	de, hl
@@ -160,10 +154,12 @@ vxBuffer:
 	inc	de
 	ld	bc, 76799
 	ldir
-	ccr	fb_clear
+	ccr	fb_ops
 	ret
 	
-.scale2x2:
+vxFramebufferScale2x:
+	cce	fb_ops
+	call	vxFramebufferVsync
 	ld	hl, (vxFramebuffer)
 	ld	de, (VX_LCD_BUFFER)
 	ld	bc, 0
@@ -201,4 +197,19 @@ vxBuffer:
 	pop	af
 	dec	a
 	jr	nz, .outerWriteVram
+	ccr	fb_ops
 	ret
+	
+VX_LCD_TIMING_CACHE:
+;	db	14 shl 2		; PPL shl 2
+	db	7			; HSW
+	db	87			; HFP
+	db	63			; HBP
+	dw	(0 shl 10)+319		; (VSW shl 10)+LPP
+	db	179			; VFP
+	db	0			; VBP
+	db	(0 shl 6)+(0 shl 5)+0	; (ACB shl 6)+(CLKSEL shl 5)+PCD_LO
+;  H = ((PPL+1)*16)+(HSW+1)+(HFP+1)+(HBP+1) = 240+8+88+64 = 400
+;  V = (LPP+1)+(VSW+1)+VFP+VBP = 320+1+179+0 = 500
+; CC = H*V*PCD*2 = 400*500*2*2 = 800000
+; Hz = 48000000/CC = 60

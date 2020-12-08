@@ -1,7 +1,7 @@
 mkdir bin
 
 echo "Converting Tomb Raider III test models..."
-./tools/mdlconv  file/CavesOfKaliyaTRIII.obj -T -N -S -B
+./tools/mdlconv  file/CavesOfKaliyaTRIII.obj -T -N -S -B -X
 
 spasm -I lib/ file/CavesOfKaliyaTRIII0.inc bin/KALIYAV.8xv -E -S
 spasm -I lib/ file/CavesOfKaliyaTRIII1.inc bin/KALIYAF.8xv -E -S
@@ -14,7 +14,7 @@ spasm -I lib/ file/CityTRIII1.inc bin/CITYF.8xv -E -S
 spasm -I lib/ file/TrainRoomTRIII0.inc bin/TRAINV.8xv -E -S
 spasm -I lib/ file/TrainRoomTRIII1.inc bin/TRAINF.8xv -E -S
 
-./tools/mdlconv  file/PoolTRIII.obj -T -N -S -B
+./tools/mdlconv  file/PoolTRIII.obj -T -N -S -B -X
 spasm -I lib/ file/PoolTRIII0.inc bin/POOLV.8xv -E -S
 spasm -I lib/ file/PoolTRIII1.inc bin/POOLF.8xv -E -S
 
@@ -61,6 +61,10 @@ spasm -I lib/ file/VieraSceneFFXII1.inc bin/VIERAF.8xv -E -S
 spasm -I lib/ file/BomboFFXII0.inc bin/BOMBOV.8xv -E -S
 spasm -I lib/ file/BomboFFXII1.inc bin/BOMBOF.8xv -E -S
 
+./tools/mdlconv  file/UltimaFFXII.obj -T -N -S -B
+spasm -I lib/ file/UltimaFFXII0.inc bin/ULTIMAV.8xv -E -S
+spasm -I lib/ file/UltimaFFXII1.inc bin/ULTIMAF.8xv -E -S
+
 echo "Converting FFX test models..."
 
 ./tools/mdlconv  file/LuluFFX.obj -T -N -S -B
@@ -91,41 +95,49 @@ spasm -I lib/ file/NabooruZelda0.inc bin/NABOORUV.8xv -E -S
 spasm -I lib/ file/NabooruZelda1.inc bin/NABOORUF.8xv -E -S
 
 echo "Converting CavesOfKaliyaTRIII.png"
-./tools/texconv -D -C file/CavesOfKaliyaTRIII.png
+./tools/texconv -dithering -compress file/CavesOfKaliyaTRIII.png
 echo "Converting CityTRIII.png"
-./tools/texconv -D -C file/CityTRIII.png
+./tools/texconv -dithering -compress file/CityTRIII.png
 echo "Converting TrainRoomTRIII.png"
-./tools/texconv -D -C file/TrainRoomTRIII.png
+./tools/texconv -dithering -compress file/TrainRoomTRIII.png
 echo "Converting PoolTRIII.png"
-./tools/texconv -A -C file/PoolTRIII.png
+./tools/texconv -alpha -dithering -compress file/PoolTRIII.png
 echo "Converting LaraTRIII.png"
-./tools/texconv -A -C file/LaraTRIII.png
+./tools/texconv -alpha -dithering -compress file/LaraTRIII.png
 echo "Converting texture.png"
-./tools/texconv -D -C file/texture.png
+./tools/texconv -dithering -compress file/texture.png
 echo "Converting FranFFXII.png"
-./tools/texconv -A -C file/FranFFXII.png
+./tools/texconv -alpha -compress file/FranFFXII.png
 echo "Converting MjrnFFXII.png"
-./tools/texconv -A -D -C file/MjrnFFXII.png
+./tools/texconv -alpha -dithering -compress file/MjrnFFXII.png
 echo "Converting BunnyFFXII.png"
-./tools/texconv -A -C file/BunnyFFXII.png
+./tools/texconv -alpha -dithering -compress file/BunnyFFXII.png
 echo "Converting MateusFFXII.png"
-./tools/texconv -D -C file/MateusFFXII.png
+./tools/texconv -dithering -compress file/MateusFFXII.png
 echo "Converting VieraSceneFFXII.png"
-./tools/texconv -D -C file/VieraSceneFFXII.png
+./tools/texconv -dithering -compress file/VieraSceneFFXII.png
 echo "Converting LuluFFX.png"
-./tools/texconv -D -C file/LuluFFX.png
+./tools/texconv -dithering -compress file/LuluFFX.png
 echo "Converting TonberryFFVIII.png"
-./tools/texconv -D -C file/TonberryFFVIII.png
+./tools/texconv -dithering -compress file/TonberryFFVIII.png
 echo "Converting UltimeciaFFVIII.png"
-./tools/texconv -D -C file/UltimeciaFFVIII.png
+./tools/texconv -dithering -compress file/UltimeciaFFVIII.png
 echo "Converting MidnaZelda.png"
-./tools/texconv -D -C file/MidnaZelda.png
+./tools/texconv -dithering -compress file/MidnaZelda.png
 echo "Converting NabooruZelda.png"
-./tools/texconv -D -C file/NabooruZelda.png
+./tools/texconv -dithering -compress file/NabooruZelda.png
 echo "Converting Background.png"
-./tools/texconv -D file/Background.png
+./tools/texconv -dithering file/Background.png
+echo "Converting BackgroundJungle.png"
+./tools/texconv -dithering file/BackgroundJungle.png
+echo "Converting BackgroundPacific.png"
+./tools/texconv -dithering file/BackgroundPacific.png
+echo "Converting BackgroundPacific.png"
+./tools/texconv -dithering file/BackgroundNevada.png
 echo "Converting BomboFFXII.png"
-./tools/texconv -A -D -C file/BomboFFXII.png
+./tools/texconv -alpha -dithering -compress file/BomboFFXII.png
+echo "Converting UltimaFFXII.png"
+./tools/texconv -dithering -compress file/UltimaFFXII.png
 
 spasm -I lib/ file/CavesOfKaliyaTRIII.inc bin/KALIYAT.8xv -E -S
 spasm -I lib/ file/CityTRIII.inc bin/CITYT.8xv -E -S
@@ -143,5 +155,9 @@ spasm -I lib/ file/TonberryFFVIII.inc bin/TONBT.8xv -E -S
 spasm -I lib/ file/UltimeciaFFVIII.inc bin/ULTIMT.8xv -E -S
 spasm -I lib/ file/MidnaZelda.inc bin/MIDNAT.8xv -E -S
 spasm -I lib/ file/NabooruZelda.inc bin/NABOORUT.8xv -E -S
-spasm -I lib/ file/Background.inc bin/SKYBOX.8xv -E -S
+spasm -I lib/ file/Background.inc bin/SKYBOX0.8xv -E -S
+spasm -I lib/ file/BackgroundJungle.inc bin/SKYBOX1.8xv -E -S
+spasm -I lib/ file/BackgroundPacific.inc bin/SKYBOX2.8xv -E -S
+spasm -I lib/ file/BackgroundNevada.inc bin/SKYBOX3.8xv -E -S
 spasm -I lib/ file/BomboFFXII.inc bin/BOMBOT.8xv -E -S
+spasm -I lib/ file/UltimaFFXII.inc bin/ULTIMAT.8xv -E -S

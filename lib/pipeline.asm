@@ -65,7 +65,6 @@ vxModelViewReverse:
 
 vxSubmitQueue:
 	ld	hl, (VX_LCD_BUFFER)
-;	ld	hl, (vxFramebuffer)
 	ld	(vxSubmissionQueue), hl
 
 	ld	iy, VX_GEOMETRY_QUEUE
@@ -157,10 +156,10 @@ vxGeometryQueue:
 	ld	c, b
 	ld	b, a
 	lea iy, iy+VX_STREAM_HEADER_SIZE
-	cce	ge_pri_transform
+	cce	ge_pri_assembly
 ;would be nice to encode the format within
 	call	vxGeometryShader
-	ccr	ge_pri_transform
+	ccr	ge_pri_assembly
 ; need to update count & queue position
 ; simple : new-previous / 8
 	ld	de, (vxSubmissionQueue)
@@ -228,20 +227,27 @@ vxVertexStream:
 
 	ld	iy, vxWorldEye
 	call	vxfTransform
-
+		
 	ld	hl, (vxPosition+6)
 	add	hl, hl
 	add	hl, hl
-	ld	(vxWorldEye-1+4), hl
+	ld	(vxWorldEye-1+6), hl
+	sbc	a, a
+	ld	(vxWorldEye+8), a
 
 	ld	hl, (vxPosition+3)
 	add	hl, hl
 	add	hl, hl
-	ld	(vxWorldEye-1+2), hl
+	ld	(vxWorldEye-1+3), hl
+	sbc	a, a
+	ld	(vxWorldEye+5), a
 	ld	hl, (vxPosition)
 	add	hl, hl
 	add	hl, hl
 	ld	(vxWorldEye-1), hl
+	sbc	a, a
+	ld	(vxWorldEye+2), a
+	
 	pop	iy
 
 ; modelworld=modelworld0

@@ -451,9 +451,6 @@ vxShaderAdress2Write=$+1
 	ld	b, a
 	ld	hl, (iy+VX_FDVDY)
 	ld	de, (iy+VX_FDVDX)
-; 	ld	hl, 0
-; 	ld	de, 0
-; 	or	a, a
 	sbc	hl, de
 	sra	h
 	rr	l
@@ -463,9 +460,6 @@ vxShaderAdress2Write=$+1
 	ld	(iy+VX_REGISTER_TMP), hl
 	ld	hl, (iy+VX_FDUDY)
 	ld	de, (iy+VX_FDUDX)
-; ; 	ld	hl, 0
-; ; 	ld	de, 0
-; 	or	a, a
 	sbc	hl, de
 	sra	h
 	rr	l
@@ -513,6 +507,3 @@ VX_SMC_STACK_REGISTER=$+1
 	ld	sp, $000000
 	ccr	ge_pxl_shading
 	ret
-
-; lara : 15 ms raster, 4 ms pixel write
-; room + lara : 90 ms raster, 83 ms render : overdraw hell

@@ -6,6 +6,7 @@ gouraudShader:
 	db	8	; total size of per pixel code
 relocate	VX_PIXEL_SHADER_CODE
 gouraudCode:
+; use v as light intensity, u as color ?
 	add	hl, de
 	ld	a, h
 	exx

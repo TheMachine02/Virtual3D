@@ -1,7 +1,7 @@
-define	VX_TIMER_CTRL	$F20030
+define	VX_TIMER_CTRL		$F20030
 define	VX_TIMER_COUNTER_GP	$F20000
 define	VX_TIMER_COUNTER_FR	$F20010
-define	RAM_NULL	$E40000
+define	RAM_NULL		$E40000
 
 macro	cce	register			; cycle counter enable
 if defined VX_DEBUG_CC_INSTRUCTION
@@ -38,7 +38,7 @@ end macro
 
 ge_vtx_transform:
  dl	0
-ge_pri_transform:
+ge_pri_assembly:
  dl	0
 ge_pri_clip:
  dl	0
@@ -48,7 +48,7 @@ ge_pxl_shading:
  dl	0
 ge_z_sort:
  dl	0
-fb_clear:
+fb_ops:
  dl	0
  
 vxTimer:

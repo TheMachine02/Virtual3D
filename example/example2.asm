@@ -47,10 +47,10 @@ define	VX_DEBUG_CC_INSTRUCTION
 	ld	bc, VX_LIGHT_SIZE
 	ldir
 
-	ld	ix, lightShader
+;	ld	ix, lightShader
 ;	ld	ix, alphaShader
 ;	ld	ix, gouraudShader
-	call	vxShaderLoad
+;	call	vxShaderLoad
 
 	ld	a, 0
 	ld	(vxAnimationKey), a
@@ -79,7 +79,7 @@ MainLoop:
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
 ;	ld	bc, VX_VERTEX_BUFFER
-	ld	bc, VX_VERTEX_BUFFER
+	ld	bc, $D22000
 	ld	hl, (Vertex)
 	ld	de, (Triangle)
 ;	ld	hl, VERTEXDATA
@@ -94,14 +94,13 @@ MainLoop:
 	ld	(debug.triangle_count), hl
 
 	call	vxSortQueue
-
-	ld	c, $00
-	call	vxBuffer.clearColor
+	
+	call	vxFramebufferClear
 	call	vxSubmitQueue
 
 	call	debug.display_panel
 
-	call	vxBuffer.swap
+	call	vxFramebufferSwap
 
 KeyboardTest:
 	ld hl,$F50000
@@ -219,15 +218,15 @@ Temp:
 ; choose mateus or tonberry
 
 VertexName:
-	db	ti.AppVarObj, "ULTIMV",0
+	db	ti.AppVarObj, "TONBV",0
 Vertex:
 	dl	0
 TriangleName:
-	db	ti.AppVarObj, "ULTIMF", 0
+	db	ti.AppVarObj, "TONBF", 0
 Triangle:
 	dl	0
 TextureName:
-	db	ti.AppVarObj, "ULTIMT", 0
+	db	ti.AppVarObj, "TONBT", 0
 Texture:
 	dl	0
 Light:

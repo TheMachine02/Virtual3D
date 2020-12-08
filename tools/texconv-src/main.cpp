@@ -15,7 +15,7 @@
 
 #define DITHER 1
 #define ALPHA  2
-#define COMPRESS 4
+#define COMPRESS 128
 
 using namespace std;
 
@@ -59,25 +59,31 @@ int main(int argc, char* argv[])
     if(argc<2)
     {
         ///print the usage
+		printf("Usage : \n");
+		printf("texconv filename [-d(ithering)][-a(lpha)][-c(ompress)]\n");
         printf("Options : \n");
-        printf("-D : dither the texture\n");
+        printf("-dithering : dither the texture\n");
+		printf("-alpha : output alpha information\n");
+		printf("-compress : output a zx7 compressed file\n");
         return false;
     }
 
     int arg=0;
-
     while(arg<argc)
     {
         if(argv[arg][0]=='-'||argv[arg][0]=='/')
         {
             switch(argv[arg][1])
             {
-            case 'D':
-                option=option|DITHER;
+            case 'd':
+                option|=DITHER;
                 break;
-            case 'A':
-                option=option|ALPHA;
+            case 'a':
+                option|=ALPHA;
                 break;
+			case 'c':
+				option|=COMPRESS;
+				break;
             default:
                 printf("Unrecognized argument %s\n",argv[arg]);
             }
@@ -88,7 +94,6 @@ int main(int argc, char* argv[])
         }
         arg++;
     }
-
     convertTexturePage(filename, option);
 }
 
@@ -162,7 +167,7 @@ void convertTexturePage(string filename, unsigned char option)
     return;
   }
   //the pixels are now in the vector "image", 4 bytes per pixel, ordered RGBA
-  if(image.size()!=(256*256*4))
+  if(image.size()>(256*256*4))
   {
     std::cout << "image has wrong size" << std::endl;
     return;
@@ -184,7 +189,7 @@ void convertTexturePage(string filename, unsigned char option)
       blue=image[i+2];
       alpha=image[i+3];
 
-      switch(option)
+      switch(option&127)
       {
       case DITHER:
         texture[i>>2]=subPixelDither((i>>2)%256, i>>10, red, green, blue);
@@ -206,6 +211,8 @@ void convertTexturePage(string filename, unsigned char option)
       i+=4;
   }
 
+  
+	if(option&COMPRESS) {
     long delta;
     Optimal *opt;
     uint8_t *ret = NULL;
@@ -214,23 +221,26 @@ void convertTexturePage(string filename, unsigned char option)
     ret = compress(opt, texture, 65536, &outsize, &delta);
     free(opt);
 
-    if(ret==NULL)
-    {
+    if(ret==NULL || (outsize>65535)) {
         std::cout << "Unable to generate this image" << std::endl;
         return;
     }
-    if(outsize>65535){
-        std::cout << "Unable to generate this image" << std::endl;
-        return;
-    }
-
+    
     out << ".db ";
-    for(unsigned int j=0;j<outsize;j++)
-    {
+    for(unsigned int j=0;j<outsize;j++) {
         out << (int)ret[j];
         if(j!=(outsize-1)) out <<",";
     }
+	}
+	else{
 
+	out << ".db ";
+    for(unsigned int j=0;j<(image_size/4);j++) {
+        out << (int)texture[j];
+        if(j!=((image_size/4)-1)) out <<",";
+    }
+	}
+	return;
 }
 
 
