@@ -231,6 +231,7 @@ include	"vector.asm"
 include	"framebuffer.asm"
 include	"fma.asm"
 include	"material.asm"
+include	"assembly.asm"
 ; various LUT
 include	"data.inc"
 

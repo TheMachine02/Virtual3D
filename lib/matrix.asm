@@ -4,8 +4,8 @@ vxIdentityMatrix:
  db	0,0,64
  dl	0,0,0
 vxProjectionMatrix:
-; db	48,0,0
- db	64,0,0
+ db	48,0,0
+; db	64,0,0
  db	0,64,0
  db	0,0,64
  dl	0,0,0
@@ -18,6 +18,91 @@ vxLookAtMatrix:
  db	0,0,0
  dl	0,0,0
 
+vxProjectionVector:
+ db	192, 0, 0
+ 
+vxMatrixProjection:
+; scale the matrix iy by the projection vector
+; 0 = 256
+	ld	de, vxProjectionVector
+	ld	c, 3
+.outer:
+	ld	b, 3
+	ld	a, (de)
+	or	a, a
+	jr	nz, .inner
+	lea	iy, iy+3
+	inc	de
+	dec	c
+	jr	nz, .outer
+	jr	.translate
+.inner:
+	ld	h, (iy+0)
+	ld	a, (de)
+	ld	l, a
+	xor	a, a
+	bit	7, h
+	jr	z, $+3
+	sub	a, l
+	mlt	hl
+	rl	l
+	adc	a, h
+	ld	(iy+0), a
+	inc	iy
+	djnz	.inner
+	inc	de
+	dec	c
+	jr	nz, .outer
+; now the translation
+.translate:
+	ret
+
+; (iy)*(de) (signed 24 bits * unsigned 8 bits / 256)
+; hlu * a *256 + h*a + l*a / 256
+; if hl < 0
+	ld	b, 3
+	ld	de, vxProjectionVector
+.vector:
+	ld	a, (de)
+	or	a, a
+	jr	z, .skip
+	push	de
+	ld	h, (iy+2)
+	ld	l, a
+	mlt	hl
+	bit	7, (iy+2)
+	jr	z, $+6
+	neg
+	add	a, h
+	ld	h, a
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	ld	a, (de)
+	ld	e, (iy+1)
+	ld	d, a
+	mlt	de
+	add	hl, de
+	ld	d, a
+	ld	e, (iy+0)
+	mlt	de
+	rl	e
+	ld	e, d
+	ld	d, 0
+	adc	hl, de
+	ld	(iy+0), hl
+	pop	de
+.skip:
+	lea	iy, iy+3
+	inc	de
+	djnz	.vector
+	ret
+ 
 vxMatrixLoadIdentity:
 ; input : hl matrix
 	ex	de, hl
@@ -329,6 +414,59 @@ vxMatrixLightLoop:
 	ld	(hl), d
 	ret
 
+vxfPositionExtract:
+; vxPosition/64 -> de
+	ld	hl, (vxPosition+1)
+	ld	a, (vxPosition)
+	add	a, a
+	adc	hl, hl
+	add	a, a
+	ld	a, h
+	adc	hl, hl
+	rla
+	sbc	a, a
+	ex	de, hl
+	ld	(hl), e
+	inc	hl
+	ld	(hl), d
+	inc	hl
+	ld	(hl), a
+	inc	hl
+	ex	de, hl
+	ld	hl, (vxPosition+4)
+	ld	a, (vxPosition+3)
+	add	a, a
+	adc	hl, hl
+	add	a, a
+	ld	a, h
+	adc	hl, hl
+	rla
+	sbc	a, a
+	ex	de, hl
+	ld	(hl), e
+	inc	hl
+	ld	(hl), d
+	inc	hl
+	ld	(hl), a
+	inc	hl
+	ex	de, hl
+	ld	hl, (vxPosition+7)
+	ld	a, (vxPosition+6)
+	add	a, a
+	adc	hl, hl
+	add	a, a
+	ld	a, h
+	adc	hl, hl
+	rla
+	sbc	a, a
+	ex	de, hl
+	ld	(hl), e
+	inc	hl
+	ld	(hl), d
+	inc	hl
+	ld	(hl), a
+	ret
+	
 vxfTransform:
 ; input : iy vector, ix matrix
 ; [ix+0]*[iy]+[ix+1]*[iy+2]+[ix+2]*[iy+4]+[ix+9]=x

@@ -71,21 +71,11 @@ MainLoop:
 	ld	de, 0*256+160
 	ld	bc, 32*256+32
 	call	vxImageSubSwap
-; 
+; ; 
 	ld	hl, 128*256+128
 	ld	de, 128*256+160
 	ld	bc, 32*256+32
  	call	vxImageSubSwap
-; 	
-; 	ld	hl, 104*256+128
-; 	ld	de, 104*256+128+16
-; 	ld	bc, 16*256+16
-; 	call	vxImageSubSwap
-; 
-; 	ld	hl, (104+128)*256+128
-; 	ld	de, (104+128)*256+128+16
-; 	ld	bc, 16*256+16
-; 	call	vxImageSubSwap
 
 	ld	a, VX_FORMAT_TEXTURE
 	ld	ix, WorldMatrix

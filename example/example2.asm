@@ -48,9 +48,9 @@ define	VX_DEBUG_CC_INSTRUCTION
 	ldir
 
 ;	ld	ix, lightShader
-;	ld	ix, alphaShader
+	ld	ix, alphaShader
 ;	ld	ix, gouraudShader
-;	call	vxShaderLoad
+	call	vxShaderLoad
 
 	ld	a, 0
 	ld	(vxAnimationKey), a
@@ -70,16 +70,15 @@ MainLoop:
 	call	vxQuaternionRotationAxis
 	ld	ix, WorldMatrix
 	call	vxQuaternionGetMatrix
-	lea	iy, ix+0
-	ld	ix, vxProjectionMatrix
-	ld	hl, WorldMatrix
-	call	vxMatrixMlt
+; 	lea	iy, ix+0
+; 	ld	ix, vxProjectionMatrix
+; 	ld	hl, WorldMatrix
+; 	call	vxMatrixMlt
 
 	ld	a, VX_FORMAT_TEXTURE
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
-;	ld	bc, VX_VERTEX_BUFFER
-	ld	bc, $D22000
+	ld	bc, VX_VERTEX_BUFFER
 	ld	hl, (Vertex)
 	ld	de, (Triangle)
 ;	ld	hl, VERTEXDATA
@@ -218,15 +217,15 @@ Temp:
 ; choose mateus or tonberry
 
 VertexName:
-	db	ti.AppVarObj, "TONBV",0
+	db	ti.AppVarObj, "FRANV",0
 Vertex:
 	dl	0
 TriangleName:
-	db	ti.AppVarObj, "TONBF", 0
+	db	ti.AppVarObj, "FRANF", 0
 Triangle:
 	dl	0
 TextureName:
-	db	ti.AppVarObj, "TONBT", 0
+	db	ti.AppVarObj, "FRANT", 0
 Texture:
 	dl	0
 Light:

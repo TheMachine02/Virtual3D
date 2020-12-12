@@ -6,8 +6,8 @@ define	VX_PLANE_BIT4		00001000b
 define	VX_VERTEX_DIRTY		00000001b
 define	VX_SCREEN_WIDTH         320
 define	VX_SCREEN_HEIGHT        240
-define	VX_SCREEN_WCENTER       VX_SCREEN_WIDTH shr 1
-define	VX_SCREEN_HCENTER       VX_SCREEN_HEIGHT shr 1
+define	VX_SCREEN_WCENTER       160	; VX_SCREEN_WIDTH shr 1
+define	VX_SCREEN_HCENTER       120	; VX_SCREEN_HEIGHT shr 1
 define 	VX_MAX_PATCH_VERTEX    	8
 define 	VX_MAX_PATCH_SIZE    	64
 define	VX_PATCH_INPUT		$D03480
@@ -26,8 +26,9 @@ vxPrimitiveClipFrustrum:
 ; iy : patch_input (VX_PATCH_INPUT), point to a list of address of vertex
 ;  b : number of point
 ; output ;
-; iy : clipped patch
+; iy : clipped patch (take this address only and not INPUT or OUTPUT)
 ;  b : number of point
+	ld	ix, VX_PATCH_OUTPUT
 	ld	hl, VX_PATCH_VERTEX_POOL
 	ld	(vxPatchVertexCache), hl
 	rla
@@ -70,17 +71,8 @@ vxPrimitiveClipPlane:
 	ret	z
 	xor	a, a
 	ld	(vxPatchSize), a
-	push	bc
-	inc	b
-	ld	c, 3
-	mlt	bc
-	lea	hl, iy + 0
-	ld	iy, VX_PATCH_INPUT
-;	ld	ix, VX_PATCH_OUTPUT
-	lea	ix, iy + VX_MAX_PATCH_SIZE
-	lea	de, iy + 0
-	ldir
-	pop	bc
+	push	iy
+	push	ix
 ; b : count, c : planemask
 .clipSutherHodgmanLoop:
 	push	bc
@@ -106,14 +98,15 @@ vxPrimitiveClipPlane:
 	djnz	.clipSutherHodgmanLoop
 	ld	a, (vxPatchSize)
 	ld	b, a
-	ld	iy, VX_PATCH_OUTPUT
+	pop	iy
 	ld	hl, (iy+VX_POLYGON_I0)
 	ld	(ix+VX_POLYGON_I0), hl
+	pop	ix
 	ret
 ; all works is here ;
 .clipEdge:
 	ld	a, (de)
-	and	c
+	and	a, c
 	push	af
 ; compute distance based of mask a
 	ld	a, c
@@ -523,7 +516,6 @@ vxParametricSignAdjust:
 
 vxParametricFactor:
 ; bc (16bits) = abs(hl)*65536/abs(hl-de)
-; if hl-de < 0 then hl is < 0, else both are >0
 	ex	de, hl
 	or	a, a
 	sbc	hl, de

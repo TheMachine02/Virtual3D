@@ -17,6 +17,8 @@ define	VX_GEOMETRY_SHADER_DATA		$E30800
 define	VX_GEOMETRY_SHADER_CODE		$E30800
 define	VX_GEOMETRY_SHADER_SIZE		512
 
+define	VX_PRIMITIVE_ASM_CODE		$E30800
+
 define	VX_SHADER_TYPE			0
 define	VX_SHADER_SIZE			1
 define	VX_SHADER_DATA0			4
@@ -84,7 +86,7 @@ define	VX_LIGHT0_POSITION		24
 
 ; triangle input register ;
 
-define	VX_TRIANGLE_SIZE		16
+define	VX_TRIANGLE_SIZE		16+6
 define	VX_TRIANGLE_INDEX		0
 define	VX_TRIANGLE_I0			0
 define	VX_TRIANGLE_I1			3
@@ -94,6 +96,10 @@ define	VX_TRIANGLE_TEXTURE		10 ;+ 6
 define	VX_TRIANGLE_UV0			10 ;+ 6
 define	VX_TRIANGLE_UV1			12 ;+ 6
 define	VX_TRIANGLE_UV2			14 ;+ 6
+define	VX_TRIANGLE_N0			16
+define	VX_TRIANGLE_N1			17
+define	VX_TRIANGLE_N2			18
+define	VX_TRIANGLE_N3			19
 define	VX_POLYGON_I0			0
 define	VX_POLYGON_I1			3
 define	VX_POLYGON_I2			6

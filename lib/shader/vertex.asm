@@ -322,7 +322,8 @@ vxVertexShader:
 	pop	bc
 	pop	de
 	pop	ix
-; 	ld	(ix+VX_VERTEX_UNIFORM), a
+	ld	a, 16
+	ld	(ix+VX_VERTEX_UNIFORM), a
 	ld	(ix+VX_VERTEX_RX), de
 	ld	(ix+VX_VERTEX_RY), hl
 	ld	(ix+VX_VERTEX_RZ), bc
@@ -456,11 +457,6 @@ vxPerspectiveNext1:
 	lea	de, ix+VX_VERTEX_SIZE
 	lea	iy, iy+VX_VERTEX_DATA_SIZE
 	ret
-vxPerspectiveCode:
-	xor	a, a
-; Z<0
-	bit	7,(ix+VX_VERTEX_RZ+2)
-	jr	z, $+4
 vxPerspectiveClipZ:
 	ld	a, 00001000b
 vxPerspectiveClip0:

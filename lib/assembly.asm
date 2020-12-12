@@ -1,20 +1,14 @@
 define	VX_DEPTH_CLAMP		8388608
-; 6 bytes
-define	VX_TRIANGLE_N0		16
-define	VX_TRIANGLE_N1		17
-define	VX_TRIANGLE_N2		18
-define	VX_TRIANGLE_N3		19
 
-VX_GEOMETRY_SHADER_COPY:
+VX_PRIMITIVE_ASM_COPY:
 
 ; relocate the shader to fast VRAM ($E30800)
 
-relocate VX_GEOMETRY_SHADER_CODE
-
-vxGeometryShader:
+relocate VX_PRIMITIVE_ASM_CODE
 
 vxPrimitiveAssembly:
-; 600 cc cycles bfc accept
+; 600 cc bfc / accept
+; 500 cc bfc / reject
 ; 200 cc clip reject
 .setup:
 ; input : iy=data, bc=size
@@ -92,8 +86,7 @@ vxPrimitiveAssembly:
 	ld	hl, (hl)
 	add	hl, de
 	ld	de, (iy+VX_TRIANGLE_N3)
-	or	a, a
-	sbc	hl, de
+	add	hl, de
 	add	hl, hl
 	jr	nc, .discard
 .DPH:=$+1
@@ -161,6 +154,8 @@ vxPrimitiveAssembly:
 	lea	ix, ix-16
 	djnz	.view_mlt_neg
 	ret
+	
+VX_PRIMITIVE_ASM_SIZE:=$-VX_PRIMITIVE_ASM_CODE
 endrelocate
 
   align	1024

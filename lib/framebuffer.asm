@@ -132,10 +132,10 @@ vxFramebufferVsync:
 
 vxFramebufferClear:
 	cce	fb_ops
+	ld	hl, OBLIVION
 	ld	de, (vxFramebuffer)
-	ld	hl, $E40000
-	ld	bc, VX_FRAMEBUFFER_SIZE
-	ldir
+	ld	bc, 76800
+	ldir	
 	ccr	fb_ops
 	ret
 

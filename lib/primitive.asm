@@ -32,12 +32,12 @@ define	VX_REGISTER_INTERPOLATION_SIZE	1024
 VX_REGISTER_DATA:
  db	3072	dup	$D3
 
-vxPrimitive:
-
-if ~defined VX_DEBUG_CC_INSTRUCTION
+; if ~defined VX_DEBUG_CC_INSTRUCTION
 VX_REGISTER_INTERPOLATION_COPY:
 relocate VX_REGISTER_INTERPOLATION_CODE
-end if
+; end if 
+ 
+vxPrimitive:
 
 _inner_clipdrawTextureTriangle:
 	ld	iy, VX_PATCH_INPUT
@@ -81,11 +81,10 @@ _inner_cyclicLoop0:
 	djnz	_inner_cyclicLoop0
 	ret
 
-if defined VX_DEBUG_CC_INSTRUCTION
-; sadly enough, we run out of space in this code scope with cc enabled
-VX_REGISTER_INTERPOLATION_COPY:
-relocate VX_REGISTER_INTERPOLATION_CODE
-end if
+; if defined VX_DEBUG_CC_INSTRUCTION
+; VX_REGISTER_INTERPOLATION_COPY:
+; relocate VX_REGISTER_INTERPOLATION_CODE
+; end if
 
 vxPrimitiveRenderTriangle:
 ; iy = triangle data (as stored in memory)
@@ -261,15 +260,15 @@ _inner_cyclicLoop:
 	ld	bc, (iy+VX_POLYGON_I2)
 	push	hl
 	pea	iy+3
-	push	hl
-	push	bc
-	push	de
-	call	vxNClip
-	pop	de
-	pop	bc
-	pop	hl
-	call	nc, vxPrimitiveFillTriangle
-;	call	vxPrimitiveFillTriangle
+; 	push	hl
+; 	push	bc
+; 	push	de
+; 	call	vxNClip
+; 	pop	de
+; 	pop	bc
+; 	pop	hl
+;	call	nc, vxPrimitiveFillTriangle
+	call	vxPrimitiveFillTriangle
 	pop	iy
 	pop	hl
 	pop	bc

@@ -1,5 +1,4 @@
 include	"shader/vertex.asm"
-include	"shader/geometry.asm"
 
 define	VX_GEOMETRY_QUEUE		$D10000	; 4*4096 (16K)
 define	VX_VERTEX_BUFFER		$D08000	; 16*2048 (32K)
@@ -144,9 +143,9 @@ vxGeometryQueue:
 	pop	iy			; polygon list
 	ret	c			; quit the stream if carry set (bounding box test failed)
 ; copy geometry shader
-	ld	hl, VX_GEOMETRY_SHADER_COPY
-	ld	de, VX_GEOMETRY_SHADER_CODE
-	ld	bc, VX_GEOMETRY_SHADER_SIZE
+	ld	hl, VX_PRIMITIVE_ASM_COPY
+	ld	de, VX_PRIMITIVE_ASM_CODE
+	ld	bc, VX_PRIMITIVE_ASM_SIZE
 	ldir
 ; continue processing
 	ld	bc, (iy+VX_STREAM_HEADER_COUNT)
@@ -155,10 +154,10 @@ vxGeometryQueue:
 	inc	b
 	ld	c, b
 	ld	b, a
-	lea iy, iy+VX_STREAM_HEADER_SIZE
+	lea	iy, iy+VX_STREAM_HEADER_SIZE
 	cce	ge_pri_assembly
 ;would be nice to encode the format within
-	call	vxGeometryShader
+	call	vxPrimitiveAssembly
 	ccr	ge_pri_assembly
 ; need to update count & queue position
 ; simple : new-previous / 8
@@ -227,29 +226,10 @@ vxVertexStream:
 
 	ld	iy, vxWorldEye
 	call	vxfTransform
-		
-	ld	hl, (vxPosition+6)
-	add	hl, hl
-	add	hl, hl
-	ld	(vxWorldEye-1+6), hl
-	sbc	a, a
-	ld	(vxWorldEye+8), a
+	ld	de, vxWorldEye
+	call	vxfPositionExtract
 
-	ld	hl, (vxPosition+3)
-	add	hl, hl
-	add	hl, hl
-	ld	(vxWorldEye-1+3), hl
-	sbc	a, a
-	ld	(vxWorldEye+5), a
-	ld	hl, (vxPosition)
-	add	hl, hl
-	add	hl, hl
-	ld	(vxWorldEye-1), hl
-	sbc	a, a
-	ld	(vxWorldEye+2), a
-	
 	pop	iy
-
 ; modelworld=modelworld0
 ; tmodelworld=transpose(modelworld)
 	lea	hl, iy+0

@@ -469,7 +469,7 @@ bool load_obj(const char * path, unsigned short option)
             norm = norm * cst;
             vec3 vertex = vertexTable[face_index[i*10+1]] * cst2;
             out << ".db " << round(norm[0]) << ',' << round(norm[1]) << ',' << round(norm[2]) << '\n';
-            out << ".dl " << round(dot(norm,vertex )) << '\n';
+            out << ".dl " << -round(dot(norm,vertex)) << '\n';
             // n*(p-v)  n (64) *p (256)
         }        
         
