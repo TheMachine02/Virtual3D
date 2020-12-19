@@ -19,8 +19,10 @@ vector <mat4x4> applyMul(vector <mat4x4> right,vector <mat4x4> left);
 void display_vector(const vector<int> &v);
 ivec2 UVMap(vec2 t);
 
-int main()
+int main(int argc, char* argv[])
 {
+    const char* path=argv[1];
+
     mat4 mswap(1,0,0,0,0,0,1,0,0,1,0,0,0,0,0,1);
     double skip;
     int fstart=0;
@@ -29,9 +31,13 @@ int main()
     vec4 scale4(1,1,1,1);
     vec3 scale3(1,1,1);
 
-    ifstream xml("FILE.xml", std::ios::in);
-    if(!xml)
+    ifstream xml(path, std::ios::in);
+    if (!xml)
+    {
+        printf("Cannot open %s \n",path);
         exit(EXIT_FAILURE);
+    }
+    printf("Converting %s\n", path);
 
     string line;
     vector <vec3> vertex;
@@ -371,10 +377,21 @@ int main()
 
     rvlink.reserve(link.size());
 
+    // with link information, we also need to sort triangle
+    
+    vector <pair <int, int> > tlink;
+	tlink.reserve(triangle.size()/3);
+	
+	for(i=0; i<triangle.size()/3; i++)
+	{
+		tlink[i].second = i;
+		tlink[i].first = link[triangle[i*3].x].first;	//bone id
+	}
+	sort(tlink.begin(),tlink.end());
+    
     int prev=-1;
     int j=0;
 
-    out << "#include \"vxModel.inc\"" << '\n';
     out << "VERTEXDATA:" << '\n';
     out << ".dl " << vertex.size()*256 << "\n";
 
@@ -387,7 +404,7 @@ int main()
 
             prev=link[i].first;
             //write matrix data : FUN
-            out << ".dw VX_ANIMATION_BONE\n";
+            out << ".dw 32768\n";
             mset=matrixTable[prev];
             out << ".db " << fend-fstart << "\n";
             int s = mset.size();
@@ -436,7 +453,7 @@ int main()
         rvlink[b]=i;
 
         vec3 v=vertex[b]*scale3;
-        out << ".v " << (int)(v[0]*256.0) << "," << (int)(v[1]*256.0) << "," << (int)(v[2]*256.0) << "\n";
+        out << ".dw " << (int)(v[0]*256.0) << "," << (int)(v[1]*256.0) << "," << (int)(v[2]*256.0) << "\n";
         if(normal.size()!=0)
         {
             vec3 n=normal[b];
@@ -446,14 +463,32 @@ int main()
         tsize = tsize+9;
     }
 
-    printf("SIZE : %d\n", tsize);
-
+    prev=-1;
     out << "TRIDATA:\n";
     out << ".dl " << (triangle.size()/3)*256 << "\n";
-    for(i=0; i<triangle.size()/3; i++)
-{
-    out << ".f " << rvlink[triangle[i*3].x] << "," << rvlink[triangle[i*3+1].x] << "," << rvlink[triangle[i*3+2].x] << "\n";
-    out << ".db 0\n";
+    for(int j=0; j<triangle.size()/3; j++)
+	{
+	i = tlink[j].second;
+	
+	if(prev!=tlink[i].first)
+	{
+		prev=tlink[i].first;
+		printf("new bone\n");
+	}
+	
+    out << ".dl " << rvlink[triangle[i*3].x]*16 << "," << rvlink[triangle[i*3+1].x]*16 << "," << rvlink[triangle[i*3+2].x]*16 << "\n";
+//    out << ".db 0\n";
+     vec3 edge0;
+     vec3 edge1;
+     edge0 = vertex[rvlink[triangle[i*3].x]] - vertex[rvlink[triangle[i*3+1].x]];
+     edge1 = vertex[rvlink[triangle[i*3].x]] - vertex[rvlink[triangle[i*3+2].x]];
+     vec3 norm=normalize(cross(edge0,edge1));
+     vec3 vconst(64.0,64.0,64.0);
+     vec3 vconst2(256.0,256.0,256.0);
+     norm = norm * vconst;
+     vec3 vx = vertex[rvlink[triangle[i*3].x]] * vconst2;
+     out << ".db " << round(norm[0]) << ',' << round(norm[1]) << ',' << round(norm[2]) << '\n';
+     out << ".dl " << -round(dot(norm,vx)) << '\n';
 
     ivec2 tcoord=UVMap(texture[triangle[i*3].z]);
     out << ".db " << tcoord[0] << "," << tcoord[1] << "\n";
@@ -461,8 +496,8 @@ int main()
     out << ".db " << tcoord[0] << "," << tcoord[1] << "\n";
     tcoord=UVMap(texture[triangle[i*3+2].z]);
     out << ".db " << tcoord[0] << "," << tcoord[1] << "\n";
-}
-
+	}
+	out << ".db 1";
 
 }
 

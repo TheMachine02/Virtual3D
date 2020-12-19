@@ -430,7 +430,6 @@ bool load_obj(const char * path, unsigned short option)
 // 		out << "include \"lib/tiformat.inc\"\n";
     }
 
-
     out << "INDEX_STREAM:" << '\n';
     out << ".dl " << (face_index.size()/10)*256+option << '\n';
 
@@ -439,6 +438,23 @@ bool load_obj(const char * path, unsigned short option)
         current_material=materialTable[face_index[i*10]];
         out << ".dl " << face_index[i*10+1] *16 << "," << face_index[i*10+4] *16 << "," << face_index[i*10+7] *16 << '\n';
 
+//         if(option&FACE_NORMAL)
+//        {
+            vec3 edge0;
+            vec3 edge1;
+
+            edge0 = vertexTable[face_index[i*10+1]] - vertexTable[face_index[i*10+4]];
+            edge1 = vertexTable[face_index[i*10+1]] - vertexTable[face_index[i*10+7]];
+            vec3 norm=normalize(cross(edge0,edge1));
+            vec3 cst(31.0,31.0,31.0);
+            vec3 cst2(256.0,256.0,256.0);
+            norm = norm * cst;
+            vec3 vertex = vertexTable[face_index[i*10+1]] * cst2;
+            out << ".db " << ((int)round(norm[0]))*2 << ',' << ((int)round(norm[1])*2) << ',' << ((int)round(norm[2]))*2 << '\n';
+            out << ".dl " << -round(dot(norm,vertex)) << '\n';
+            // n*(p-v)  n (64) *p (256)
+//        }
+
         if(option&COLOR)
         {
             out << ".db " << current_material.color << '\n';
@@ -446,7 +462,7 @@ bool load_obj(const char * path, unsigned short option)
 
         if(option&TEXTURE)
         {
-            out << ".db " << current_material.texID << '\n';
+ //           out << ".db " << current_material.texID << '\n';
             ivec2 text;
             text=map_texture(textTable[face_index[i*10+2]]);
             out << ".db " << text[0] << "," << text[1] << '\n';
@@ -456,22 +472,6 @@ bool load_obj(const char * path, unsigned short option)
             out << ".db " << text[0] << ',' << text[1] << '\n';
         }
 
-        if(option&FACE_NORMAL)
-        {
-            vec3 edge0;
-            vec3 edge1;
-
-            edge0 = vertexTable[face_index[i*10+1]] - vertexTable[face_index[i*10+4]];
-            edge1 = vertexTable[face_index[i*10+1]] - vertexTable[face_index[i*10+7]];
-            vec3 norm=normalize(cross(edge0,edge1));
-            vec3 cst(64.0,64.0,64.0);
-            vec3 cst2(256.0,256.0,256.0);
-            norm = norm * cst;
-            vec3 vertex = vertexTable[face_index[i*10+1]] * cst2;
-            out << ".db " << round(norm[0]) << ',' << round(norm[1]) << ',' << round(norm[2]) << '\n';
-            out << ".dl " << -round(dot(norm,vertex)) << '\n';
-            // n*(p-v)  n (64) *p (256)
-        }        
         
     }
     out << "; end marker\n.db 1";

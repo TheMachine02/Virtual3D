@@ -5,15 +5,8 @@ define	VX_VERTEX_BUFFER		$D08000	; 16*2048 (32K)
 
 define	vxDepthSortTemp		$E30014
 
-define	VX_DEPTH_BUCKET		$D03200
-define	VX_DEPTH_TEST         $01
-define	VX_DEPTH_BITS         24
-define	VX_DEPTH_MIN          0
-define	VX_DEPTH_MAX          16777215
-define	VX_DEPTH_OFFSET		8388608
 define	VX_MAX_TRIANGLE			4096
 define	VX_MAX_VERTEX			2048
-define	VX_MAX_BATCH			64
 define	VX_BATCH_DATA		$D03500
 
 ; TODO : create geometry shader in submission
@@ -24,7 +17,7 @@ vxSubmissionQueue:
  dl	0
 vxGeometrySize:
  dl	0
-vxGeometryBatchID:
+vxPrimitiveMaterial:
  dl	0
 vxModelViewCache:
  db	0,0,0
@@ -62,25 +55,21 @@ vxModelViewReverse:
  db	0,0,0
  dl	0,0,0
 
-vxSubmitQueue:
+vxQueueSubmit:
+; various reset blahblah
 	ld	hl, (VX_LCD_BUFFER)
 	ld	(vxSubmissionQueue), hl
-
 	ld	iy, VX_GEOMETRY_QUEUE
-	ld	hl, VX_BATCH_DATA-4
-	ld	(vxGeometryBatchID), hl
-; various reset blahblah
-
 	ld	hl, VX_DEPTH_BUCKET
 	ld	de, VX_DEPTH_BUCKET+1
 	ld	bc, 511
 	ld	(hl), $00
 	ldir
-
 	ld	hl, VX_REGISTER_INTERPOLATION_COPY
 	ld	de, VX_REGISTER_INTERPOLATION_CODE
 	ld	bc, VX_REGISTER_INTERPOLATION_SIZE
 	ldir
+; this is ugly at best
 	ld	hl, (vxShaderJump)
 	ld	(vxShaderJumpWrite), hl
 	ld	hl, (vxShaderAdress0)
@@ -89,7 +78,7 @@ vxSubmitQueue:
 	ld	(vxShaderAdress1Write), hl
 	ld	hl, (vxShaderAdress2)
 	ld	(vxShaderAdress2Write), hl
-
+; reset geometry size >>> change to endpoint writing instead of looping ? TODO
 	ld	bc, (vxGeometrySize)
 	or	a, a
 	sbc	hl, hl
@@ -102,44 +91,42 @@ vxSubmitQueue:
 	inc	b
 	ld	c, b
 	ld	b, a
-vxRenderLoop:
+vxPrimitiveDeferred:
 	push	bc
-	ld	hl, VX_BATCH_DATA
+	ld	hl, VX_MATERIAL_DATA
 	ld	l, (iy+VX_GEOMETRY_ID)
 	ld	a, (hl)
 	inc	hl
-	ld	bc, (hl)	; subcache
+	ld	bc, (hl)			; subcache
 	pea	iy+4
 	ld	iy, (iy+VX_GEOMETRY_INDEX)	; read triangle data
 	call	vxPrimitiveRenderTriangle
 	pop	iy
 	pop	bc
-	djnz	vxRenderLoop
+	djnz	vxPrimitiveDeferred
 	dec	c
-	jr	nz, vxRenderLoop
-	ret
-
-vxGeometryQueue:
+	jr	nz, vxPrimitiveDeferred
+	ret 
+	
+vxQueueGeometry:
 ; hl : vertex source
-; bc : cache area (where does the output vertex should go ?)
-; de : triangle source
+;  a : material ID
+; bc : triangle source
 ; ix : worldview matrix
 ; iy : modelworld matrix
-; a  : format
-; now write batch id, batch data (format, cache)
-	push	de
+	push	bc
 	ex	de, hl
-	ld	hl, (vxGeometryBatchID)
+	ld	hl, VX_MATERIAL_DATA
+	ld	l, a
+	ld	(vxPrimitiveMaterial), hl
+	inc	hl
+	ld	bc, (hl)
 	inc	hl
 	inc	hl
 	inc	hl
-	inc	hl
-	ld	(vxGeometryBatchID), hl
-	ld	(hl), a	; format
-	inc	hl
-	ld	(hl), bc
+	ld	hl, (hl)
 	ex	de, hl
-	call	vxVertexStream	; stream vertex data to cache
+	call	vxVertexStream		; stream vertex data to cache
 	pop	iy			; polygon list
 	ret	c			; quit the stream if carry set (bounding box test failed)
 ; copy geometry shader
@@ -179,12 +166,13 @@ vxGeometryQueue:
 
 vxVertexStream:
 ; hl - vertex source, bc - vertex cache, ix worldview0 matrix, iy modelworld0 matrix (should be an model matrix)
+; de is the vertex shader program
 ; vertex source have size at the begining
 ; support animation
 	push	bc
 	push	hl
 ; load shader first
-	ld	hl, VX_VERTEX_SHADER_COPY
+	ex	de, hl
 	ld	de, VX_VERTEX_SHADER_CODE
 	ld	bc, VX_VERTEX_SHADER_SIZE
 	ldir
@@ -229,6 +217,8 @@ vxVertexStream:
 	ld	de, vxWorldEye
 	call	vxfPositionExtract
 
+	call	vxVertexShader.write_uniform
+	
 	pop	iy
 ; modelworld=modelworld0
 ; tmodelworld=transpose(modelworld)
@@ -274,7 +264,7 @@ vxVertexStreamLoop:
 ; wasn't a bone in source, so read vertex
 ; call vertex shader
 	jr	z, vxVertexLoadBone
-	call	vxVertexShader
+	call	vxVertexCompute
 	pop	bc
 	djnz	vxVertexStreamLoop
 	dec	c
@@ -299,6 +289,7 @@ vxVertexLoadBone:
 	call	vxMatrixTransform	; (hl)=(iy)*(ix)
 ; I have the correct modelview matrix in shader cache area
 ; next one is reduced matrix without translation, since it will only be a direction vector mlt. However, the light vector position also need to be transformed by the transposed matrix
+	call	vxVertexShader.write_uniform
 ; light = lightuniform*transpose(bonemodel*modelworld)
 	ld	ix, vxModelWorld
 	lea	hl, ix+VX_MATRIX_SIZE
@@ -328,7 +319,7 @@ vxVertexBoxLoop:
 	push	bc
 	push	af
 	ld	bc, (iy+0)
-	call	vxVertexShader
+	call	vxVertexCompute
 	lea	iy, iy-3
 	ld	hl, -16
 	add	hl, de
@@ -341,7 +332,7 @@ vxVertexBoxLoop:
 	scf
 	ret
 
-vxSortQueue:
+vxQueueDepthSort:
 	ld	bc, (vxGeometrySize)
 	ld	a, b
 	or	a, c

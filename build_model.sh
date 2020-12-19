@@ -27,7 +27,7 @@ spasm -I lib/ example/file/XML1.ez80 bin/LARAF.8xv -E -S
 
 echo "Converting Suzanne..."
 
-./tools/mdlconv  example/file/Suzanne.obj -C -N -S -B
+./tools/mdlconv  example/file/Suzanne.obj -C -N -S -B -X
 spasm -I lib/ example/file/Suzanne0.inc bin/SUZANV.8xv -E -S
 spasm -I lib/ example/file/Suzanne1.inc bin/SUZANF.8xv -E -S
 
@@ -94,6 +94,10 @@ echo "Converting NabooruZelda.obj"
 spasm -I lib/ example/file/NabooruZelda0.inc bin/NABOORUV.8xv -E -S
 spasm -I lib/ example/file/NabooruZelda1.inc bin/NABOORUF.8xv -E -S
 
+echo "Converting animation file"
+./tools/xmlconv example/file/FILE.xml
+
+
 echo "Converting CavesOfKaliyaTRIII.png"
 ./tools/texconv -dithering -compress example/file/CavesOfKaliyaTRIII.png
 echo "Converting CityTRIII.png"
@@ -103,7 +107,7 @@ echo "Converting TrainRoomTRIII.png"
 echo "Converting PoolTRIII.png"
 ./tools/texconv -alpha -dithering -compress example/file/PoolTRIII.png
 echo "Converting LaraTRIII.png"
-./tools/texconv -alpha -dithering -compress example/file/LaraTRIII.png
+./tools/texconv -dithering -compress example/file/LaraTRIII.png
 echo "Converting texture.png"
 ./tools/texconv -dithering -compress example/file/texture.png
 echo "Converting FranFFXII.png"

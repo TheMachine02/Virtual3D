@@ -104,8 +104,6 @@ vxEngineInit:
 ; various other data
 	ld	hl, VX_FRAMEBUFFER_AUX1
 	ld	(vxSubmissionQueue), hl
-	ld	hl, VX_BATCH_DATA-4
-	ld	(vxGeometryBatchID), hl
 	ld	(vxGeometrySize), bc
 	ld	hl, $D30000
 	ld	(vxTexturePage), hl

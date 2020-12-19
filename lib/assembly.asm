@@ -1,4 +1,9 @@
-define	VX_DEPTH_CLAMP		8388608
+define	VX_DEPTH_BUCKET		$D03200
+define	VX_DEPTH_TEST		$01
+define	VX_DEPTH_BITS		24
+define	VX_DEPTH_MIN		0
+define	VX_DEPTH_MAX		16777215
+define	VX_DEPTH_OFFSET		8388608
 
 VX_PRIMITIVE_ASM_COPY:
 
@@ -7,9 +12,10 @@ VX_PRIMITIVE_ASM_COPY:
 relocate VX_PRIMITIVE_ASM_CODE
 
 vxPrimitiveAssembly:
-; 600 cc bfc / accept
-; 500 cc bfc / reject
-; 200 cc clip reject
+; 4961 cc setup
+; 580 cc bfc / accept
+; 473 cc bfc / reject
+; 212 cc clip reject
 .setup:
 ; input : iy=data, bc=size
 	ld	(.SP_RET), sp
@@ -30,7 +36,7 @@ vxPrimitiveAssembly:
 ; setup the various SMC
 ; geometry format STR
 ; geometry material MTR
-	ld	hl, (vxGeometryBatchID)
+	ld	hl, (vxPrimitiveMaterial)
 	ld	ix, (vxSubmissionQueue)
 	ld	a, (hl)
 	and	a, VX_FORMAT_STRIDE
@@ -40,7 +46,7 @@ vxPrimitiveAssembly:
 	inc	hl
 ; this is the VBO
 	ld	bc, (hl)
-; preload the first value, it is use as stream end mark
+; preload the first value, it is used as stream end mark
 	ld	hl, (iy+VX_TRIANGLE_I0)
 	ld	sp, VX_VERTEX_RZ
 .pack:
@@ -62,26 +68,26 @@ vxPrimitiveAssembly:
 	add	hl, sp
 	ld	hl, (hl)
 	add	hl, de
-	ld	de, VX_DEPTH_CLAMP
+	ld	de, VX_DEPTH_OFFSET
 	add	hl, de
 ; heavy but we'll need de later, so save it. Stack is also clobbered
 	ld	(.DPH), hl
 ; we have hl and bc to do the bfc
-	ld	hl, VX_VIEW_MLTX shr 2
+	ld	hl, VX_VIEW_MLTX shr 1
 	ld	l, (iy+VX_TRIANGLE_N0)		; between -64 and 64
-	add	hl, hl
+;	add	hl, hl
 	add	hl, hl
 	ld	de, (hl)
-	ld	hl, VX_VIEW_MLTY shr 2
+	ld	hl, VX_VIEW_MLTY shr 1
 	ld	l, (iy+VX_TRIANGLE_N1)
-	add	hl, hl
+;	add	hl, hl
 	add	hl, hl
 	ld	hl, (hl)
 	add	hl, de
 	ex	de, hl
-	ld	hl, VX_VIEW_MLTZ shr 2
+	ld	hl, VX_VIEW_MLTZ shr 1
 	ld	l, (iy+VX_TRIANGLE_N2)
-	add	hl, hl
+;	add	hl, hl
 	add	hl, hl
 	ld	hl, (hl)
 	add	hl, de
@@ -89,8 +95,12 @@ vxPrimitiveAssembly:
 	add	hl, de
 	add	hl, hl
 	jr	nc, .discard
+.MTR:=$+1
+	ld	a, $CC
+	ld	(ix+VX_GEOMETRY_ID), a
 .DPH:=$+1
 	ld	de, $CCCCCC
+	ld	e, a
 	ld	(ix+VX_GEOMETRY_DEPTH), de
 	ld	hl, VX_DEPTH_BUCKET + $08
 	ld	a, l
@@ -102,8 +112,6 @@ vxPrimitiveAssembly:
 	inc	(hl)
 .overflow:
 	ld	(ix+VX_GEOMETRY_INDEX), iy
-.MTR:=$+3
-	ld	(ix+VX_GEOMETRY_ID), $CC
 	lea	ix, ix+VX_GEOMETRY_SIZE
 .discard:
 .STR:=$+2
@@ -114,12 +122,12 @@ vxPrimitiveAssembly:
 .SP_RET:=$+1
 	ld	sp, $CCCCCC
 	ret
-; a (signed) time bc (know is advance), so we can use a LUT table to perform this multiplication at a quite low cost (128 values*3 to compute, we can even push them at cost of 2 bytes + 3 write)
+; a (signed) time bc (know is advance), so we can use a LUT table to perform this multiplication at a quite low cost (64 values*3 to compute, we can even push them at cost of 2 bytes + 3 write)
 ; TODO optimize this with pushing value instead of ld (ix+0)' them
 .view_mlt:
 	or	a, a
 	sbc	hl, hl
-	ld	b, 17
+	ld	b, 8
 .view_mlt_pos:
 	ld	(ix+0), hl
 	add	hl, de
@@ -132,11 +140,11 @@ vxPrimitiveAssembly:
 	lea	ix, ix+16
 	djnz	.view_mlt_pos
 ; advance ix
-	ld	bc, 1024 - (17*4*4) - 4
+	ld	bc, 512 - (8*4*4) - 4
 	add	ix, bc
 	or	a, a
 	sbc	hl, hl
-	ld	b, 16
+	ld	b, 8
 ; negate de to do negative mlt
 	sbc	hl, de
 	ex	de, hl
@@ -158,7 +166,7 @@ vxPrimitiveAssembly:
 VX_PRIMITIVE_ASM_SIZE:=$-VX_PRIMITIVE_ASM_CODE
 endrelocate
 
-  align	1024
+  align	512
 VX_VIEW_MLTX:
   rb	1024
 VX_VIEW_MLTY:

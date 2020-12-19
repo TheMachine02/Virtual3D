@@ -21,8 +21,9 @@
 	ex	de, hl
 .colorSwap2:
 	ld	a, (bc)
-	sub	(hl)
+	sub	a, (hl)
 	ret	z
+	cce	ge_pxl_raster
 	ld	ix, $FF0000
 	ld	iy, $FF0000
 	ld	ixl, a
@@ -121,6 +122,7 @@
 	ld	a, (vxDeltaY1)
 	sub	c
 	ret	z
+	cce	ge_pxl_raster
 	push	af
 	ld	iyl, a
 	neg
@@ -211,6 +213,13 @@ vxSMC_Code1:=$
 	add	hl, bc
 	dec	a
 	jr	nz,.rasterTriangleInner
+if defined VX_DEBUG_CC_INSTRUCTION
+	push	hl
+	push	de
+	ccr	ge_pxl_raster
+	pop	de
+	pop	hl
+end if
 	ret
 .rasterContinue:
 	scf
@@ -223,6 +232,13 @@ vxSMC_Code1:=$
 	add	hl, bc
 	dec	a
 	jr	nz, .rasterTriangleInner
+if defined VX_DEBUG_CC_INSTRUCTION
+	push	hl
+	push	de
+	ccr	ge_pxl_raster
+	pop	de
+	pop	hl
+end if
 	ret
 .rasterInverted:
 	add	hl, de
@@ -244,12 +260,18 @@ VX_PRIMITIVE_COLOR_RBG=$+1
 	pop	de
 .rasterSize1:
 	inc	hl
-
 	ld	c, 64
 	inc	b
 	add	hl, bc
 	ex	de, hl
 	add	hl, bc
 	dec	a
-	jr	nz, .rasterTriangleInner
+	jq	nz, .rasterTriangleInner
+if defined VX_DEBUG_CC_INSTRUCTION
+	push	hl
+	push	de
+	ccr	ge_pxl_raster
+	pop	de
+	pop	hl
+end if
 	ret

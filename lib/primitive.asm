@@ -32,68 +32,19 @@ define	VX_REGISTER_INTERPOLATION_SIZE	1024
 VX_REGISTER_DATA:
  db	3072	dup	$D3
 
-; if ~defined VX_DEBUG_CC_INSTRUCTION
+vxPrimitive:
+  
 VX_REGISTER_INTERPOLATION_COPY:
 relocate VX_REGISTER_INTERPOLATION_CODE
-; end if 
  
-vxPrimitive:
-
-_inner_clipdrawTextureTriangle:
-	ld	iy, VX_PATCH_INPUT
-	ld	(iy+VX_TRIANGLE_I0), de
-	ld	(iy+VX_TRIANGLE_I1), hl
-	ld	(iy+VX_TRIANGLE_I2), bc
-; make patch cyclic
-	ld	(iy+VX_TRIANGLE_I2+3), de
-	ld	b, 3
-	cce	ge_pri_clip
-	call	vxPrimitiveClipFrustrum
-	ccr	ge_pri_clip
-; fall through drawing polygon :
-
-vxPrimitiveTexturePolygon:
-; iy : point to a list of transformed vertex adress
-;  b : number of point
-	dec	b
-	dec	b
-	ret	m
-	ret	z
-	ld	hl, (iy+VX_POLYGON_I0)
-_inner_cyclicLoop0:
-	push	bc
-	ld	de, (iy+VX_POLYGON_I1)
-	ld	bc, (iy+VX_POLYGON_I2)
-	push	hl
-	pea	iy+3
-; 	push	hl
-; 	push	bc
-; 	push	de
-; 	call	vxNClip
-; 	pop	de
-; 	pop	bc
-; 	pop	hl
-;	call	nc, vxPrimitiveTextureTriangle
-	call	vxPrimitiveTextureTriangle
-	pop	iy
-	pop	hl
-	pop	bc
-	djnz	_inner_cyclicLoop0
-	ret
-
-; if defined VX_DEBUG_CC_INSTRUCTION
-; VX_REGISTER_INTERPOLATION_COPY:
-; relocate VX_REGISTER_INTERPOLATION_CODE
-; end if
-
 vxPrimitiveRenderTriangle:
 ; iy = triangle data (as stored in memory)
 ; bc = vertex cache adress
 ;  a = encoding format of triangle data
 ; nicely optimized for 3 points
-	bit	7, a		; VX_FORMAT_INTERPOLATION_MASK
-	jp	z, _inner_renderTriangleColor
-_inner_renderTriangleTexture:
+	rla		; VX_FORMAT_INTERPOLATION_MASK
+	jp	nc, _inner_renderTriangleColor
+.renderTriangleTexture:
 ; take iy as input, bc as vertex
 	lea	hl, iy+VX_TRIANGLE_UV0
 	ld	ix, (iy+VX_TRIANGLE_I0)
@@ -130,14 +81,118 @@ _inner_renderTriangleTexture:
 	or	a, (hl)
 	ex	de, hl
 	or	a, (hl)
-	jp	nz, _inner_clipdrawTextureTriangle
+	jr	z, vxPrimitiveTextureTriangle
+.clipdrawTextureTriangle:
+	ld	iy, VX_PATCH_INPUT
+	ld	(iy+VX_TRIANGLE_I0), de
+	ld	(iy+VX_TRIANGLE_I1), hl
+	ld	(iy+VX_TRIANGLE_I2), bc
+; make patch cyclic
+	ld	(iy+VX_TRIANGLE_I2+3), de
+	ld	b, 3
+	cce	ge_pri_clip
+	call	vxPrimitiveClipFrustrum
+	ccr	ge_pri_clip
+; fall through drawing polygon :
+vxPrimitiveTexturePolygon:
+; iy : point to a list of transformed vertex adress
+;  b : number of point
+	dec	b
+	dec	b
+	ret	m
+	ret	z
+	ld	hl, (iy+VX_POLYGON_I0)
+_inner_cyclicLoop0:
+	push	bc
+	ld	de, (iy+VX_POLYGON_I1)
+	ld	bc, (iy+VX_POLYGON_I2)
+	push	hl
+	pea	iy+3
+	call	vxPrimitiveTextureTriangle
+	pop	iy
+	pop	hl
+	pop	bc
+	djnz	_inner_cyclicLoop0
+	ret
 vxPrimitiveTextureTriangle:
 ; hl = p0 adress
 ; de = p1 adress
 ; bc = p2 adress
 #include "texture.asm"
-
 endrelocate
+
+_inner_renderTriangleColor:
+	ld	ix, (iy+VX_TRIANGLE_I0)
+	add	ix, bc
+	ld	a, (ix+VX_VERTEX_UNIFORM)
+	lea	hl, ix+0
+	ld	ix, (iy+VX_TRIANGLE_I1)
+	add	ix, bc
+	add	a, (ix+VX_VERTEX_UNIFORM)
+	lea	de, ix+0
+	ld	ix, (iy+VX_TRIANGLE_I2)
+	add	ix, bc
+	add	a, (ix+VX_VERTEX_UNIFORM)
+	ld	b, a
+	ld	c, 86
+	mlt	bc
+	ld	a, b
+	ld	bc, VX_LUT_CONVOLVE
+	ld	c, (iy+VX_TRIANGLE_COLOR)
+	ld	b, a
+	ld	a, (bc)
+	ld	(VX_PRIMITIVE_COLOR_RBG), a
+	lea	bc, ix+0
+	ld	a, (bc)
+	or	a, (hl)
+	ex	de, hl
+	or	a, (hl)
+	jr	z, vxPrimitiveFillTriangle
+	
+_inner_clipdrawColorTriangle:
+	ld	iy, VX_PATCH_INPUT
+; I have actually switched hl and de previously
+	ld	(iy+VX_TRIANGLE_I0), de
+	ld	(iy+VX_TRIANGLE_I1), hl
+	ld	(iy+VX_TRIANGLE_I2), bc
+	ld	(iy+VX_TRIANGLE_I2+3), de
+	ld	b, 3
+_inner_clipdrawColorPolygon:
+	cce	ge_pri_clip
+	call	vxPrimitiveClipFrustrum
+	ccr	ge_pri_clip
+; fall through filling polygons
+
+vxPrimitiveFillPolygon:
+; iy = point to a list of transformed vertex adress
+;  b = number of point
+; use global color VX_PRIMITIVE_COLOR_RBG
+	dec	b
+	dec	b
+	ret	m
+	ret	z
+	ld	hl, (iy+VX_POLYGON_I0)
+_inner_cyclicLoop:
+	push	bc
+	ld	de, (iy+VX_POLYGON_I1)
+	ld	bc, (iy+VX_POLYGON_I2)
+	push	hl
+	pea	iy+3
+	call	vxPrimitiveFillTriangle
+	pop	iy
+	pop	hl
+	pop	bc
+	djnz _inner_cyclicLoop
+	ret
+
+; fall through filling a triangle
+
+vxPrimitiveFillTriangle:
+; hl = p0 adress
+; de = p1 adress
+; bc = p2 adress
+; use global VX_COLOR_PRIMITIVE_RBG color
+include "color.asm"
 
 vxPrimitiveRenderPolygon:
 ; iy = polygon data (as stored in memory) (index, data)
@@ -228,38 +283,21 @@ _inner_uniformCompute:
 	ld	b, c
 	pop	af
 	ld	iy, VX_PATCH_INPUT
-	jr	nz, _inner_clipdrawColorPolygon
-	jr	vxPrimitiveFillPolygon
+	jp	nz, _inner_clipdrawColorPolygon
+	jp	vxPrimitiveFillPolygon
 
-_inner_clipdrawColorTriangle:
-	ld	iy, VX_PATCH_INPUT
-; I have actually switched hl and de previously
-	ld	(iy+VX_TRIANGLE_I0), de
-	ld	(iy+VX_TRIANGLE_I1), hl
-	ld	(iy+VX_TRIANGLE_I2), bc
-	ld	(iy+VX_TRIANGLE_I2+3), de
-	ld	b, 3
-_inner_clipdrawColorPolygon:
-	cce	ge_pri_clip
-	call	vxPrimitiveClipFrustrum
-	ccr	ge_pri_clip
-; fall through filling polygons
+include "clip.asm"
 
-vxPrimitiveFillPolygon:
-; iy = point to a list of transformed vertex adress
-;  b = number of point
-; use global color VX_PRIMITIVE_COLOR_RBG
-	dec	b
-	dec	b
-	ret	m
-	ret	z
-	ld	hl, (iy+VX_POLYGON_I0)
-_inner_cyclicLoop:
-	push	bc
-	ld	de, (iy+VX_POLYGON_I1)
-	ld	bc, (iy+VX_POLYGON_I2)
-	push	hl
-	pea	iy+3
+; olld
+; 	push	hl
+; 	push	bc
+; 	push	de
+; 	call	vxNClip
+; 	pop	de
+; 	pop	bc
+; 	pop	hl
+;	call	nc, vxPrimitiveTextureTriangle
+
 ; 	push	hl
 ; 	push	bc
 ; 	push	de
@@ -268,47 +306,3 @@ _inner_cyclicLoop:
 ; 	pop	bc
 ; 	pop	hl
 ;	call	nc, vxPrimitiveFillTriangle
-	call	vxPrimitiveFillTriangle
-	pop	iy
-	pop	hl
-	pop	bc
-	djnz _inner_cyclicLoop
-	ret
-
-_inner_renderTriangleColor:
-	ld	ix, (iy+VX_TRIANGLE_I0)
-	add	ix, bc
-	ld	a, (ix+VX_VERTEX_UNIFORM)
-	lea	hl, ix+0
-	ld	ix, (iy+VX_TRIANGLE_I1)
-	add	ix, bc
-	add	a, (ix+VX_VERTEX_UNIFORM)
-	lea	de, ix+0
-	ld	ix, (iy+VX_TRIANGLE_I2)
-	add	ix, bc
-	add	a, (ix+VX_VERTEX_UNIFORM)
-	ld	b, a
-	ld	c, 86
-	mlt	bc
-	ld	a, b
-	ld	bc, VX_LUT_CONVOLVE
-	ld	c, (iy+VX_TRIANGLE_COLOR)
-	ld	b, a
-	ld	a, (bc)
-	ld	(VX_PRIMITIVE_COLOR_RBG), a
-	lea	bc, ix+0
-	ld	a, (bc)
-	or	a, (hl)
-	ex	de, hl
-	or	a, (hl)
-	jp	nz, _inner_clipdrawColorTriangle
-; fall through filling a triangle
-
-vxPrimitiveFillTriangle:
-; hl = p0 adress
-; de = p1 adress
-; bc = p2 adress
-; use global VX_COLOR_PRIMITIVE_RBG color
-include "color.asm"
-
-include "clipping.asm"

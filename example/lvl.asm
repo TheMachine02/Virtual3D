@@ -136,12 +136,12 @@ renderLevel:
 	pop	de
 	pop	hl
 
-	call	vxGeometryQueue
+	call	vxQueueGeometry
 
 	ld	hl, (vxGeometrySize)
 	ld	(debug.visible_count), hl
 
-	call	vxSortQueue
+	call	vxQueueDepthSort
 	call	vxFramebufferClear
 ; 	ld	hl, (Skybox)
 ; 	ld	de, (vxFramebuffer)
@@ -151,7 +151,7 @@ renderLevel:
 ; 	ld	bc, 320*80
 ; 	ldir
 	
-	call	vxSubmitQueue
+	call	vxQueueSubmit
 	
 ; timer & counter
 ; 	
@@ -713,7 +713,7 @@ Render:
 	pop	de
 	pop	hl
 	
-	call	vxGeometryQueue
+	call	vxQueueGeometry
 
 	pop	bc
 	inc	c

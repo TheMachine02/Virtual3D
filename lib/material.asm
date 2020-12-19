@@ -9,19 +9,39 @@ define	VX_MAX_MATERIAL			16	; 16 material can be defined
 ; define the material 0-15
 
 iterate count, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
-	define	VX_MATERIAL#count	(count*VX_MATERIAL_SIZE)+VX_MATERIAL_DATA
-	define	VX_MATERIAL#count#_ID	VX_MATERIAL#count and $FF
+	define	VX_MATERIAL#count	(count*VX_MATERIAL_SIZE)
 end iterate
 
-define	VX_MATERIAL_DATA		VX_BATCH_DATA
+define	VX_MATERIAL_DATA		$D03500
 
 ; material should be load once at the start of the rendering
 
-vxLoadMaterial:
+vxMaterialLoad:
 ; a  = material index
 ; hl = material data
 	ld	de, VX_MATERIAL_DATA
 	ld	e, a
 	ld	bc, VX_MATERIAL_SIZE
 	ldir
+	ret
+
+vxMaterialPixelState:
+; modify the pixel state to actually load a new pixel shader
+; need to modify lenght LUT table, the actual SHA256 area and various SMC data
+; costly
+; a = material
+	ld	hl, VX_MATERIAL_DATA
+	add	a, VX_MATERIAL_PIXEL_SHADER
+	ld	l, a
+; 	ld	hl, (vxShaderJump)
+; 	ld	(vxShaderJumpWrite), hl
+; 	ld	hl, (vxShaderAdress0)
+; 	ld	(vxShaderAdress0Write), hl
+; 	ld	hl, (vxShaderAdress1)
+; 	ld	(vxShaderAdress1Write), hl
+; 	ld	hl, (vxShaderAdress2)
+; 	ld	(vxShaderAdress2Write), hl
+	ret
+vxMaterialVertexState:
+; nop
 	ret

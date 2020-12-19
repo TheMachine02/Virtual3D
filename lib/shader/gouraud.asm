@@ -26,4 +26,3 @@ gouraudCode:
 	djnz	gouraudCode
 gouraudEnd:
 endrelocate
-

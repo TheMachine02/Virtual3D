@@ -1,7 +1,48 @@
 ; shader will copy 1024 bytes from global_data to VX_VRAM. This load occurs at begin of stream instruction, to ensure maximum vertex throughput. About 2200 cycles per vertex are needed.
 
-VX_VERTEX_SHADER_COPY:
+vxVertexShader:
 
+.write_uniform:
+; matrix write
+	ld	ix, VX_VERTEX_SHADER_DATA
+	ld	a, (ix+VX_MATRIX0_C0)
+	ld	(vxVertexCompute.MC0), a
+	ld	a, (ix+VX_MATRIX0_C1)
+	ld	(vxVertexCompute.MC1), a
+	ld	a, (ix+VX_MATRIX0_C2)
+	ld	(vxVertexCompute.MC2), a
+	ld	a, (ix+VX_MATRIX0_C3)
+	ld	(vxVertexCompute.MC3), a
+	ld	a, (ix+VX_MATRIX0_C4)
+	ld	(vxVertexCompute.MC4), a
+	ld	a, (ix+VX_MATRIX0_C5)
+	ld	(vxVertexCompute.MC5), a
+	ld	a, (ix+VX_MATRIX0_C6)
+	ld	(vxVertexCompute.MC6), a
+	ld	a, (ix+VX_MATRIX0_C7)
+	ld	(vxVertexCompute.MC7), a
+	ld	a, (ix+VX_MATRIX0_C8)
+	ld	(vxVertexCompute.MC8), a
+	ld	hl, (ix+VX_MATRIX0_TX)
+	ld	(vxVertexCompute.MTX), hl
+	ld	hl, (ix+VX_MATRIX0_TY)
+	ld	(vxVertexCompute.MTY), hl
+	ld	hl, (ix+VX_MATRIX0_TZ)
+	ld	(vxVertexCompute.MTZ), hl
+; ; lightning write
+; 	ld	a, (ix+VX_LIGHT0_VECTOR)
+; 	ld	(.LV0), a
+; 	ld	a, (ix+VX_LIGHT0_VECTOR+1)
+; 	ld	(.LV1), a
+; 	ld	a, (ix+VX_LIGHT0_VECTOR+2)
+; 	ld	(.LV2), a
+; 	ld	a, (ix+VX_LIGHT0_AMBIENT)
+; 	ld	(.LA), a
+; 	ld	a, (ix+VX_LIGHT0_POW)
+; 	ld	(.LE), a
+	ret
+
+.ftransform:
 ; relocate the shader to fast VRAM ($E30800)
 
 relocate VX_VERTEX_SHADER_CODE
@@ -18,7 +59,7 @@ vxLight:
 
 ; global shader call
 
-vxVertexShader:
+vxVertexCompute:
 ; ix = global data register [MC[0-8],MTX,MTY,MTZ,LV[0-2],LA,LE]
 ; iy = vertex data register [VX,VY,VZ,VN[0-2]]
 ; de = output data register [RC,SY,SX,RI[0-1],RX,RY,RZ]
@@ -27,12 +68,14 @@ vxVertexShader:
 ; de = de + VX_VERTEX_SIZE
 ; iy = iy + VX_VERTEX_DATA_SIZE
 ; data copied to memory
-	ld	ix, VX_VERTEX_SHADER_DATA
+; 	ld	ix, VX_VERTEX_SHADER_DATA
 	push	de
 ; X coordinate
 ;	ld	bc, (iy+0)
-	ld	de, (ix+VX_MATRIX0_TX)
-	ld	a, (ix+VX_MATRIX0_C0)
+.MTX:=$+1
+	ld	de, $CC
+.MC0:=$+1
+	ld	a, $CC
 	ld	h, b
 	ld	l, a
 	mlt	hl
@@ -56,8 +99,9 @@ vxVertexShader:
 	mlt	bc
 	add	hl, bc
 	add	hl, de
-	ld	a, (ix+VX_MATRIX0_C1)
 	ld	bc, (iy+VX_VERTEX_VY)
+.MC1:=$+1
+	ld	a, $CC
 	ld	d, c
 	ld	e, a
 	mlt	de
@@ -83,8 +127,9 @@ vxVertexShader:
 	add	hl, hl
 	add	hl, hl
 	add	hl, de
-	ld	a, (ix+VX_MATRIX0_C2)
 	ld	bc, (iy+VX_VERTEX_VZ)
+.MC2:=$+1
+	ld	a, $CC
 	ld	d, c
 	ld	e, a
 	mlt	de
@@ -112,8 +157,10 @@ vxVertexShader:
 	add	hl, de
 	push	hl
 ; Z coordinate
-	ld	de, (ix+VX_MATRIX0_TZ)
-	ld	a, (ix+VX_MATRIX0_C8)
+.MTZ:=$+1
+	ld	de, $CC
+.MC8:=$+1
+	ld	a, $CC
 	ld	h, b
 	ld	l, a
 	mlt	hl
@@ -137,7 +184,8 @@ vxVertexShader:
 	mlt	bc
 	add	hl, bc
 	add	hl, de
-	ld	a, (ix+VX_MATRIX0_C7)
+.MC7:=$+1
+	ld	a, $CC
 	ld	bc, (iy+VX_VERTEX_VY)
 	ld	d, c
 	ld	e, a
@@ -164,7 +212,8 @@ vxVertexShader:
 	add	hl, hl
 	add	hl, hl
 	add	hl, de
-	ld	a, (ix+VX_MATRIX0_C6)
+.MC6:=$+1
+	ld	a, $CC
 	ld	bc, (iy+VX_VERTEX_VX)
 	ld	d, c
 	ld	e, a
@@ -193,8 +242,10 @@ vxVertexShader:
 	add	hl, de
 	push	hl
 ; Y coordinate
-	ld	de, (ix+VX_MATRIX0_TY)
-	ld	a, (ix+VX_MATRIX0_C3)
+.MTY:=$+1
+	ld	de, $CC
+.MC3:=$+1
+	ld	a, $CC
 	ld	h, b
 	ld	l, a
 	mlt	hl
@@ -218,7 +269,8 @@ vxVertexShader:
 	mlt	bc
 	add	hl, bc
 	add	hl, de
-	ld	a, (ix+VX_MATRIX0_C4)
+.MC4:=$+1
+	ld	a, $CC
 	ld	bc, (iy+VX_VERTEX_VY)
 	ld	d, c
 	ld	e, a
@@ -245,7 +297,8 @@ vxVertexShader:
 	add	hl, hl
 	add	hl, hl
 	add	hl, de
-	ld	a, (ix+VX_MATRIX0_C5)
+.MC5:=$+1
+	ld	a, $CC
 	ld	bc, (iy+VX_VERTEX_VZ)
 	ld	d, c
 	ld	e, a
@@ -272,37 +325,37 @@ vxVertexShader:
 	add	hl, hl
 	add	hl, hl
 	add	hl, de
-	
+
 ; ; lightning model is here, infinite directionnal light, no pow
 ; 	xor	a, a
 ; 	ld	c, (iy+VX_VERTEX_NX)
 ; 	ld	b, (ix+VX_LIGHT0_VECTOR+0)
 ; 	bit	7, c
-; 	jr z, $+3
-; 	sub a,b
+; 	jr	z, $+3
+; 	sub	a, b
 ; 	bit	7, b
-; 	jr z, $+3
-; 	sub a,c
+; 	jr	z, $+3
+; 	sub	a, c
 ; 	mlt	bc
 ; 	add	a, b
 ; 	ld	c, (iy+VX_VERTEX_NY)
 ; 	ld	b, (ix+VX_LIGHT0_VECTOR+1)
 ; 	bit	7, c
-; 	jr z, $+3
-; 	sub a,b
+; 	jr	z, $+3
+; 	sub	a, b
 ; 	bit	7, b
-; 	jr z, $+3
-; 	sub a,c
+; 	jr	z, $+3
+; 	sub	a, c
 ; 	mlt	bc
 ; 	add	a, b
 ; 	ld	c, (iy+VX_VERTEX_NZ)
 ; 	ld	b, (ix+VX_LIGHT0_VECTOR+2)
 ; 	bit	7, c
-; 	jr z, $+3
-; 	sub a,b
+; 	jr	z, $+3
+; 	sub	a, b
 ; 	bit	7, b
-; 	jr z, $+3
-; 	sub a,c
+; 	jr	z, $+3
+; 	sub	a, c
 ; 	mlt	bc
 ; 	add	a, b
 ; ; max(a,0)
@@ -315,14 +368,13 @@ vxVertexShader:
 ; 	rl	c
 ; 	adc	a, (ix+VX_LIGHT0_AMBIENT)
 ; ; min(a,15)
-; 	cp	32
+; 	cp	a, 32
 ; 	jr	c, $+4
 ; 	ld	a, 31
 
 	pop	bc
 	pop	de
 	pop	ix
-	ld	a, 16
 	ld	(ix+VX_VERTEX_UNIFORM), a
 	ld	(ix+VX_VERTEX_RX), de
 	ld	(ix+VX_VERTEX_RY), hl

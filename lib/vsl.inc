@@ -86,20 +86,22 @@ define	VX_LIGHT0_POSITION		24
 
 ; triangle input register ;
 
-define	VX_TRIANGLE_SIZE		16+6
+define	VX_TRIANGLE_SIZE		21
 define	VX_TRIANGLE_INDEX		0
 define	VX_TRIANGLE_I0			0
 define	VX_TRIANGLE_I1			3
 define	VX_TRIANGLE_I2			6
-define	VX_TRIANGLE_COLOR		9 ;+ 6
-define	VX_TRIANGLE_TEXTURE		10 ;+ 6
-define	VX_TRIANGLE_UV0			10 ;+ 6
-define	VX_TRIANGLE_UV1			12 ;+ 6
-define	VX_TRIANGLE_UV2			14 ;+ 6
-define	VX_TRIANGLE_N0			16
-define	VX_TRIANGLE_N1			17
-define	VX_TRIANGLE_N2			18
-define	VX_TRIANGLE_N3			19
+
+define	VX_TRIANGLE_N0			9
+define	VX_TRIANGLE_N1			10
+define	VX_TRIANGLE_N2			11
+define	VX_TRIANGLE_N3			12	; 3 bytes
+
+define	VX_TRIANGLE_COLOR		15
+define	VX_TRIANGLE_TEXTURE		15
+define	VX_TRIANGLE_UV0			15
+define	VX_TRIANGLE_UV1			17
+define	VX_TRIANGLE_UV2			19
 define	VX_POLYGON_I0			0
 define	VX_POLYGON_I1			3
 define	VX_POLYGON_I2			6
@@ -128,8 +130,8 @@ define	VX_FORMAT_INTERPOLATION_BIT	7
 define	VX_FORMAT_UNPACK_UV_BIT		6
 
 ; default
-define	VX_FORMAT_TEXTURE		(16+6) or VX_FORMAT_INTERPOLATION or VX_FORMAT_UNPACK_UV
-define	VX_FORMAT_COLOR			(10+6)
+define	VX_FORMAT_TEXTURE		21 or VX_FORMAT_INTERPOLATION or VX_FORMAT_UNPACK_UV
+define	VX_FORMAT_COLOR			16
 
 ; stream header ;
 

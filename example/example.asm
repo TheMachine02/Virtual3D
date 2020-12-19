@@ -61,6 +61,10 @@ define	VX_DEBUG_CC_INSTRUCTION
 	ld	ix, alphaShader
 	call	vxShaderLoad
 
+	ld	hl, material
+	ld	a, VX_MATERIAL0
+	call	vxMaterialLoad
+	
 MainLoop:
 	call	vxTimer.reset
 	
@@ -71,20 +75,17 @@ MainLoop:
 	ld	de, 0*256+160
 	ld	bc, 32*256+32
 	call	vxImageSubSwap
-; ; 
 	ld	hl, 128*256+128
 	ld	de, 128*256+160
 	ld	bc, 32*256+32
- 	call	vxImageSubSwap
+	call	vxImageSubSwap
 
-	ld	a, VX_FORMAT_TEXTURE
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
-	ld	bc, VX_VERTEX_BUFFER
-; VX_VERTEX_BUFFER
 	ld	hl, (Vertex)
-	ld	de, (Triangle)
-	call	vxGeometryQueue
+	ld	bc, (Triangle)
+	ld	a, VX_MATERIAL0
+	call	vxQueueGeometry
 
 ;	ld	a, VX_GEOMETRY_TI9
 ;	ld	ix, WorldMatrix
@@ -108,16 +109,16 @@ MainLoop:
 	inc	hl
 	ld	hl, (hl)
 	ld	(debug.triangle_count), hl
-	call	vxSortQueue
+	call	vxQueueDepthSort
 	
 ;	ld	c, 11100000b
 ;	call	vxClearBuffer
 ;	call	vxFramebufferClear
-	ld	bc, (EulerAngle)
+ 	ld	bc, (EulerAngle)
 	inc	b
 	call	Skybox.render
 	
-	call	vxSubmitQueue
+	call	vxQueueSubmit
 
 	call	debug.display_panel
 
@@ -313,8 +314,8 @@ include	"debug.asm"
 material:
 	db	VX_FORMAT_TEXTURE
 	dl	VX_VERTEX_BUFFER
-; 	dl	VX_VERTEX_SHADER_DEFAULT
-; 	dl	VX_PIXEL_SHADER_DEFAULT
+	dl	vxVertexShader.ftransform
+	dl	0
 	dl	0
 
 posX:
