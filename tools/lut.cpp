@@ -17,12 +17,35 @@ unsigned char subPixel(unsigned char red, unsigned char green,unsigned char blue
 void generate_convolve();
 void generate_sinus();
 void generate_inverse();
+void generate_log();
 
 int main(int argc, char* argv[])
 {
 	generate_sinus();
 	generate_convolve();
 	generate_inverse();
+	generate_log();
+}
+
+void generate_log()
+{
+	ofstream out;
+	out.open("log.asm");
+	if(!(out.good()))
+	{
+		cout << "Can't open output file" << std::endl;
+		return;		
+	}
+	
+	float a=0.0f;
+	
+	for(int i=0;i<256;i++)
+	{
+		out << " db ";
+		out << (int)log2(a);
+		out << "\n";
+		a += 1.0f;
+	}
 }
 
 void generate_sinus()

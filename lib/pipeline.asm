@@ -243,9 +243,9 @@ vxVertexStream:
 	ld	bc, (iy+VX_STREAM_HEADER_COUNT)
 	lea	iy, iy+VX_STREAM_HEADER_SIZE
 ; iy+0 are options, so check those. Here, only bounding box is interesting.
-	and	VX_STREAM_HEADER_BBOX
+	and	a, VX_STREAM_HEADER_BBOX
 	call	nz, vxVertexStreamBox
-	pop	de
+	pop	ix
 	ret	c
 	cce	ge_vtx_transform
 	ld	a, c
@@ -253,7 +253,7 @@ vxVertexStream:
 	inc	b
 	ld	c, b
 	ld	b, a
-; de = cache, iy = source, ix = matrix, bc = size
+; ix = cache, iy = source, ix = matrix, bc = size
 vxVertexStreamLoop:
 	push	bc
 ; read first source value, if value=32768, then compute bone
@@ -275,7 +275,7 @@ vxVertexStreamLoop:
 vxVertexLoadBone:
 ; more complex stuff here. Need to restore initial matrix & do a multiplication with the correct bone key matrix
 ; once done, only advance in the source, not the cache
-	push	de
+	push	ix
 	lea	iy, iy+VX_ANIMATION_HEADER_SIZE
 	push	iy
 	ld	a, (vxAnimationKey)
@@ -305,26 +305,24 @@ vxVertexLoadBone:
 	ld	d, VX_ANIMATION_MATRIX_SIZE
 	mlt	de
 	add	iy, de
-	pop	de
+	pop	ix
 	pop	bc
 	jp	vxVertexStreamLoop
 
 vxVertexStreamBox:
 	push	bc
 ; check the bounding box
-	ld	de, VX_PATCH_VERTEX_POOL
 	ld	a, $FF
 	ld	b, 8
 vxVertexBoxLoop:
 	push	bc
 	push	af
 	ld	bc, (iy+0)
+	ld	ix, VX_PATCH_VERTEX_POOL
 	call	vxVertexCompute
 	lea	iy, iy-3
-	ld	hl, -16
-	add	hl, de
 	pop	af
-	and	a, (hl)
+	and	a, (ix-16)
 	pop	bc
 	djnz	vxVertexBoxLoop
 	pop	bc
@@ -351,7 +349,7 @@ relocate VX_VERTEX_SHADER_CODE
 	ld	hl, (vxDepthSortTemp)
 	ld	(vxCmdReadBuffer0), hl
 	ld	(vxCmdWriteBuffer0), hl
-	ld	de, VX_MAX_TRIANGLE*8
+	ld	de, VX_MAX_TRIANGLE*VX_GEOMETRY_SIZE
 	add	hl, de
 	ld	(vxCmdReadBuffer1), hl
 	ld	(vxCmdWriteBuffer1), hl
@@ -384,7 +382,7 @@ vxCmdRestoreBucketLoop0:
 	dec	h
 	ld	(hl), e
 ; and copy to the correct position
-	lea	ix, ix-8
+	lea	ix, ix-VX_GEOMETRY_SIZE
 	ld	bc, (vxGeometrySize)
 	ld	a, c
 	dec	bc
@@ -399,35 +397,27 @@ vxCmdFillBucketOuter0:
 	push	bc
 	ld	b, 0
 vxCmdFillBucketInner0:
-	ld	hl, VX_DEPTH_BUCKET+8
+	ld	hl, VX_DEPTH_BUCKET+VX_GEOMETRY_SIZE
 	ld	c, l
 	ld	l, (ix+VX_GEOMETRY_DEPTH)
 	ld	e, (hl)
 	inc	h
 	ld	d, (hl)
-;	dec	de
 	ex	de, hl
 	sbc.s	hl, bc
 	ex	de, hl
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
-; de*7+write_buffer
-;	ld	h, c
-;	ld	l, d
-;	ld	d, c
-;	mlt	hl
-;	mlt	de
-;	ld	h, l
-;	ld	l, b
-;	add	hl, de
 vxCmdWriteBuffer1=$+1
 	ld	hl, $0
 	add	hl, de
 	ex	de, hl
 	lea	hl, ix+0
+	dec	bc
+	dec	bc
 	ldir
-	lea	ix, ix-8
+	lea	ix, ix-VX_GEOMETRY_SIZE
 	dec	a
 	jr	nz, vxCmdFillBucketInner0
 	pop	bc
@@ -446,7 +436,7 @@ vxCmdReadBuffer1=$+2
 	ld	a, c
 	ld	c, b
 	ld	b, a
-	ld	e, 8
+	ld	e, VX_GEOMETRY_SIZE
 	ld	l, (ix+VX_GEOMETRY_DEPTH+1)
 	ld	a, e
 	add	a, (hl)
@@ -455,7 +445,7 @@ vxCmdReadBuffer1=$+2
 	inc	h
 	inc	(hl)
 	dec	h
-	lea	ix, ix+8
+	lea	ix, ix+VX_GEOMETRY_SIZE
 	djnz	$-14
 	dec	c
 	jr	nz, $-17
@@ -486,7 +476,7 @@ vxCmdRestoreBucket1:
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
-	lea	ix, ix-8
+	lea	ix, ix-VX_GEOMETRY_SIZE
 
 	pop	bc
 	ld	a, c
@@ -494,7 +484,7 @@ vxCmdFillBucketOuter1:
 	push	bc
 	ld	b, 0
 vxCmdFillBucketInner1:
-	ld	hl, VX_DEPTH_BUCKET+8
+	ld	hl, VX_DEPTH_BUCKET+VX_GEOMETRY_SIZE
 	ld	c, l
 	ld	l, (ix+VX_GEOMETRY_DEPTH+1)
 	ld	e, (hl)
@@ -511,8 +501,10 @@ vxCmdWriteBuffer0=$+1
 	add	hl, de
 	ex	de, hl
 	lea	hl, ix+0
+	dec	bc
+	dec	bc
 	ldir
-	lea	ix, ix-8
+	lea	ix, ix-VX_GEOMETRY_SIZE
 	dec	a
 	jr	nz, vxCmdFillBucketInner1
 	pop	bc
@@ -540,7 +532,7 @@ vxCmdReadBuffer0=$+2
 	inc	h
 	inc	(hl)
 	dec	h
-	lea	ix, ix+8
+	lea	ix, ix+VX_GEOMETRY_SIZE
 	djnz	$-14
 	dec	c
 	jr	nz, $-17
@@ -571,7 +563,7 @@ vxCmdRestoreBucket2:
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
-	lea	ix, ix-8
+	lea	ix, ix-VX_GEOMETRY_SIZE
 
 	pop	bc
 	ld	a, c
@@ -596,7 +588,7 @@ vxCmdFillBucket2:
 	ld	l, (ix+VX_GEOMETRY_ID)
 	ld	(iy+VX_GEOMETRY_ID), l
 
-	lea	ix, ix-8
+	lea	ix, ix-VX_GEOMETRY_SIZE
 	dec	a
 	jr	nz, vxCmdFillBucket2
 	djnz	vxCmdFillBucket2

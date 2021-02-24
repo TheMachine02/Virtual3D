@@ -100,13 +100,19 @@ vxEngineInit:
 	ld	hl, VX_VERTEX_BUFFER
 	ld	de, OBLIVION
 	ld	bc, VX_MAX_VERTEX * VX_VERTEX_SIZE
-	ldir	
+	ldir
 ; various other data
 	ld	hl, VX_FRAMEBUFFER_AUX1
 	ld	(vxSubmissionQueue), hl
 	ld	(vxGeometrySize), bc
 	ld	hl, $D30000
 	ld	(vxTexturePage), hl
+; stupid test
+	xor	a, a
+	sbc	hl, hl
+	ld	c, VX_SCREEN_HEIGHT/2 + VX_SCREEN_HCENTER
+	ld	de, VX_SCREEN_WIDTH/2 + VX_SCREEN_WCENTER
+	call	vxScissor.set
 ; load shader
 	ld	ix, vxPixelShader
 	call	vxShaderLoad
@@ -118,18 +124,18 @@ vxEngineInit:
 	jp	(hl)
 vxEngineQuit:
 ;	call	vxMemoryLockPrivilege
-	ld	hl,$F50000
-	ld	(hl),h	; Mode 0
+	ld	hl, $F50000
+	ld	(hl), h	; Mode 0
 	inc	l		; 0F50001h
-	ld	(hl),15	; Wait 15*256 APB cycles before scanning each row
+	ld	(hl), 15	; Wait 15*256 APB cycles before scanning each row
 	inc	l		; 0F50002h
-	ld	(hl),h
+	ld	(hl), h
 	inc	l		; 0F50003h
-	ld	(hl),15	; Wait 15 APB cycles before each scan
+	ld	(hl), 15	; Wait 15 APB cycles before each scan
 	inc	l		; 0F50004h
-	ld (hl),8	; Number of rows to scan
+	ld	(hl), 8	; Number of rows to scan
 	inc	l		; 0F50005h
-	ld	(hl),8	; Number of columns to scan
+	ld	(hl), 8	; Number of columns to scan
 	ld	iy, OS__FLAGS
 	call	vxFramebufferRestore
 	call	vxMemoryDestroyDevice
@@ -227,9 +233,11 @@ include	"matrix.asm"
 include	"quaternion.asm"
 include	"vector.asm"
 include	"framebuffer.asm"
-include	"fma.asm"
+;include	"fma.asm"
 include	"material.asm"
 include	"assembly.asm"
+include	"mipmap.asm"
+include	"scissor.asm"
 ; various LUT
 include	"data.inc"
 

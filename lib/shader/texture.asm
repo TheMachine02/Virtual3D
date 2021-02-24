@@ -1,16 +1,17 @@
 vxPixelShader:
 	db	VX_PIXEL_SHADER
-	dl	vxPixelEnd-vxPixelCode
+	dl	.texture_end-.texture
 	db	2	; two pixel are written per loop
 	db	10	; total size of per pixel code
 relocate	VX_PIXEL_SHADER_CODE
-vxPixelCode:
+.texture:
 	add	hl, de
 	ld	a, h
 	exx
 	adc	hl, sp
 	ld	h, a
 	ld	a, (hl)
+;	ld	a, b
 	ld	(de), a
 	inc	de
 	exx
@@ -20,9 +21,10 @@ vxPixelCode:
 	adc	hl, sp
 	ld	h, a
 	ld	a, (hl)
+;	ld	a, b
 	ld	(de), a
 	inc	de
 	exx
-	djnz	vxPixelCode
-vxPixelEnd:
+	djnz	.texture
+.texture_end:
 endrelocate

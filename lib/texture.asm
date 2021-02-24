@@ -2,6 +2,8 @@ vxPrimitiveTextureRaster:
 	inc	hl
 	inc	de
 	inc	bc
+	call	vxScissor.test
+	ret	c
 	ld	a, (de)
 	sub	a, (hl)
 	jr	c, .swap0
@@ -442,7 +444,10 @@ vxShaderAdress2Write=$+1
 	bit	7, c
 	jr	z, $+4
 	dec.s	hl
-	ld	(iy+VX_FDUDX), hl	
+	ld	(iy+VX_FDUDX), hl
+.triangleMipmap:
+; 	ld	sp, TMP
+; 	call	vxMipmapLevel
 .triangleGradient:
 	ld	a, (iy+VX_REGISTER_Y2)
 	sub	a, (iy+VX_REGISTER_Y0)

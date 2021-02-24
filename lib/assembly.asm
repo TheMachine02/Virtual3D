@@ -12,13 +12,13 @@ VX_PRIMITIVE_ASM_COPY:
 relocate VX_PRIMITIVE_ASM_CODE
 
 vxPrimitiveAssembly:
-; 4961 cc setup
+; 4628 cc setup
 ; 580 cc bfc / accept
 ; 473 cc bfc / reject
 ; 212 cc clip reject
 .setup:
 ; input : iy=data, bc=size
-	ld	(.SP_RET), sp
+	ld	(.SP_RET0), sp
 ; lut setup
 .mlt_generate:
 ; now the view vector
@@ -74,20 +74,17 @@ vxPrimitiveAssembly:
 	ld	(.DPH), hl
 ; we have hl and bc to do the bfc
 	ld	hl, VX_VIEW_MLTX shr 1
-	ld	l, (iy+VX_TRIANGLE_N0)		; between -64 and 64
-;	add	hl, hl
+	ld	l, (iy+VX_TRIANGLE_N0)		; between -32 and 32
 	add	hl, hl
 	ld	de, (hl)
 	ld	hl, VX_VIEW_MLTY shr 1
 	ld	l, (iy+VX_TRIANGLE_N1)
-;	add	hl, hl
 	add	hl, hl
 	ld	hl, (hl)
 	add	hl, de
 	ex	de, hl
 	ld	hl, VX_VIEW_MLTZ shr 1
 	ld	l, (iy+VX_TRIANGLE_N2)
-;	add	hl, hl
 	add	hl, hl
 	ld	hl, (hl)
 	add	hl, de
@@ -95,14 +92,14 @@ vxPrimitiveAssembly:
 	add	hl, de
 	add	hl, hl
 	jr	nc, .discard
-.MTR:=$+1
-	ld	a, $CC
-	ld	(ix+VX_GEOMETRY_ID), a
 .DPH:=$+1
 	ld	de, $CCCCCC
-	ld	e, a
+.MTR:=$+1
+	ld	e, $CC
+;	ld	(ix+VX_GEOMETRY_ID), e
+; write both the ID in the lower 8 bits and the depth in the upper 16 bits, we'll sort on the full 24 bit pair so similar material will be 'packed' together at best without breaking sorting
 	ld	(ix+VX_GEOMETRY_DEPTH), de
-	ld	hl, VX_DEPTH_BUCKET + $08
+	ld	hl, VX_DEPTH_BUCKET + VX_GEOMETRY_SIZE
 	ld	a, l
 	ld	l, e
 	add	a, (hl)
@@ -119,14 +116,16 @@ vxPrimitiveAssembly:
 	ld	hl, (iy+VX_TRIANGLE_I0)
 	bit	0, l
 	jr	z, .pack
-.SP_RET:=$+1
+.SP_RET0:=$+1
 	ld	sp, $CCCCCC
 	ret
 ; a (signed) time bc (know is advance), so we can use a LUT table to perform this multiplication at a quite low cost (64 values*3 to compute, we can even push them at cost of 2 bytes + 3 write)
 ; TODO optimize this with pushing value instead of ld (ix+0)' them
 .view_mlt:
+	ld	(.SP_RET1), sp
 	or	a, a
 	sbc	hl, hl
+; start at 128+ix with value 32 * de, count as -de each times
 	ld	b, 8
 .view_mlt_pos:
 	ld	(ix+0), hl
@@ -139,9 +138,11 @@ vxPrimitiveAssembly:
 	add	hl, de
 	lea	ix, ix+16
 	djnz	.view_mlt_pos
-; advance ix
-	ld	bc, 512 - (8*4*4) - 4
+; start at ix + 512
+	ld	bc, 512 - (8*4*4)
 	add	ix, bc
+	lea	hl, ix+0
+	ld	sp, hl
 	or	a, a
 	sbc	hl, hl
 	ld	b, 8
@@ -152,17 +153,22 @@ vxPrimitiveAssembly:
 	sbc	hl, hl
 .view_mlt_neg:
 	add	hl, de
-	ld	(ix-0), hl
+	dec	sp
+	push	hl
 	add	hl, de
-	ld	(ix-4), hl
+	dec	sp
+	push	hl
 	add	hl, de
-	ld	(ix-8), hl
+	dec	sp
+	push	hl
 	add	hl, de
-	ld	(ix-12), hl
-	lea	ix, ix-16
+	dec	sp
+	push	hl
 	djnz	.view_mlt_neg
+.SP_RET1:=$+1
+	ld	sp, $CCCCCC
 	ret
-	
+
 VX_PRIMITIVE_ASM_SIZE:=$-VX_PRIMITIVE_ASM_CODE
 endrelocate
 

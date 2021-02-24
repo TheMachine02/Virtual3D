@@ -45,7 +45,7 @@ spasm -I lib/ example/file/BunnyFFXII1.inc bin/FLUFFYF.8xv -E -S
 spasm -I lib/ example/file/FranFFXII0.inc bin/FRANV.8xv -E -S 
 spasm -I lib/ example/file/FranFFXII1.inc bin/FRANF.8xv -E -S
 
-./tools/mdlconv  example/file/MjrnFFXII.obj -T -N -S -B
+./tools/mdlconv  example/file/MjrnFFXII.obj -T -N -S -B -X
 spasm -I lib/ example/file/MjrnFFXII0.inc bin/MJRNV.8xv -E -S
 spasm -I lib/ example/file/MjrnFFXII1.inc bin/MJRNF.8xv -E -S
 
@@ -74,11 +74,11 @@ spasm -I lib/ example/file/LuluFFX1.inc bin/LULUF.8xv -E -S
 echo "Converting FFVIII test models..."
 
 echo "Converting TonberryFFVIII.obj..."
-./tools/mdlconv  example/file/TonberryFFVIII.obj -T -N -S -B
+./tools/mdlconv  example/file/TonberryFFVIII.obj -T -N -S -B -X
 spasm -I lib/ example/file/TonberryFFVIII0.inc bin/TONBV.8xv -E -S
 spasm -I lib/ example/file/TonberryFFVIII1.inc bin/TONBF.8xv -E -S
 
-./tools/mdlconv  example/file/UltimeciaFFVIII.obj -T -N -S -B
+./tools/mdlconv  example/file/UltimeciaFFVIII.obj -T -N -S -B -X
 spasm -I lib/ example/file/UltimeciaFFVIII0.inc bin/ULTIMV.8xv -E -S
 spasm -I lib/ example/file/UltimeciaFFVIII1.inc bin/ULTIMF.8xv -E -S
 
@@ -99,13 +99,15 @@ echo "Converting animation file"
 
 
 echo "Converting CavesOfKaliyaTRIII.png"
-./tools/texconv -dithering -compress example/file/CavesOfKaliyaTRIII.png
+./tools/texconv -compress example/file/CavesOfKaliyaTRIII.png #-dithering
+spasm -I lib/ example/file/CavesOfKaliyaTRIII.inc bin/KALIYAT.8xv -E -S
 echo "Converting CityTRIII.png"
 ./tools/texconv -dithering -compress example/file/CityTRIII.png
 echo "Converting TrainRoomTRIII.png"
 ./tools/texconv -dithering -compress example/file/TrainRoomTRIII.png
 echo "Converting PoolTRIII.png"
 ./tools/texconv -alpha -dithering -compress example/file/PoolTRIII.png
+spasm -I lib/ example/file/PoolTRIII.inc bin/POOLT.8xv -E -S
 echo "Converting LaraTRIII.png"
 ./tools/texconv -dithering -compress example/file/LaraTRIII.png
 echo "Converting texture.png"
@@ -145,10 +147,8 @@ echo "Converting BomboFFXII.png"
 echo "Converting UltimaFFXII.png"
 ./tools/texconv -dithering -compress example/file/UltimaFFXII.png
 
-spasm -I lib/ example/file/CavesOfKaliyaTRIII.inc bin/KALIYAT.8xv -E -S
 spasm -I lib/ example/file/CityTRIII.inc bin/CITYT.8xv -E -S
 spasm -I lib/ example/file/TrainRoomTRIII.inc bin/TRAINT.8xv -E -S
-spasm -I lib/ example/file/PoolTRIII.inc bin/POOLT.8xv -E -S
 spasm -I lib/ example/file/LaraTRIII.inc bin/LARAT.8xv -E -S
 spasm -I lib/ example/file/texture.inc bin/ROOMT.8xv -E -S
 spasm -I lib/ example/file/FranFFXII.inc bin/FRANT.8xv -E -S

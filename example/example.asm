@@ -64,7 +64,7 @@ define	VX_DEBUG_CC_INSTRUCTION
 	ld	hl, material
 	ld	a, VX_MATERIAL0
 	call	vxMaterialLoad
-	
+
 MainLoop:
 	call	vxTimer.reset
 	
@@ -113,10 +113,10 @@ MainLoop:
 	
 ;	ld	c, 11100000b
 ;	call	vxClearBuffer
-;	call	vxFramebufferClear
- 	ld	bc, (EulerAngle)
-	inc	b
-	call	Skybox.render
+	call	vxFramebufferClear
+; 	ld	bc, (EulerAngle)
+;	inc	b
+;	call	Skybox.render
 	
 	call	vxQueueSubmit
 
@@ -280,6 +280,7 @@ Skybox:
 	pop	bc
 	ex	de, hl
 	ldir
+; copy hl > de for bc size
 	pop	de
 .loop_en0:
 	lea	bc, ix+0
@@ -315,6 +316,7 @@ material:
 	db	VX_FORMAT_TEXTURE
 	dl	VX_VERTEX_BUFFER
 	dl	vxVertexShader.ftransform
+	dl	vxPixelShader.texture
 	dl	0
 	dl	0
 

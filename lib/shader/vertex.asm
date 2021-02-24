@@ -1,10 +1,20 @@
 ; shader will copy 1024 bytes from global_data to VX_VRAM. This load occurs at begin of stream instruction, to ensure maximum vertex throughput. About 2200 cycles per vertex are needed.
 
+vxModelView:
+ db    0,0,0
+ db    0,0,0
+ db    0,0,0
+ dl    0,0,0
+vxLight:
+ db    0,0,0
+ db    0,0,0
+ dw    0,0,0
+
 vxVertexShader:
 
 .write_uniform:
 ; matrix write
-	ld	ix, VX_VERTEX_SHADER_DATA
+	ld	ix, vxModelView
 	ld	a, (ix+VX_MATRIX0_C0)
 	ld	(vxVertexCompute.MC0), a
 	ld	a, (ix+VX_MATRIX0_C1)
@@ -47,16 +57,6 @@ vxVertexShader:
 
 relocate VX_VERTEX_SHADER_CODE
 
-vxModelView:
- db    0,0,0
- db    0,0,0
- db    0,0,0
- dl    0,0,0
-vxLight:
- db    0,0,0
- db    0,0,0
- dw    0,0,0
-
 ; global shader call
 
 vxVertexCompute:
@@ -68,8 +68,6 @@ vxVertexCompute:
 ; de = de + VX_VERTEX_SIZE
 ; iy = iy + VX_VERTEX_DATA_SIZE
 ; data copied to memory
-; 	ld	ix, VX_VERTEX_SHADER_DATA
-	push	de
 ; X coordinate
 ;	ld	bc, (iy+0)
 .MTX:=$+1
@@ -79,7 +77,7 @@ vxVertexCompute:
 	ld	h, b
 	ld	l, a
 	mlt	hl
-	cp	$80
+	cp	a, $80
 	jr	c, $+4
 	sbc	hl, bc
 	bit	7, b
@@ -155,7 +153,7 @@ vxVertexCompute:
 	add	hl, hl
 	add	hl, hl
 	add	hl, de
-	push	hl
+	ld	(ix+VX_VERTEX_RX), hl
 ; Z coordinate
 .MTZ:=$+1
 	ld	de, $CC
@@ -240,7 +238,7 @@ vxVertexCompute:
 	add	hl, hl
 	add	hl, hl
 	add	hl, de
-	push	hl
+	ld	(ix+VX_VERTEX_RZ), hl
 ; Y coordinate
 .MTY:=$+1
 	ld	de, $CC
@@ -325,6 +323,7 @@ vxVertexCompute:
 	add	hl, hl
 	add	hl, hl
 	add	hl, de
+	ld	(ix+VX_VERTEX_RY), hl
 
 ; ; lightning model is here, infinite directionnal light, no pow
 ; 	xor	a, a
@@ -371,85 +370,80 @@ vxVertexCompute:
 ; 	cp	a, 32
 ; 	jr	c, $+4
 ; 	ld	a, 31
+;	ld	(ix+VX_VERTEX_UNIFORM), a
 
-	pop	bc
-	pop	de
-	pop	ix
-	ld	(ix+VX_VERTEX_UNIFORM), a
-	ld	(ix+VX_VERTEX_RX), de
-	ld	(ix+VX_VERTEX_RY), hl
-	ld	(ix+VX_VERTEX_RZ), bc
-
-vxPerspectiveDivide:
+.perspective_divide:
+;	ld	hl, (ix+VX_VERTEX_RY)
+	ld	bc, (ix+VX_VERTEX_RZ)
 	ld	a, (ix+VX_VERTEX_RZ+2)
 	rla
 	jp	c, vxPerspectiveClipZ
 	xor	a, a
 	add	hl, hl
-	jr	nc, vxPerspectiveAbs0
+	jr	nc, .absolute_ry
 	rla
-	ex   de, hl
-	sbc   hl, hl
-	sbc   hl, de
+	ex	de, hl
+	sbc	hl, hl
+	sbc	hl, de
 	or	a, a
-	ld	de, (ix+VX_VERTEX_RX)
-vxPerspectiveAbs0:
+.absolute_ry:
 	sbc	hl, bc
 	jr	c, vxPerspectiveNext0
 	sbc	hl, bc
 	jp	nc, vxPerspectiveClip0
 	or	a, a
 vxPerspectiveNext0:
-	adc	a,a
-	add hl,bc
-	add	hl,hl
-	sbc hl,bc
-	jr nc,$+3
-	add hl,bc
-	adc a,a
-   	add	hl,hl
-	sbc hl,bc
-	jr nc,$+3
-	add hl,bc
-	adc a,a
-   	add	hl,hl
-	sbc hl,bc
-	jr nc,$+3
-	add hl,bc
-	adc a,a
-   	add	hl,hl
-	sbc hl,bc
-	jr nc,$+3
-	add hl,bc
-	adc a,a
-   	add	hl,hl
-	sbc hl,bc
-	jr nc,$+3
-	add hl,bc
-	adc a,a
-  	add	hl,hl
-	sbc hl,bc
-	adc a,a
+	adc	a, a
+	add	hl, bc
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+   	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+   	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+   	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+   	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+  	add	hl, hl
+	sbc	hl, bc
+	adc	a, a
    	cpl
    	add	a, a
-   	ld   l, VX_SCREEN_HEIGHT/2+1 ;precision stuffs
-   	ld   h, a
+   	ld	l, VX_SCREEN_HEIGHT/2+1 ;precision stuffs
+   	ld	h, a
    	mlt	hl
-   	ld   a, h
-   	jr   nc, $+3
+   	ld	a, h
+   	jr	nc, $+3
    	cpl
    	adc	a, VX_SCREEN_HCENTER
 	ld	(ix+VX_VERTEX_SY), a
-	ex	de, hl
+
+	ld	hl, (ix+VX_VERTEX_RX)
 	xor	a, a
 	add	hl, hl
-	jr	nc, vxPerspectiveAbs1
+	jr	nc, .absolute_rx
 	rla
-	ex   de, hl
-	sbc   hl, hl
-	sbc   hl, de
+	ex	de, hl
+	sbc	hl, hl
+	sbc	hl, de
 	or	a, a
-vxPerspectiveAbs1:
+.absolute_rx:
 	sbc	hl, bc
 	jr	c, vxPerspectiveNext1
 ; potential clipping issue
@@ -489,9 +483,9 @@ vxPerspectiveNext1:
 	jr nc,$+3
 	add hl,bc
 	adc a,a
-   	add hl,hl
-	sbc hl,bc
-	adc a,a
+   	add	hl, hl
+	sbc	hl, bc
+	adc	a, a
    	cpl
    	ld	l, a
    	ld	h, VX_SCREEN_WIDTH/2+1
@@ -500,48 +494,47 @@ vxPerspectiveNext1:
    	sbc	hl, hl
    	jr	nc, $+3
    	cpl
-   	ld   l, a
-	ld   de, VX_SCREEN_WCENTER
-	adc   hl, de
+   	ld	l, a
+	ld	de, VX_SCREEN_WCENTER
+	adc	hl, de
 	ld	(ix+VX_VERTEX_SX), hl
 	xor	a, a
 	ld	(ix+VX_VERTEX_CODE), a
-	lea	de, ix+VX_VERTEX_SIZE
+	lea	ix, ix+VX_VERTEX_SIZE
 	lea	iy, iy+VX_VERTEX_DATA_SIZE
 	ret
 vxPerspectiveClipZ:
-	ld	a, 00001000b
+	xor	a, a
 vxPerspectiveClip0:
 	ld	hl, (ix+VX_VERTEX_RY)
 	or	a, a
 	sbc	hl, bc
 ; X < Z if X=Z, r=p, fail
 	jp	m, vxPerspectiveClip1
-	or	00100000b
+	or	a, 00100010b
 vxPerspectiveClip1:
 	add	hl, bc
 	or	a, a
 	adc	hl, bc
 	jp	p, vxPerspectiveClip2
-	or	00010000b
+	or	a, 00010001b
 vxPerspectiveClip2:
 ; y cliping was handled
 	ld	hl, (ix+VX_VERTEX_RX)
 	or	a, a
 	sbc	hl, bc
 	jp	m, vxPerspectiveClip3
-	or	a, 10000000b
+	or	a, 10001000b
 vxPerspectiveClip3:
 	add	hl, bc
 	or	a, a
 	adc	hl, bc
 	jp	p, vxPerspectiveClip4
-	or	a, 01000000b
+	or	a, 01000100b
 vxPerspectiveClip4:
-; x clipping handled
-	and	a, 11111000b
+	and	a, 11110000b
 	ld	(ix+VX_VERTEX_CODE), a
-	lea	de, ix+VX_VERTEX_SIZE
+	lea	ix, ix+VX_VERTEX_SIZE
 	lea	iy, iy+VX_VERTEX_DATA_SIZE
 	ret
 endrelocate

@@ -34,9 +34,187 @@ relocate VX_VERTEX_SHADER_CODE
 ;  db    0,0,0
 ;  dw    0,0,0
 
-; TODO : we can write direct value for the matrix and free up ix ++
+.write_uniform:
+; matrix write
+	ld	ix, vxModelView
+	ld	c, 0
+	ld	a, (ix+VX_MATRIX0_C0)
+	
+	
+	
+	ld	(vxVertexCompute.MC0), a
+	
+	
+	ld	a, (ix+VX_MATRIX0_C1)
+	ld	(vxVertexCompute.MC1), a
+	ld	a, (ix+VX_MATRIX0_C2)
+	ld	(vxVertexCompute.MC2), a
+	ld	a, (ix+VX_MATRIX0_C3)
+	ld	(vxVertexCompute.MC3), a
+	ld	a, (ix+VX_MATRIX0_C4)
+	ld	(vxVertexCompute.MC4), a
+	ld	a, (ix+VX_MATRIX0_C5)
+	ld	(vxVertexCompute.MC5), a
+	ld	a, (ix+VX_MATRIX0_C6)
+	ld	(vxVertexCompute.MC6), a
+	ld	a, (ix+VX_MATRIX0_C7)
+	ld	(vxVertexCompute.MC7), a
+	ld	a, (ix+VX_MATRIX0_C8)
+	ld	(vxVertexCompute.MC8), a
+	ld	hl, (ix+VX_MATRIX0_TX)
+	ld	(vxVertexCompute.MTX), hl
+	ld	hl, (ix+VX_MATRIX0_TY)
+	ld	(vxVertexCompute.MTY), hl
+	ld	hl, (ix+VX_MATRIX0_TZ)
+	ld	(vxVertexCompute.MTZ), hl
+; ; lightning write
+; 	ld	a, (ix+VX_LIGHT0_VECTOR)
+; 	ld	(.LV0), a
+; 	ld	a, (ix+VX_LIGHT0_VECTOR+1)
+; 	ld	(.LV1), a
+; 	ld	a, (ix+VX_LIGHT0_VECTOR+2)
+; 	ld	(.LV2), a
+; 	ld	a, (ix+VX_LIGHT0_AMBIENT)
+; 	ld	(.LA), a
+; 	ld	a, (ix+VX_LIGHT0_POW)
+; 	ld	(.LE), a
+	ret
 
-vxfma:
+.trampoline_stack:
+ dl	.trampoline_v2_ret
+ dl	.trampoline_v1_ret
+ dl	.trampoline_v0_ret
+
+.ftransform:
+	ld	sp, .trampoline_stack
+; first value ;
+	ld	a, (iy+VX_VERTEX_VS)
+.MS0:=$+1
+	xor	a, $CC
+	ld	hl, .engine_000 shr 1
+	ld	l, a
+	add	hl, hl
+.MC0:=$+1
+.MC1:=$+2
+	ld	de, $CCCCCC
+.MC2:=$+1
+	ld	a, $CC
+	jp	(hl)
+.trampoline_v0_ret:
+.MTX:=$+1
+	ld	de, $CCCCCC
+	add	hl, de
+	ld	(ix+VX_VERTEX_RX), hl
+; second value ;
+	ld	a, (iy+VX_VERTEX_VS)
+.MS1:=$+1
+	xor	a, $CC
+	ld	hl, .engine_000 shr 1
+	ld	l, a
+	add	hl, hl
+.MC3:=$+1
+.MC4:=$+2
+	ld	de, $CCCCCC
+.MC5:=$+1
+	ld	a, $CC
+	jp	(hl)
+.trampoline_v1_ret:
+.MTY:=$+1
+	ld	de, $CCCCCC
+	add	hl, de
+	ld	(ix+VX_VERTEX_RY), hl
+; third value ;
+	ld	a, (iy+VX_VERTEX_VS)
+.MS2:=$+1
+	xor	a, $CC
+	ld	hl, .engine_000 shr 1
+	ld	l, a
+	add	hl, hl
+.MC6:=$+1
+.MC7:=$+2
+	ld	de, $CCCCCC
+.MC8:=$+1
+	ld	a, $CC
+	jp	(hl)
+.trampoline_v1_ret:
+.MTZ:=$+1
+	ld	de, $CCCCCC
+	add	hl, de
+	ld	(ix+VX_VERTEX_RZ), hl
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+; ix = cache, iy = source, ix = matrix, bc = size
+vxVertexStreamLoop:
+	push	bc
+; read first source value, if value=32768, then compute bone
+	ld	bc, (iy+0)
+	ld	a, b
+	xor	VX_ANIMATION_BONE/256
+	or	a, c
+; wasn't a bone in source, so read vertex
+; call vertex shader
+	jr	z, vxVertexLoadBone
+	call	vxVertexCompute
+	pop	bc
+	djnz	vxVertexStreamLoop
+	dec	c
+	jr	nz, vxVertexStreamLoop
+	ccr	ge_vtx_transform
+	or	a, a
+	ret
+vxVertexLoadBone:
+; more complex stuff here. Need to restore initial matrix & do a multiplication with the correct bone key matrix
+; once done, only advance in the source, not the cache
+	push	ix
+	lea	iy, iy+VX_ANIMATION_HEADER_SIZE
+	push	iy
+	ld	a, (vxAnimationKey)
+	ld	e, a
+	ld	d, VX_ANIMATION_MATRIX_SIZE
+	mlt	de
+	add	iy, de	; correct animation matrix
+; modelview = bonemodel*modelview
+	ld	hl, vxModelView
+	ld	ix, vxModelViewCache
+	call	vxMatrixTransform	; (hl)=(iy)*(ix)
+; I have the correct modelview matrix in shader cache area
+; next one is reduced matrix without translation, since it will only be a direction vector mlt. However, the light vector position also need to be transformed by the transposed matrix
+	call	vxVertexShader.write_uniform
+; light = lightuniform*transpose(bonemodel*modelworld)
+	ld	ix, vxModelWorld
+	lea	hl, ix+VX_MATRIX_SIZE
+	call	vxMatrixMlt
+	lea	ix, ix+VX_MATRIX_SIZE
+	call	vxMatrixTranspose
+	ld	hl, vxLight
+	ld	iy, vxLightUniform
+	call	vxMatrixLightning
+	pop	iy
+	ld	a, (iy-1)
+	ld	e, a
+	ld	d, VX_ANIMATION_MATRIX_SIZE
+	mlt	de
+	add	iy, de
+	pop	ix
+	pop	bc
+	jp	vxVertexStreamLoop
+	
+
+
+
+
+
+
 	ld	ix, VX_VERTEX_SHADER_DATA
 	push	de
 	

@@ -39,19 +39,19 @@ vxFramebufferSetup:
 	call	vxFramebufferAllocate
 ; setup LCD timings
 ; assume c is 0
-.swapTiming:
-	ld	l, (VX_LCD_TIMING+1) and $FF
-	ld	de, VX_LCD_TIMING_CACHE
-	ex	de, hl
-	ld	b, 8 + 1
-.swapLoop:			; exchange stored and active timing
-	ld	a,(de)
-	ldi
-	dec	hl
-	ld	(hl),a
-	inc	hl
-	djnz	.swapLoop
-; continue
+; .swapTiming:
+; 	ld	l, (VX_LCD_TIMING+1) and $FF
+; 	ld	de, VX_LCD_TIMING_CACHE
+; 	ex	de, hl
+; 	ld	b, 8 + 1
+; .swapLoop:			; exchange stored and active timing
+; 	ld	a,(de)
+; 	ldi
+; 	dec	hl
+; 	ld	(hl),a
+; 	inc	hl
+; 	djnz	.swapLoop
+; ; continue
 	
 vxFramebufferResetPalette:
 ; load palette :
@@ -90,7 +90,8 @@ vxFramebufferRestore:
 	ld	l, VX_LCD_BUFFER and $FF
 	ld	(hl), bc
 ; c is 0 here
-	jr	vxFramebufferSetup.swapTiming
+; 	jr	vxFramebufferSetup.swapTiming
+	ret
 	
 vxFramebufferSetPalette:
 ; set the framebuffer palette
@@ -200,15 +201,15 @@ vxFramebufferScale2x:
 	ccr	fb_ops
 	ret
 	
-VX_LCD_TIMING_CACHE:
-;	db	14 shl 2		; PPL shl 2
-	db	7			; HSW
-	db	87			; HFP
-	db	63			; HBP
-	dw	(0 shl 10)+319		; (VSW shl 10)+LPP
-	db	179			; VFP
-	db	0			; VBP
-	db	(0 shl 6)+(0 shl 5)+0	; (ACB shl 6)+(CLKSEL shl 5)+PCD_LO
+; VX_LCD_TIMING_CACHE:
+; ;	db	14 shl 2		; PPL shl 2
+; 	db	7			; HSW
+; 	db	87			; HFP
+; 	db	63			; HBP
+; 	dw	(0 shl 10)+319		; (VSW shl 10)+LPP
+; 	db	179			; VFP
+; 	db	0			; VBP
+; 	db	(0 shl 6)+(0 shl 5)+0	; (ACB shl 6)+(CLKSEL shl 5)+PCD_LO
 ;  H = ((PPL+1)*16)+(HSW+1)+(HFP+1)+(HBP+1) = 240+8+88+64 = 400
 ;  V = (LPP+1)+(VSW+1)+VFP+VBP = 320+1+179+0 = 500
 ; CC = H*V*PCD*2 = 400*500*2*2 = 800000
