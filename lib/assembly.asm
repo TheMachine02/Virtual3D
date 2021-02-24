@@ -5,6 +5,8 @@ define	VX_DEPTH_MIN		0
 define	VX_DEPTH_MAX		16777215
 define	VX_DEPTH_OFFSET		8388608
 
+define	VX_VIEW_MLT_OFFSET	132
+
 VX_PRIMITIVE_ASM_COPY:
 
 ; relocate the shader to fast VRAM ($E30800)
@@ -12,11 +14,13 @@ VX_PRIMITIVE_ASM_COPY:
 relocate VX_PRIMITIVE_ASM_CODE
 
 vxPrimitiveAssembly:
-; 4628 cc setup
+; 4079 cc setup
 ; 580 cc bfc / accept
 ; 473 cc bfc / reject
 ; 212 cc clip reject
 .setup:
+	di
+	halt
 ; input : iy=data, bc=size
 	ld	(.SP_RET0), sp
 ; lut setup
@@ -25,13 +29,13 @@ vxPrimitiveAssembly:
 ; we'll need to generate actual LUT table for bc * a (signed)
 ; bc is know is advance, but we have 3 table for -64 to 64
 	ld	de, (vxWorldEye)
-	ld	ix, VX_VIEW_MLTX
+	ld	ix, VX_VIEW_MLTX + VX_VIEW_MLT_OFFSET
 	call	.view_mlt
 	ld	de, (vxWorldEye+3)
-	ld	ix, VX_VIEW_MLTY
+	ld	ix, VX_VIEW_MLTY + VX_VIEW_MLT_OFFSET
 	call	.view_mlt
 	ld	de, (vxWorldEye+6)
-	ld	ix, VX_VIEW_MLTZ
+	ld	ix, VX_VIEW_MLTZ + VX_VIEW_MLT_OFFSET
 	call	.view_mlt
 ; setup the various SMC
 ; geometry format STR
@@ -120,37 +124,37 @@ vxPrimitiveAssembly:
 	ld	sp, $CCCCCC
 	ret
 ; a (signed) time bc (know is advance), so we can use a LUT table to perform this multiplication at a quite low cost (64 values*3 to compute, we can even push them at cost of 2 bytes + 3 write)
-; TODO optimize this with pushing value instead of ld (ix+0)' them
 .view_mlt:
 	ld	(.SP_RET1), sp
 	or	a, a
 	sbc	hl, hl
-; start at 128+ix with value 32 * de, count as -de each times
-	ld	b, 8
-.view_mlt_pos:
-	ld	(ix+0), hl
-	add	hl, de
-	ld	(ix+4), hl
-	add	hl, de
-	ld	(ix+8), hl
-	add	hl, de
-	ld	(ix+12), hl
-	add	hl, de
-	lea	ix, ix+16
-	djnz	.view_mlt_pos
-; start at ix + 512
-	ld	bc, 512 - (8*4*4)
-	add	ix, bc
-	lea	hl, ix+0
-	ld	sp, hl
-	or	a, a
-	sbc	hl, hl
-	ld	b, 8
-; negate de to do negative mlt
 	sbc	hl, de
 	ex	de, hl
-	or	a, a
-	sbc	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	ld	sp, ix
+	ld	b, 8
+.view_mlt_pos:
+	dec	sp
+	push	hl
+	add	hl, de
+	dec	sp
+	push	hl
+	add	hl, de
+	dec	sp
+	push	hl
+	add	hl, de
+	dec	sp
+	push	hl
+	add	hl, de
+	djnz	.view_mlt_pos
+	ld	bc, 512 - VX_VIEW_MLT_OFFSET
+	add	ix, bc
+	ld	sp, ix
+	ld	b, 8
 .view_mlt_neg:
 	add	hl, de
 	dec	sp
