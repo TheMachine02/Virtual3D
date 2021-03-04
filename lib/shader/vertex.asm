@@ -39,17 +39,17 @@ vxVertexShader:
 	ld	(vxVertexCompute.MTY), hl
 	ld	hl, (ix+VX_MATRIX0_TZ)
 	ld	(vxVertexCompute.MTZ), hl
-; ; lightning write
-; 	ld	a, (ix+VX_LIGHT0_VECTOR)
-; 	ld	(.LV0), a
-; 	ld	a, (ix+VX_LIGHT0_VECTOR+1)
-; 	ld	(.LV1), a
-; 	ld	a, (ix+VX_LIGHT0_VECTOR+2)
-; 	ld	(.LV2), a
-; 	ld	a, (ix+VX_LIGHT0_AMBIENT)
-; 	ld	(.LA), a
-; 	ld	a, (ix+VX_LIGHT0_POW)
-; 	ld	(.LE), a
+; lightning write
+	ld	a, (ix+VX_LIGHT0_VECTOR)
+	ld	(vxVertexCompute.LV0), a
+	ld	a, (ix+VX_LIGHT0_VECTOR+1)
+	ld	(vxVertexCompute.LV1), a
+	ld	a, (ix+VX_LIGHT0_VECTOR+2)
+	ld	(vxVertexCompute.LV2), a
+	ld	a, (ix+VX_LIGHT0_AMBIENT)
+	ld	(vxVertexCompute.LA), a
+	ld	a, (ix+VX_LIGHT0_POW)
+	ld	(vxVertexCompute.LE), a
 	ret
 
 .ftransform:
@@ -325,60 +325,66 @@ vxVertexCompute:
 	add	hl, de
 	ld	(ix+VX_VERTEX_RY), hl
 
-; ; lightning model is here, infinite directionnal light, no pow
-; 	xor	a, a
-; 	ld	c, (iy+VX_VERTEX_NX)
-; 	ld	b, (ix+VX_LIGHT0_VECTOR+0)
-; 	bit	7, c
-; 	jr	z, $+3
-; 	sub	a, b
-; 	bit	7, b
-; 	jr	z, $+3
-; 	sub	a, c
-; 	mlt	bc
-; 	add	a, b
-; 	ld	c, (iy+VX_VERTEX_NY)
-; 	ld	b, (ix+VX_LIGHT0_VECTOR+1)
-; 	bit	7, c
-; 	jr	z, $+3
-; 	sub	a, b
-; 	bit	7, b
-; 	jr	z, $+3
-; 	sub	a, c
-; 	mlt	bc
-; 	add	a, b
-; 	ld	c, (iy+VX_VERTEX_NZ)
-; 	ld	b, (ix+VX_LIGHT0_VECTOR+2)
-; 	bit	7, c
-; 	jr	z, $+3
-; 	sub	a, b
-; 	bit	7, b
-; 	jr	z, $+3
-; 	sub	a, c
-; 	mlt	bc
-; 	add	a, b
-; ; max(a,0)
-; 	jp	p, $+5
-; 	xor	a, a
-; 	ld	c, a
-; 	ld	b, (ix+VX_LIGHT0_POW)
-; 	mlt	bc
-; 	ld	a, b
-; 	rl	c
-; 	adc	a, (ix+VX_LIGHT0_AMBIENT)
-; ; min(a,15)
-; 	cp	a, 32
-; 	jr	c, $+4
-; 	ld	a, 31
-;	ld	(ix+VX_VERTEX_UNIFORM), a
+; lightning model is here, infinite directionnal light, no pow
+	xor	a, a
+	ld	c, (iy+VX_VERTEX_NX)
+.LV0=$+1
+	ld	b, $CC
+	bit	7, c
+	jr	z, $+3
+	sub	a, b
+	bit	7, b
+	jr	z, $+3
+	sub	a, c
+	mlt	bc
+	add	a, b
+	ld	c, (iy+VX_VERTEX_NY)
+.LV1=$+1
+	ld	b, $CC
+	bit	7, c
+	jr	z, $+3
+	sub	a, b
+	bit	7, b
+	jr	z, $+3
+	sub	a, c
+	mlt	bc
+	add	a, b
+	ld	c, (iy+VX_VERTEX_NZ)
+.LV2=$+1
+	ld	b, $CC
+	bit	7, c
+	jr	z, $+3
+	sub	a, b
+	bit	7, b
+	jr	z, $+3
+	sub	a, c
+	mlt	bc
+	add	a, b
+; max(a,0)
+	jp	p, $+5
+	xor	a, a
+	ld	c, a
+.LE=$+1
+	ld	b, $CC
+	mlt	bc
+	ld	a, b
+	rl	c
+.LA=$+1
+	adc	a, $CC
+ ; min(a,15)
+	cp	a, 32
+	jr	c, $+4
+	ld	a, 31
+	ld	(ix+VX_VERTEX_UNIFORM), a
 
 .perspective_divide:
 ;	ld	hl, (ix+VX_VERTEX_RY)
 	ld	bc, (ix+VX_VERTEX_RZ)
 	ld	a, (ix+VX_VERTEX_RZ+2)
 	rla
-	jp	c, vxPerspectiveClipZ
+	jp	c, .perspective_zclip
 	xor	a, a
+	ld	(ix+VX_VERTEX_CODE), a
 	add	hl, hl
 	jr	nc, .absolute_ry
 	rla
@@ -388,11 +394,19 @@ vxVertexCompute:
 	or	a, a
 .absolute_ry:
 	sbc	hl, bc
-	jr	c, vxPerspectiveNext0
+	jr	c, .perspective_iterate_ry
 	sbc	hl, bc
-	jp	nc, vxPerspectiveClip0
-	or	a, a
-vxPerspectiveNext0:
+	ccf
+	jr	nc, .perspective_iterate_ry
+; clip code compute for ry
+	rra
+	ld	a, 00100010b
+; 00010001b if negative
+	jr	nc, $+3
+	rrca
+	ld	(ix+VX_VERTEX_CODE), a
+	jr	.perspective_divide_rx
+.perspective_iterate_ry:
 	adc	a, a
 	add	hl, bc
 	add	hl, hl
@@ -434,6 +448,7 @@ vxPerspectiveNext0:
    	adc	a, VX_SCREEN_HCENTER
 	ld	(ix+VX_VERTEX_SY), a
 
+.perspective_divide_rx:
 	ld	hl, (ix+VX_VERTEX_RX)
 	xor	a, a
 	add	hl, hl
@@ -445,94 +460,98 @@ vxPerspectiveNext0:
 	or	a, a
 .absolute_rx:
 	sbc	hl, bc
-	jr	c, vxPerspectiveNext1
+	jr	c, .perspective_iterate_rx
 ; potential clipping issue
 	sbc	hl, bc
-	jr	nc, vxPerspectiveClip2
-	or	a, a
-vxPerspectiveNext1:
-   	adc a,a
-	add hl,bc
-   	add hl,hl
-	sbc hl,bc
-	jr nc,$+3
-	add hl,bc
-	adc a,a
-   	add hl,hl
-	sbc hl,bc
-	jr nc,$+3
-	add hl,bc
-	adc a,a
-   	add hl,hl
-	sbc hl,bc
-	jr nc,$+3
-	add hl,bc
-	adc a,a
-   	add hl,hl
-	sbc hl,bc
-	jr nc,$+3
-	add hl,bc
-	adc a,a
-   	add hl,hl
-	sbc hl,bc
-	jr nc,$+3
-	add hl,bc
-	adc a,a
-   	add hl,hl
-	sbc hl,bc
-	jr nc,$+3
-	add hl,bc
-	adc a,a
-   	add	hl, hl
+	ccf
+	jr	nc, .perspective_iterate_rx
+	rra
+	ld	a, 10001000b
+; 01000100b if negative
+	jr	nc, $+3
+	rrca
+	or	a, (ix+VX_VERTEX_CODE)
+	ld	(ix+VX_VERTEX_CODE), a
+	jr	.perspective_return
+.perspective_iterate_rx:
+	adc	a, a
+	add	hl, bc
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
 	sbc	hl, bc
 	adc	a, a
-   	cpl
-   	ld	l, a
-   	ld	h, VX_SCREEN_WIDTH/2+1
-   	mlt	hl
-   	ld	a, h
-   	sbc	hl, hl
-   	jr	nc, $+3
-   	cpl
-   	ld	l, a
+	cpl
+	ld	l, a
+	ld	h, VX_SCREEN_WIDTH/2+1
+	mlt	hl
+	ld	a, h
+	sbc	hl, hl
+	jr	nc, $+3
+	cpl
+	ld	l, a
 	ld	de, VX_SCREEN_WCENTER
 	adc	hl, de
 	ld	(ix+VX_VERTEX_SX), hl
-	xor	a, a
-	ld	(ix+VX_VERTEX_CODE), a
+; 	xor	a, a
+; 	ld	(ix+VX_VERTEX_CODE), a
+.perspective_return:
 	lea	ix, ix+VX_VERTEX_SIZE
 	lea	iy, iy+VX_VERTEX_DATA_SIZE
 	ret
-vxPerspectiveClipZ:
+.perspective_zclip:
 	xor	a, a
-vxPerspectiveClip0:
-	ld	hl, (ix+VX_VERTEX_RY)
-	or	a, a
 	sbc	hl, bc
 ; X < Z if X=Z, r=p, fail
-	jp	m, vxPerspectiveClip1
-	or	a, 00100010b
-vxPerspectiveClip1:
+	jp	m, .clip_ry_0
+	or	a, 00100000b
+.clip_ry_0:
 	add	hl, bc
 	or	a, a
 	adc	hl, bc
-	jp	p, vxPerspectiveClip2
-	or	a, 00010001b
-vxPerspectiveClip2:
-; y cliping was handled
+	jp	p, .clip_ry_1
+	or	a, 00010000b
+.clip_ry_1:
 	ld	hl, (ix+VX_VERTEX_RX)
 	or	a, a
 	sbc	hl, bc
-	jp	m, vxPerspectiveClip3
-	or	a, 10001000b
-vxPerspectiveClip3:
+	jp	m, .clip_rx_0
+	or	a, 10000000b
+.clip_rx_0:
 	add	hl, bc
 	or	a, a
 	adc	hl, bc
-	jp	p, vxPerspectiveClip4
-	or	a, 01000100b
-vxPerspectiveClip4:
-	and	a, 11110000b
+	jp	p, .clip_rx_1
+	or	a, 01000000b
+.clip_rx_1:
 	ld	(ix+VX_VERTEX_CODE), a
 	lea	ix, ix+VX_VERTEX_SIZE
 	lea	iy, iy+VX_VERTEX_DATA_SIZE
