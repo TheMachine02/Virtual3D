@@ -19,8 +19,6 @@ vxPrimitiveAssembly:
 ; 473 cc bfc / reject
 ; 212 cc clip reject
 .setup:
-	di
-	halt
 ; input : iy=data, bc=size
 	ld	(.SP_RET0), sp
 ; lut setup

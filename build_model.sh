@@ -10,7 +10,7 @@ spasm -I lib/ example/file/CavesOfKaliyaTRIII1.inc bin/KALIYAF.8xv -E -S
 spasm -I lib/ example/file/CityTRIII0.inc bin/CITYV.8xv -E -S
 spasm -I lib/ example/file/CityTRIII1.inc bin/CITYF.8xv -E -S
 
-./tools/mdlconv  example/file/TrainRoomTRIII.obj -T -N -S -B
+./tools/mdlconv  example/file/TrainRoomTRIII.obj -T -N -S -B -X
 spasm -I lib/ example/file/TrainRoomTRIII0.inc bin/TRAINV.8xv -E -S
 spasm -I lib/ example/file/TrainRoomTRIII1.inc bin/TRAINF.8xv -E -S
 
@@ -18,7 +18,7 @@ spasm -I lib/ example/file/TrainRoomTRIII1.inc bin/TRAINF.8xv -E -S
 spasm -I lib/ example/file/PoolTRIII0.inc bin/POOLV.8xv -E -S
 spasm -I lib/ example/file/PoolTRIII1.inc bin/POOLF.8xv -E -S
 
-./tools/mdlconv  example/file/room_commune.obj -T -N -S -B
+./tools/mdlconv  example/file/room_commune.obj -T -N -S -B -X
 spasm -I lib/ example/file/room_commune0.inc bin/ROOMV.8xv -E -S
 spasm -I lib/ example/file/room_commune1.inc bin/ROOMF.8xv -E -S
 
@@ -33,11 +33,11 @@ spasm -I lib/ example/file/Suzanne1.inc bin/SUZANF.8xv -E -S
 
 echo "Converting FFXII test models..."
 
-./tools/mdlconv  example/file/MateusFFXII.obj -T -N -S -B
+./tools/mdlconv  example/file/MateusFFXII.obj -T -N -S -B -X
 spasm -I lib/ example/file/MateusFFXII0.inc bin/MATEUSV.8xv -E -S
 spasm -I lib/ example/file/MateusFFXII1.inc bin/MATEUSF.8xv -E -S
 
-./tools/mdlconv  example/file/BunnyFFXII.obj -T -N -S -B
+./tools/mdlconv  example/file/BunnyFFXII.obj -T -N -S -B -X
 spasm -I lib/ example/file/BunnyFFXII0.inc bin/FLUFFYV.8xv -E -S
 spasm -I lib/ example/file/BunnyFFXII1.inc bin/FLUFFYF.8xv -E -S
 
@@ -57,17 +57,17 @@ spasm -I lib/ example/file/FranFFXII_LOD11.inc bin/FRANLF.8xv -E -S
 spasm -I lib/ example/file/VieraSceneFFXII0.inc bin/VIERAV.8xv -E -S
 spasm -I lib/ example/file/VieraSceneFFXII1.inc bin/VIERAF.8xv -E -S
 
-./tools/mdlconv  example/file/BomboFFXII.obj -T -N -S -B
+./tools/mdlconv  example/file/BomboFFXII.obj -T -N -S -B -X
 spasm -I lib/ example/file/BomboFFXII0.inc bin/BOMBOV.8xv -E -S
 spasm -I lib/ example/file/BomboFFXII1.inc bin/BOMBOF.8xv -E -S
 
-./tools/mdlconv  example/file/UltimaFFXII.obj -T -N -S -B
+./tools/mdlconv  example/file/UltimaFFXII.obj -T -N -S -B -X
 spasm -I lib/ example/file/UltimaFFXII0.inc bin/ULTIMAV.8xv -E -S
 spasm -I lib/ example/file/UltimaFFXII1.inc bin/ULTIMAF.8xv -E -S
 
 echo "Converting FFX test models..."
 
-./tools/mdlconv  example/file/LuluFFX.obj -T -N -S -B
+./tools/mdlconv  example/file/LuluFFX.obj -T -N -S -B -X
 spasm -I lib/ example/file/LuluFFX0.inc bin/LULUV.8xv -E -S
 spasm -I lib/ example/file/LuluFFX1.inc bin/LULUF.8xv -E -S
 
@@ -85,12 +85,12 @@ spasm -I lib/ example/file/UltimeciaFFVIII1.inc bin/ULTIMF.8xv -E -S
 echo "Converting Zelda test models..."
 
 echo "Converting MidnaZelda.obj"
-./tools/mdlconv  example/file/MidnaZelda.obj -T -N -S -B
+./tools/mdlconv  example/file/MidnaZelda.obj -T -N -S -B -X
 spasm -I lib/ example/file/MidnaZelda0.inc bin/MIDNAV.8xv -E -S
 spasm -I lib/ example/file/MidnaZelda1.inc bin/MIDNAF.8xv -E -S
 
 echo "Converting NabooruZelda.obj"
-./tools/mdlconv  example/file/NabooruZelda.obj -T -N -S -B
+./tools/mdlconv  example/file/NabooruZelda.obj -T -N -S -B -X
 spasm -I lib/ example/file/NabooruZelda0.inc bin/NABOORUV.8xv -E -S
 spasm -I lib/ example/file/NabooruZelda1.inc bin/NABOORUF.8xv -E -S
 

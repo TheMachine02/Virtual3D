@@ -46,12 +46,16 @@ define	VX_DEBUG_CC_INSTRUCTION
 	ld	de, vxLightUniform
 	ld	bc, VX_LIGHT_SIZE
 	ldir
-
-;	ld	ix, lightShader
-	ld	ix, alphaShader
+; 
+	ld	ix, lightShader
+;	ld	ix, alphaShader
 ;	ld	ix, gouraudShader
 	call	vxShaderLoad
 
+	ld	hl, material
+	ld	a, VX_MATERIAL0
+	call	vxMaterialLoad
+	
 	ld	a, 0
 	ld	(vxAnimationKey), a
 
@@ -70,19 +74,16 @@ MainLoop:
 	call	vxQuaternionRotationAxis
 	ld	ix, WorldMatrix
 	call	vxQuaternionGetMatrix
-; 	lea	iy, ix+0
-; 	ld	ix, vxProjectionMatrix
-; 	ld	hl, WorldMatrix
-; 	call	vxMatrixMlt
+	lea	iy, ix+0
+	ld	ix, vxProjectionMatrix
+	ld	hl, WorldMatrix
+	call	vxMatrixMlt
 
-	ld	a, VX_FORMAT_TEXTURE
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
-	ld	bc, VX_VERTEX_BUFFER
 	ld	hl, (Vertex)
-	ld	de, (Triangle)
-;	ld	hl, VERTEXDATA
-;	ld	de, TRIDATA
+	ld	bc, (Triangle)
+	ld	a, VX_MATERIAL0
 	call	vxQueueGeometry
 
 	ld	hl, (vxGeometrySize)
@@ -214,18 +215,26 @@ posZ:
 Temp:
 	dl	0,0
 
+material:
+	db	VX_FORMAT_TEXTURE
+	dl	VX_VERTEX_BUFFER
+	dl	vxVertexShader.ftransform
+	dl	vxPixelShader.texture
+	dl	0
+	dl	0	
+	
 ; choose mateus or tonberry
 
 VertexName:
-	db	ti.AppVarObj, "FRANV",0
+	db	ti.AppVarObj, "TONBV",0
 Vertex:
 	dl	0
 TriangleName:
-	db	ti.AppVarObj, "FRANF", 0
+	db	ti.AppVarObj, "TONBF", 0
 Triangle:
 	dl	0
 TextureName:
-	db	ti.AppVarObj, "FRANT", 0
+	db	ti.AppVarObj, "TONBT", 0
 Texture:
 	dl	0
 Light:

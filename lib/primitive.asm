@@ -287,22 +287,3 @@ _inner_uniformCompute:
 	jp	vxPrimitiveFillPolygon
 
 include "clip.asm"
-
-; olld
-; 	push	hl
-; 	push	bc
-; 	push	de
-; 	call	vxNClip
-; 	pop	de
-; 	pop	bc
-; 	pop	hl
-;	call	nc, vxPrimitiveTextureTriangle
-
-; 	push	hl
-; 	push	bc
-; 	push	de
-; 	call	vxNClip
-; 	pop	de
-; 	pop	bc
-; 	pop	hl
-;	call	nc, vxPrimitiveFillTriangle

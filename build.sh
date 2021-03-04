@@ -11,7 +11,7 @@ echo "building example 1..."
 #spasm -L -T -E -A -S -I include/ -I lib/ example/example1.ez80 bin/TEST1.8xp
 fasmg example/example1.asm bin/TEST1.8xp
 echo "building example 2..."
-fasmg example/example2.asm bin/TEST2.8xp
+fasmg example/modelviewer.asm bin/TEST2.8xp
 #spasm -L -T -E -A -S -I include/ -I lib/ example/example2.ez80 bin/TEST2.8xp
 echo "building level example..."
 #spasm -L -T -E -A -S -I include/ -I lib/ example/lvl.ez80 bin/TESTLVL.8xp
