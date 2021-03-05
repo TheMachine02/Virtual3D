@@ -131,30 +131,45 @@ vxFramebufferVsync:
 	set	2, (hl)
 	ret
 
-vxFramebufferClear:
-	cce	fb_ops
-	ld	hl, OBLIVION
-	ld	de, (vxFramebuffer)
-	ld	bc, 76800
-	ldir	
-	ccr	fb_ops
-	ret
-
+	
 vxFramebufferClearColor:
-; reset framebuffer with color
-; input : c
-; output : none
-; destroyed : all except ix,iy
 	cce	fb_ops
-	ld	hl, (vxFramebuffer)
-	ld	(hl), c
-	ex	de, hl
 	or	a, a
 	sbc	hl, hl
-	add	hl, de
-	inc	de
-	ld	bc, 76799
-	ldir
+	ld	h, c
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	ld	h, c
+	ld	l, c
+	ex	de, hl
+	sbc	hl, hl
+	jr	vxFramebufferClear.entry
+
+vxFramebufferClear:
+	cce	fb_ops
+	or      a, a
+	sbc     hl, hl
+	ex	de, hl
+	sbc	hl, hl
+.entry:
+	add     hl, sp           ; saves SP in HL
+	ld	ix, (vxFramebuffer)
+	ld	bc, 76800
+	add	ix, bc
+	ld	sp, ix
+	ld      b, 213
+	di
+.loop:
+	db	120 dup $D5
+	djnz	.loop
+	db	40 dup $D5
+	ld      sp, hl
 	ccr	fb_ops
 	ret
 	

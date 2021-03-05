@@ -2,8 +2,6 @@ vxPrimitiveTextureRaster:
 	inc	hl
 	inc	de
 	inc	bc
-	call	vxScissor.test
-	ret	c
 	ld	a, (de)
 	sub	a, (hl)
 	jr	c, .swap0

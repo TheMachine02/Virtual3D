@@ -530,7 +530,7 @@ vxVertexCompute:
 .perspective_zclip:
 	xor	a, a
 	sbc	hl, bc
-; X < Z if X=Z, r=p, fail
+; X < Z
 	jp	m, .clip_ry_0
 	or	a, 00100000b
 .clip_ry_0:

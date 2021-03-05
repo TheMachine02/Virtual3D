@@ -161,6 +161,10 @@ vxMemoryCreateDevice:
 	ld	a, $3C
 	call	vxMemorySafeErase
 	ld	hl, $D00000
+	ld	(hl), $5A
+	inc	hl
+	ld	(hl), $A5
+	dec	hl
 	ld	de, $3C0000
 	ld	bc, $40000
 	jp	ti.WriteFlash

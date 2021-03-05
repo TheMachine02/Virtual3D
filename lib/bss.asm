@@ -1809,7 +1809,7 @@ vxPixelShaderExitLUT:
  db	0
  dl	0
 ; padding up to $D04000 
- rb	212
+ db	212
 VX_GEOMETRY_QUEUE:	; 4*4096 (16K)
  rb	16384
 VX_VERTEX_BUFFER:	; 16*2048 (32K)

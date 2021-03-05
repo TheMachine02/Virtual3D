@@ -5,7 +5,6 @@ vxIdentityMatrix:
  dl	0,0,0
 vxProjectionMatrix:
  db	48,0,0
-; db	64,0,0
  db	0,64,0
  db	0,0,64
  dl	0,0,0
