@@ -322,9 +322,9 @@ vxVertexBoxLoop:
 	ld	bc, (iy+0)
 	ld	ix, VX_PATCH_VERTEX_POOL
 	call	vxVertexCompute
-	lea	iy, iy+VX_VERTEX_DATA_SIZE - 3
+	lea	iy, iy+VX_VERTEX_DATA_SIZE
 	pop	af
-	and	a, (ix-16)
+	and	a, (ix+VX_VERTEX_CODE)
 	pop	bc
 	djnz	vxVertexBoxLoop
 	pop	bc
