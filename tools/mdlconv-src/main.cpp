@@ -393,6 +393,10 @@ bool load_obj(const char * path, unsigned short option)
             out << round(boundbox[i][0]*256.0) << ",";
             out << round(boundbox[i][1]*256.0) << ",";
             out << round(boundbox[i][2]*256.0) << '\n';
+            if(option&NORMAL)
+            {
+                out << ".db 0,0,0\n";
+            }
         }
     }
 
@@ -410,6 +414,7 @@ bool load_obj(const char * path, unsigned short option)
             out << round(vertexNormalTable[i][2]*64.0) << '\n';
         }
     }
+    out << "; end marker\n.db 1";    
 
     if(option&SEPARATE)
     {

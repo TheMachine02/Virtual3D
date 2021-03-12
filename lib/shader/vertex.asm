@@ -40,16 +40,16 @@ vxVertexShader:
 	ld	hl, (ix+VX_MATRIX0_TZ)
 	ld	(vxVertexCompute.MTZ), hl
 ; lightning write
-	ld	a, (ix+VX_LIGHT0_VECTOR)
-	ld	(vxVertexCompute.LV0), a
-	ld	a, (ix+VX_LIGHT0_VECTOR+1)
-	ld	(vxVertexCompute.LV1), a
-	ld	a, (ix+VX_LIGHT0_VECTOR+2)
-	ld	(vxVertexCompute.LV2), a
-	ld	a, (ix+VX_LIGHT0_AMBIENT)
-	ld	(vxVertexCompute.LA), a
-	ld	a, (ix+VX_LIGHT0_POW)
-	ld	(vxVertexCompute.LE), a
+; 	ld	a, (ix+VX_LIGHT0_VECTOR)
+; 	ld	(vxVertexCompute.LV0), a
+; 	ld	a, (ix+VX_LIGHT0_VECTOR+1)
+; 	ld	(vxVertexCompute.LV1), a
+; 	ld	a, (ix+VX_LIGHT0_VECTOR+2)
+; 	ld	(vxVertexCompute.LV2), a
+; 	ld	a, (ix+VX_LIGHT0_AMBIENT)
+; 	ld	(vxVertexCompute.LA), a
+; 	ld	a, (ix+VX_LIGHT0_POW)
+; 	ld	(vxVertexCompute.LE), a
 	ret
 
 .ftransform:
@@ -325,64 +325,64 @@ vxVertexCompute:
 	add	hl, de
 	ld	(ix+VX_VERTEX_RY), hl
 
-; lightning model is here, infinite directionnal light, no pow
-	xor	a, a
-	ld	c, (iy+VX_VERTEX_NX)
-.LV0=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-	ld	c, (iy+VX_VERTEX_NY)
-.LV1=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-	ld	c, (iy+VX_VERTEX_NZ)
-.LV2=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-; max(a,0)
-	jp	p, $+5
-	xor	a, a
-	ld	c, a
-.LE=$+1
-	ld	b, $CC
-	mlt	bc
-	ld	a, b
-	rl	c
-.LA=$+1
-	adc	a, $CC
- ; min(a,15)
-	cp	a, 32
-	jr	c, $+4
-	ld	a, 31
-	ld	(ix+VX_VERTEX_UNIFORM), a
+; ; lightning model is here, infinite directionnal light, no pow
+; 	xor	a, a
+; 	ld	c, (iy+VX_VERTEX_NX)
+; .LV0=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; 	ld	c, (iy+VX_VERTEX_NY)
+; .LV1=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; 	ld	c, (iy+VX_VERTEX_NZ)
+; .LV2=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; ; max(a,0)
+; 	jp	p, $+5
+; 	xor	a, a
+; 	ld	c, a
+; .LE=$+1
+; 	ld	b, $CC
+; 	mlt	bc
+; 	ld	a, b
+; 	rl	c
+; .LA=$+1
+; 	adc	a, $CC
+;  ; min(a,15)
+; 	cp	a, 32
+; 	jr	c, $+4
+; 	ld	a, 31
+; 	ld	(ix+VX_VERTEX_UNIFORM), a
 
 .perspective_divide:
 ;	ld	hl, (ix+VX_VERTEX_RY)
 	ld	bc, (ix+VX_VERTEX_RZ)
 	ld	a, (ix+VX_VERTEX_RZ+2)
 	rla
-	jp	c, .perspective_zclip
+	jr	c, .perspective_zclip
 	xor	a, a
 	ld	(ix+VX_VERTEX_CODE), a
 	add	hl, hl
@@ -406,6 +406,34 @@ vxVertexCompute:
 	rrca
 	ld	(ix+VX_VERTEX_CODE), a
 	jr	.perspective_divide_rx
+; we got a gap here, were we can put zclip
+.perspective_zclip:
+	xor	a, a
+	sbc	hl, bc
+; X < Z
+	jp	m, .clip_ry_0
+	or	a, 00100000b
+.clip_ry_0:
+	add	hl, bc
+	or	a, a
+	adc	hl, bc
+	jp	p, .clip_ry_1
+	or	a, 00010000b
+.clip_ry_1:
+	ld	hl, (ix+VX_VERTEX_RX)
+	or	a, a
+	sbc	hl, bc
+	jp	m, .clip_rx_0
+	or	a, 10000000b
+.clip_rx_0:
+	add	hl, bc
+	or	a, a
+	adc	hl, bc
+	jp	p, .clip_rx_1
+	or	a, 01000000b
+.clip_rx_1:
+	ld	(ix+VX_VERTEX_CODE), a
+	ret
 .perspective_iterate_ry:
 	adc	a, a
 	add	hl, bc
@@ -447,7 +475,7 @@ vxVertexCompute:
    	cpl
    	adc	a, VX_SCREEN_HCENTER
 	ld	(ix+VX_VERTEX_SY), a
-
+; do scissor here TODO
 .perspective_divide_rx:
 	ld	hl, (ix+VX_VERTEX_RX)
 	xor	a, a
@@ -472,7 +500,7 @@ vxVertexCompute:
 	rrca
 	or	a, (ix+VX_VERTEX_CODE)
 	ld	(ix+VX_VERTEX_CODE), a
-	jr	.perspective_return
+	ret
 .perspective_iterate_rx:
 	adc	a, a
 	add	hl, bc
@@ -521,39 +549,5 @@ vxVertexCompute:
 	ld	de, VX_SCREEN_WCENTER
 	adc	hl, de
 	ld	(ix+VX_VERTEX_SX), hl
-; 	xor	a, a
-; 	ld	(ix+VX_VERTEX_CODE), a
-.perspective_return:
-	lea	ix, ix+VX_VERTEX_SIZE
-	lea	iy, iy+VX_VERTEX_DATA_SIZE
-	ret
-.perspective_zclip:
-	xor	a, a
-	sbc	hl, bc
-; X < Z
-	jp	m, .clip_ry_0
-	or	a, 00100000b
-.clip_ry_0:
-	add	hl, bc
-	or	a, a
-	adc	hl, bc
-	jp	p, .clip_ry_1
-	or	a, 00010000b
-.clip_ry_1:
-	ld	hl, (ix+VX_VERTEX_RX)
-	or	a, a
-	sbc	hl, bc
-	jp	m, .clip_rx_0
-	or	a, 10000000b
-.clip_rx_0:
-	add	hl, bc
-	or	a, a
-	adc	hl, bc
-	jp	p, .clip_rx_1
-	or	a, 01000000b
-.clip_rx_1:
-	ld	(ix+VX_VERTEX_CODE), a
-	lea	ix, ix+VX_VERTEX_SIZE
-	lea	iy, iy+VX_VERTEX_DATA_SIZE
 	ret
 endrelocate

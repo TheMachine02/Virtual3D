@@ -143,16 +143,263 @@ relocate VX_VERTEX_SHADER_CODE
 	ld	(ix+VX_VERTEX_RZ), hl
 	
 	
+	rb	64
+VX_VERTEX_STACK:
+	
+vxVertexShader:
+; hl - vertex source, bc - vertex cache, ix worldview0 matrix, iy modelworld0 matrix (should be an model matrix)
+; de is the vertex shader program
+; vertex source have size at the begining
+; support animation
+.setup:
+	ld	(.SP_RET), sp
+	push	bc
+	push	hl
+; load shader first
+	ex	de, hl
+	ld	de, VX_VERTEX_SHADER_CODE
+	ld	bc, VX_VERTEX_SHADER_SIZE
+	ldir
+; transform the worldview with the modelworld matrix to have the global modelview matrix
+; modelviewcache = modelworld0 * worldview0
+	ld	hl, vxModelViewCache
+	call	vxMatrixTransform		; (hl) = (iy)*(ix)
+; modelview=modelviewcache
+	ld	de, vxModelView
+	ld	bc, VX_MATRIX_SIZE
+	ldir
+; modelViewReverseTranslate = modelViewTranslate * transpose(modelview)
+; equivalent to eye position in worldspace (worldpos)
+	push	iy
+	ld	hl, vxModelView
+	ld	de, vxModelViewReverse
+	ld	bc, VX_MATRIX_SIZE
+	ldir
+	ld	ix, vxModelViewReverse
+	call	vxMatrixTranspose
+	ld	de, 0
+	ld	hl, (ix+VX_MATRIX_TZ)
+	ld	(ix+VX_MATRIX_TZ), de
+	add	hl, hl
+	add	hl, hl
+	ld	(vxWorldEye-1+4), hl
+	ld	hl, (ix+VX_MATRIX_TY)
+	ld	(ix+VX_MATRIX_TY), de
+	add	hl, hl
+	add	hl, hl
+	ld	(vxWorldEye-1+2), hl
+	ld	hl, (ix+VX_MATRIX_TX)
+	ld	(ix+VX_MATRIX_TX), de
+	add	hl, hl
+	add	hl, hl
+	ld	(vxWorldEye-1), hl
+	ld	iy, vxWorldEye
+	call	vxfTransform
+	ld	de, vxWorldEye
+	call	vxfPositionExtract
+; write matrix uniforms
+	call	.write_uniform
+	pop	iy
+; modelworld=modelworld0
+; tmodelworld=transpose(modelworld)
+	lea	hl, iy+0
+	ld	de, vxModelWorld
+	ld	bc, VX_MATRIX_SIZE
+	ldir
+	lea	hl, iy+0
+	ld	c, VX_MATRIX_SIZE
+	ldir
+	ld	ix, vxTModelWorld
+	call	vxMatrixTranspose
+; light=lightuniform*transpose(modelworld)
+; do light*matrix (hl) = (iy)*(ix)
+	ld	hl, vxLight
+	ld	iy, vxLightUniform
+	call	vxMatrixLightning
+	pop	iy
+; iy = source, ix = matrix
+	ld	a, (iy+VX_STREAM_HEADER_OPTION)
+	lea	iy, iy+VX_STREAM_HEADER_SIZE
+	and	a, VX_STREAM_HEADER_BOX
+	call	nz, vxVertexStreamBox
+	pop	ix
+	ret	c
+; ix = cache, iy = source, matrix loaded
+.stream:
+	cce	ge_vtx_transform
+	ld	a, (iy+VX_SIGNED_VECTOR_SM)
+	cp	a, VX_ANIMATION_BONE	; VX_ANIMATION_BONE is = 2, END STREAM MARK = 1
+	jp	z, .apply_bone
+	jp	po, .stream_end
+.compute:
+; vertex shader HERE (a = loaded sign)
+
+	lea	ix, ix+VX_VERTEX_SIZE
+	lea	iy, iy+VX_VERTEX_DATA_SIZE
+.return:
+	ld	a, (iy+VX_SIGNED_VECTOR_SM)
+	cp	a, VX_ANIMATION_BONE
+	jr	z, .apply_bone
+	jp	pe, .compute
+.stream_end:
+	ccr	ge_vtx_transform
+.SP_RET=$+1
+	ld	sp, $CCCCCC
+	or	a, a
+	ret
+.apply_bone:
+	ld	sp, VX_VERTEX_STACK
+; more complex stuff here. Need to restore initial matrix & do a multiplication with the correct bone key matrix
+; once done, only advance in the source, not the cache
+	push	ix
+	lea	iy, iy+VX_ANIMATION_HEADER_SIZE
+	push	iy
+	ld	a, (vxAnimationKey)
+	ld	e, a
+	ld	d, VX_ANIMATION_MATRIX_SIZE
+	mlt	de
+	add	iy, de	; correct animation matrix
+; modelview = bonemodel*modelview
+	ld	hl, vxModelView
+	ld	ix, vxModelViewCache
+	call	vxMatrixTransform	; (hl)=(iy)*(ix)
+; I have the correct modelview matrix in shader cache area
+; next one is reduced matrix without translation, since it will only be a direction vector mlt. However, the light vector position also need to be transformed by the transposed matrix
+	call	.write_uniform
+; light = lightuniform*transpose(bonemodel*modelworld)
+	ld	ix, vxModelWorld
+	lea	hl, ix+VX_MATRIX_SIZE
+	call	vxMatrixMlt
+	lea	ix, ix+VX_MATRIX_SIZE
+	call	vxMatrixTranspose
+	ld	hl, vxLight
+	ld	iy, vxLightUniform
+	call	vxMatrixLightning
+	pop	iy
+	ld	a, (iy-1)
+	ld	e, a
+	ld	d, VX_ANIMATION_MATRIX_SIZE
+	mlt	de
+	add	iy, de
+	pop	ix
+	pop	bc
+	jp	.return
+.bounding_box:
+; check the bounding box
+; stream the bounding box as standard vertex into the stream routine
+	ld	ix, VX_PATCH_VERTEX_POOL
+	call	.stream
+; account for end marker
+	inc	iy
+	ld	a, (ix-16)
+	and	a, (ix-32)
+	ret	z
+	and	a, (ix-48)
+	ret	z
+	and	a, (ix-64)
+	ret	z
+	and	a, (ix-80)
+	ret	z
+	and	a, (ix-96)
+	ret	z
+	and	a, (ix-112)
+	ret	z
+	and	a, (ix-128)
+	ret	z
+	scf
+	ret
+
 	
 	
+vxVertexStream:
+; hl - vertex source, bc - vertex cache, ix worldview0 matrix, iy modelworld0 matrix (should be an model matrix)
+; de is the vertex shader program
+; vertex source have size at the begining
+; support animation
+	push	bc
+	push	hl
+; load shader first
+	ex	de, hl
+	ld	de, VX_VERTEX_SHADER_CODE
+	ld	bc, VX_VERTEX_SHADER_SIZE
+	ldir
+; transform the worldview with the modelworld matrix to have the global modelview matrix
+; modelviewcache = modelworld0 * worldview0
+	ld	hl, vxModelViewCache
+	call	vxMatrixTransform		; (hl) = (iy)*(ix)
+; modelview=modelviewcache
+	ld	de, vxModelView
+	ld	bc, VX_MATRIX_SIZE
+	ldir
+; modelViewReverseTranslate = modelViewTranslate * transpose(modelview)
+; equivalent to eye position in worldspace (worldpos)
+	push	iy
+
+	ld	hl, vxModelView
+	ld	de, vxModelViewReverse
+	ld	bc, VX_MATRIX_SIZE
+	ldir
+	ld	ix, vxModelViewReverse
+	call	vxMatrixTranspose
+
+	ld	de, 0
+	ld	hl, (ix+VX_MATRIX_TZ)
+	ld	(ix+VX_MATRIX_TZ), de
+	add	hl, hl
+	add	hl, hl
+	ld	(vxWorldEye-1+4), hl
+	ld	hl, (ix+VX_MATRIX_TY)
+	ld	(ix+VX_MATRIX_TY), de
+	add	hl, hl
+	add	hl, hl
+	ld	(vxWorldEye-1+2), hl
+	ld	hl, (ix+VX_MATRIX_TX)
+	ld	(ix+VX_MATRIX_TX), de
+	add	hl, hl
+	add	hl, hl
+	ld	(vxWorldEye-1), hl
+
+	ld	iy, vxWorldEye
+	call	vxfTransform
+	ld	de, vxWorldEye
+	call	vxfPositionExtract
+
+	call	vxVertexShader.write_uniform
 	
-	
-	
-	
-	
-	
-	
-	
+	pop	iy
+; modelworld=modelworld0
+; tmodelworld=transpose(modelworld)
+	lea	hl, iy+0
+	ld	de, vxModelWorld
+	ld	bc, VX_MATRIX_SIZE
+	ldir
+	lea	hl, iy+0
+	ld	c, VX_MATRIX_SIZE
+	ldir
+	ld	ix, vxTModelWorld
+	call	vxMatrixTranspose
+; light=lightuniform*transpose(modelworld)
+; do light*matrix (hl) = (iy)*(ix)
+	ld	hl, vxLight
+	ld	iy, vxLightUniform
+	call	vxMatrixLightning
+; load up shader data
+	pop	iy
+; iy = source, ix = matrix
+	ld	a, (iy+VX_STREAM_HEADER_OPTION)
+	ld	bc, (iy+VX_STREAM_HEADER_COUNT)
+	lea	iy, iy+VX_STREAM_HEADER_SIZE
+; iy+0 are options, so check those. Here, only bounding box is interesting.
+	and	a, VX_STREAM_HEADER_BBOX
+	call	nz, vxVertexStreamBox
+	pop	ix
+	ret	c
+	cce	ge_vtx_transform
+	ld	a, c
+	dec	bc
+	inc	b
+	ld	c, b
+	ld	b, a
 ; ix = cache, iy = source, ix = matrix, bc = size
 vxVertexStreamLoop:
 	push	bc
@@ -165,6 +412,8 @@ vxVertexStreamLoop:
 ; call vertex shader
 	jr	z, vxVertexLoadBone
 	call	vxVertexCompute
+	lea	ix, ix+VX_VERTEX_SIZE
+	lea	iy, iy+VX_VERTEX_DATA_SIZE
 	pop	bc
 	djnz	vxVertexStreamLoop
 	dec	c

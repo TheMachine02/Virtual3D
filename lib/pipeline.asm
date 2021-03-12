@@ -265,6 +265,8 @@ vxVertexStreamLoop:
 ; call vertex shader
 	jr	z, vxVertexLoadBone
 	call	vxVertexCompute
+	lea	ix, ix+VX_VERTEX_SIZE
+	lea	iy, iy+VX_VERTEX_DATA_SIZE
 	pop	bc
 	djnz	vxVertexStreamLoop
 	dec	c
@@ -320,7 +322,7 @@ vxVertexBoxLoop:
 	ld	bc, (iy+0)
 	ld	ix, VX_PATCH_VERTEX_POOL
 	call	vxVertexCompute
-	lea	iy, iy-3
+	lea	iy, iy+VX_VERTEX_DATA_SIZE - 3
 	pop	af
 	and	a, (ix-16)
 	pop	bc
