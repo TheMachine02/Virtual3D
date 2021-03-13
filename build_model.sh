@@ -74,7 +74,7 @@ spasm -I lib/ example/file/LuluFFX1.inc bin/LULUF.8xv -E -S
 echo "Converting FFVIII test models..."
 
 echo "Converting TonberryFFVIII.obj..."
-./tools/mdlconv  example/file/TonberryFFVIII.obj -T -N -S -B -X
+./tools/mdlconv  example/file/TonberryFFVIII.obj -T -N -S -B -X -F
 spasm -I lib/ example/file/TonberryFFVIII0.inc bin/TONBV.8xv -E -S
 spasm -I lib/ example/file/TonberryFFVIII1.inc bin/TONBF.8xv -E -S
 

@@ -15,6 +15,7 @@
 #define BOUNDING_BOX  8
 #define SEPARATE    16
 #define FACE_NORMAL 32
+#define FMA			64
 
 using namespace std;
 using namespace glm;
@@ -34,6 +35,14 @@ struct material
     int texID;
 };
 typedef struct material material;
+
+
+int sgn(double x)
+{
+	if (x > 0) return 0;
+	if (x < 0) return 1;
+	return 0;
+}
 
 
 int main(int argc, char* argv[])
@@ -84,6 +93,8 @@ int main(int argc, char* argv[])
             case 'X':
                 option=option|FACE_NORMAL;
                 break;
+	    case 'F':
+		    option=option|FMA;
             default:
                 printf("Unrecognized argument %s\n",argv[arg]);
             }
@@ -397,11 +408,29 @@ bool load_obj(const char * path, unsigned short option)
             {
                 out << ".db 0,0,0\n";
             }
+            if(option&FMA)
+			{
+				out << ".db 0\n";
+			}
         }
     }
 
     for(i=0; i<vertexTable.size(); i++)
     {
+		if(option&FMA)
+		{
+        out << ".dw ";
+		int sm = sgn(round(vertexTable[i][0]*256.0)) << 7 | ( sgn(round(vertexTable[i][1]*256.0)) << 6) | (sgn(round(vertexTable[i][2]*256.0)) << 5);
+        out << abs(round(vertexTable[i][0]*256.0)) << ",";
+        out << abs(round(vertexTable[i][1]*256.0)) << ",";
+        out << abs(round(vertexTable[i][2]*256.0)) << '\n';
+        out << ".db ";
+        out << round(vertexNormalTable[i][0]*64.0) << ",";
+        out << round(vertexNormalTable[i][1]*64.0) << ",";
+        out << round(vertexNormalTable[i][2]*64.0) << '\n';
+		out << ".db "<< sm << "\n";
+			
+		}else{
         out << ".dw ";
         out << round(vertexTable[i][0]*256.0) << ",";
         out << round(vertexTable[i][1]*256.0) << ",";
@@ -413,6 +442,7 @@ bool load_obj(const char * path, unsigned short option)
             out << round(vertexNormalTable[i][1]*64.0) << ",";
             out << round(vertexNormalTable[i][2]*64.0) << '\n';
         }
+		}
     }
     out << "; end marker\n.db 1";    
 

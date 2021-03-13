@@ -2,15 +2,20 @@ define	VX_DEPTH_BUCKET		$D03200
 define	VX_DEPTH_TEST		$01
 define	VX_DEPTH_BITS		24
 define	VX_DEPTH_MIN		0
-define	VX_DEPTH_MAX		16777215
+define	VX_DEPTH_MAX		16777216
 define	VX_DEPTH_OFFSET		8388608
-
 define	VX_VIEW_MLT_OFFSET	132
 
+align	512
+VX_VIEW_MLTX:
+  rb	1024
+VX_VIEW_MLTY:
+  rb	1024
+VX_VIEW_MLTZ:
+  rb	1024
+
 VX_PRIMITIVE_ASM_COPY:
-
 ; relocate the shader to fast VRAM ($E30800)
-
 relocate VX_PRIMITIVE_ASM_CODE
 
 vxPrimitiveAssembly:
@@ -173,11 +178,3 @@ vxPrimitiveAssembly:
 
 VX_PRIMITIVE_ASM_SIZE:=$-VX_PRIMITIVE_ASM_CODE
 endrelocate
-
-  align	512
-VX_VIEW_MLTX:
-  rb	1024
-VX_VIEW_MLTY:
-  rb	1024
-VX_VIEW_MLTZ:
-  rb	1024

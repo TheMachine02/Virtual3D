@@ -107,12 +107,12 @@ vxEngineInit:
 	ld	(vxGeometrySize), bc
 	ld	hl, $D30000
 	ld	(vxTexturePage), hl
-; stupid test
-	xor	a, a
-	sbc	hl, hl
-	ld	c, VX_SCREEN_HEIGHT/2 + VX_SCREEN_HCENTER
-	ld	de, VX_SCREEN_WIDTH/2 + VX_SCREEN_WCENTER
-	call	vxScissor.set
+; ; stupid test
+; 	xor	a, a
+; 	sbc	hl, hl
+; 	ld	c, VX_SCREEN_HEIGHT/2 + VX_SCREEN_HCENTER
+; 	ld	de, VX_SCREEN_WIDTH/2 + VX_SCREEN_WCENTER
+; 	call	vxScissor.set
 ; load shader
 	ld	ix, vxPixelShader
 	call	vxShaderLoad
@@ -241,7 +241,6 @@ include	"framebuffer.asm"
 include	"material.asm"
 include	"assembly.asm"
 include	"mipmap.asm"
-include	"scissor.asm"
 ; various LUT
 include	"data.inc"
 

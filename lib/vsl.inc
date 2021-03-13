@@ -48,7 +48,7 @@ define	VX_VERTEX_RZ			13
 
 ; vertex input register (iy) ;
 
-define	VX_VERTEX_DATA_SIZE		9 ; >> 10
+define	VX_VERTEX_DATA_SIZE		10 ; 9
 define	VX_VERTEX_POSITION		0
 define	VX_VERTEX_VX			0
 define	VX_VERTEX_VY			2
