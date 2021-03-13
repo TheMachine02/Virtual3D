@@ -25,7 +25,7 @@ VERTEX_STREAM:
 .db 0,0,0
 .db 0
 .dw 58,103,8
-.db 45,0,45
+.db 17,62,2
 .db 32
 .dw 68,72,129
 .db 34,1,54
@@ -1777,4 +1777,6 @@ VERTEX_STREAM:
 .db 57,-25,-13
 .db 32
 ; end marker
+.dw 0,0,0
+.db 0,0,0
 .db 1

@@ -15,367 +15,210 @@ vxVertexShader:
 .write_uniform:
 ; matrix write
 	ld	ix, vxModelView
+	ld	c, 0
 	ld	a, (ix+VX_MATRIX0_C0)
-	ld	(vxVertexCompute.MC0), a
+	bit	7, a
+	jr	z, $+6
+	neg
+	set	7, c
+	ld	(.MC0), a
 	ld	a, (ix+VX_MATRIX0_C1)
-	ld	(vxVertexCompute.MC1), a
+	bit	7, a
+	jr	z, $+6
+	neg
+	set	6, c
+	ld	(.MC1), a
 	ld	a, (ix+VX_MATRIX0_C2)
-	ld	(vxVertexCompute.MC2), a
+	bit	7, a
+	jr	z, $+6
+	neg
+	set	5, c
+	ld	(.MC2), a
+	ld	a, c
+	ld	(.MS0), a
+	ld	c, 0
 	ld	a, (ix+VX_MATRIX0_C3)
-	ld	(vxVertexCompute.MC3), a
+	bit	7, a
+	jr	z, $+6
+	neg
+	set	7, c
+	ld	(.MC3), a
 	ld	a, (ix+VX_MATRIX0_C4)
-	ld	(vxVertexCompute.MC4), a
+	bit	7, a
+	jr	z, $+6
+	neg
+	set	6, c
+	ld	(.MC4), a
 	ld	a, (ix+VX_MATRIX0_C5)
-	ld	(vxVertexCompute.MC5), a
+	bit	7, a
+	jr	z, $+6
+	neg
+	set	5, c
+	ld	(.MC5), a
+	ld	a, c
+	ld	(.MS1), a
+	ld	c, 0
 	ld	a, (ix+VX_MATRIX0_C6)
-	ld	(vxVertexCompute.MC6), a
+	bit	7, a
+	jr	z, $+6
+	neg
+	set	7, c
+	ld	(.MC6), a
 	ld	a, (ix+VX_MATRIX0_C7)
-	ld	(vxVertexCompute.MC7), a
+	bit	7, a
+	jr	z, $+6
+	neg
+	set	6, c
+	ld	(.MC7), a
 	ld	a, (ix+VX_MATRIX0_C8)
-	ld	(vxVertexCompute.MC8), a
+	bit	7, a
+	jr	z, $+6
+	neg
+	set	5, c
+	ld	(.MC8), a
+	ld	a, c
+	ld	(.MS2), a
 	ld	hl, (ix+VX_MATRIX0_TX)
-	ld	(vxVertexCompute.MTX), hl
+	ld	(.MTX), hl
 	ld	hl, (ix+VX_MATRIX0_TY)
-	ld	(vxVertexCompute.MTY), hl
+	ld	(.MTY), hl
 	ld	hl, (ix+VX_MATRIX0_TZ)
-	ld	(vxVertexCompute.MTZ), hl
+	ld	(.MTZ), hl
 ; lightning write
-	ld	a, (ix+VX_LIGHT0_VECTOR)
-	ld	(vxVertexCompute.LV0), a
-	ld	a, (ix+VX_LIGHT0_VECTOR+1)
-	ld	(vxVertexCompute.LV1), a
-	ld	a, (ix+VX_LIGHT0_VECTOR+2)
-	ld	(vxVertexCompute.LV2), a
-	ld	a, (ix+VX_LIGHT0_AMBIENT)
-	ld	(vxVertexCompute.LA), a
-	ld	a, (ix+VX_LIGHT0_POW)
-	ld	(vxVertexCompute.LE), a
+; 	ld	a, (ix+VX_LIGHT0_VECTOR)
+; 	ld	(.LV0), a
+; 	ld	a, (ix+VX_LIGHT0_VECTOR+1)
+; 	ld	(.LV1), a
+; 	ld	a, (ix+VX_LIGHT0_VECTOR+2)
+; 	ld	(.LV2), a
+; 	ld	a, (ix+VX_LIGHT0_AMBIENT)
+; 	ld	(.LA), a
+; 	ld	a, (ix+VX_LIGHT0_POW)
+; 	ld	(.LE), a
 	ret
 
 .ftransform:
-; relocate the shader to fast VRAM ($E30800)
 
-relocate VX_VERTEX_SHADER_CODE
+relocate VX_VERTEX_SHADER_CODE	
+	
+.trampoline_stack:
+ dl	.trampoline_v0_ret
+ dl	.trampoline_v1_ret
+ dl	.trampoline_v2_ret
+ dl	0
+.stack:
 
-; global shader call
-
-vxVertexCompute:
-; ix = global data register [MC[0-8],MTX,MTY,MTZ,LV[0-2],LA,LE]
 ; iy = vertex data register [VX,VY,VZ,VN[0-2]]
-; de = output data register [RC,SY,SX,RI[0-1],RX,RY,RZ]
-; bc = x vertex coordinate [16bits]
-; OUT register
-; de = de + VX_VERTEX_SIZE
-; iy = iy + VX_VERTEX_DATA_SIZE
-; data copied to memory
-; X coordinate
-;	ld	bc, (iy+0)
-.MTX:=$+1
-	ld	de, $CC
-.MC0:=$+1
-	ld	a, $CC
-	ld	h, b
+; ix = output data register [RC,SY,SX,RI[0-1],RX,RY,RZ]
+
+.fma_divide:
+	ld	sp, .trampoline_stack
+; compute the Z coordinate from matrix register with FMA engine ;
+	ld	a, (iy+VX_VERTEX_SM)
+.MS2:=$+1
+	xor	a, $CC
+	ld	hl, .engine_000 shr 1
 	ld	l, a
-	mlt	hl
-	cp	a, $80
-	jr	c, $+4
-	sbc	hl, bc
-	bit	7, b
-	ld	b, a
-	jr	z, $+5
-	cpl
-	adc	a, h
-	ld	h, a
 	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	mlt	bc
-	add	hl, bc
-	add	hl, de
-	ld	bc, (iy+VX_VERTEX_VY)
-.MC1:=$+1
-	ld	a, $CC
-	ld	d, c
-	ld	e, a
-	mlt	de
-	add	hl, de
-	ex	de, hl
-	ld	h, b
-	ld	l, a
-	mlt	hl
-	cp	$80
-	jr	c, $+4
-	sbc	hl, bc
-	bit	7, b
-	jr	z, $+5
-	cpl
-	adc	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, de
-	ld	bc, (iy+VX_VERTEX_VZ)
-.MC2:=$+1
-	ld	a, $CC
-	ld	d, c
-	ld	e, a
-	mlt	de
-	add	hl, de
-	ex	de, hl
-	ld	h, b
-	ld	l, a
-	mlt	hl
-	cp	$80
-	jr	c, $+4
-	sbc	hl, bc
-	bit	7, b
-	jr	z, $+5
-	cpl
-	adc	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, de
-	ld	(ix+VX_VERTEX_RX), hl
-; Z coordinate
-.MTZ:=$+1
-	ld	de, $CC
+.MC6:=$+1
+.MC7:=$+2
+	ld	de, $CCCCCC
 .MC8:=$+1
 	ld	a, $CC
-	ld	h, b
-	ld	l, a
-	mlt	hl
-	cp	$80
-	jr	c, $+4
-	sbc	hl, bc
-	bit	7, b
-	ld	b, a
-	jr	z, $+5
-	cpl
-	adc	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	mlt	bc
-	add	hl, bc
-	add	hl, de
-.MC7:=$+1
-	ld	a, $CC
-	ld	bc, (iy+VX_VERTEX_VY)
-	ld	d, c
-	ld	e, a
-	mlt	de
-	add	hl, de
-	ex	de, hl
-	ld	h, b
-	ld	l, a
-	mlt	hl
-	cp	$80
-	jr	c, $+4
-	sbc	hl, bc
-	bit	7, b
-	jr	z, $+5
-	cpl
-	adc	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, de
-.MC6:=$+1
-	ld	a, $CC
-	ld	bc, (iy+VX_VERTEX_VX)
-	ld	d, c
-	ld	e, a
-	mlt	de
-	add	hl, de
-	ex	de, hl
-	ld	h, b
-	ld	l, a
-	mlt	hl
-	cp	$80
-	jr	c, $+4
-	sbc	hl, bc
-	bit	7, b
-	jr	z, $+5
-	cpl
-	adc	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
+	jp	(hl)
+.trampoline_v0_ret:
+.MTZ:=$+1
+	ld	de, $CCCCCC
 	add	hl, de
 	ld	(ix+VX_VERTEX_RZ), hl
-; Y coordinate
-.MTY:=$+1
-	ld	de, $CC
+; X coordinate ;
+	ld	a, (iy+VX_VERTEX_SM)
+.MS0:=$+1
+	xor	a, $CC
+	ld	hl, .engine_000 shr 1
+	ld	l, a
+	add	hl, hl
+.MC0:=$+1
+.MC1:=$+2
+	ld	de, $CCCCCC
+.MC2:=$+1
+	ld	a, $CC
+	jp	(hl)
+.trampoline_v1_ret:
+.MTX:=$+1
+	ld	de, $CCCCCC
+	add	hl, de
+	ld	(ix+VX_VERTEX_RX), hl
+; Y coordinate ;
+	ld	a, (iy+VX_VERTEX_SM)
+.MS1:=$+1
+	xor	a, $CC
+	ld	hl, .engine_000 shr 1
+	ld	l, a
+	add	hl, hl
 .MC3:=$+1
-	ld	a, $CC
-	ld	h, b
-	ld	l, a
-	mlt	hl
-	cp	$80
-	jr	c, $+4
-	sbc	hl, bc
-	bit	7, b
-	ld	b, a
-	jr	z, $+5
-	cpl
-	adc	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	mlt	bc
-	add	hl, bc
-	add	hl, de
-.MC4:=$+1
-	ld	a, $CC
-	ld	bc, (iy+VX_VERTEX_VY)
-	ld	d, c
-	ld	e, a
-	mlt	de
-	add	hl, de
-	ex	de, hl
-	ld	h, b
-	ld	l, a
-	mlt	hl
-	cp	$80
-	jr	c, $+4
-	sbc	hl, bc
-	bit	7, b
-	jr	z, $+5
-	cpl
-	adc	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, de
+.MC4:=$+2
+	ld	de, $CCCCCC
 .MC5:=$+1
 	ld	a, $CC
-	ld	bc, (iy+VX_VERTEX_VZ)
-	ld	d, c
-	ld	e, a
-	mlt	de
-	add	hl, de
-	ex	de, hl
-	ld	h, b
-	ld	l, a
-	mlt	hl
-	cp	$80
-	jr	c, $+4
-	sbc	hl, bc
-	bit	7, b
-	jr	z, $+5
-	cpl
-	adc	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
+	jp	(hl)
+.trampoline_v2_ret:
+.MTY:=$+1
+	ld	de, $CCCCCC
 	add	hl, de
 	ld	(ix+VX_VERTEX_RY), hl
 
-; lightning model is here, infinite directionnal light, no pow
-	xor	a, a
-	ld	c, (iy+VX_VERTEX_NX)
-.LV0=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-	ld	c, (iy+VX_VERTEX_NY)
-.LV1=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-	ld	c, (iy+VX_VERTEX_NZ)
-.LV2=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-; max(a,0)
-	jp	p, $+5
-	xor	a, a
-	ld	c, a
-.LE=$+1
-	ld	b, $CC
-	mlt	bc
-	ld	a, b
-	rl	c
-.LA=$+1
-	adc	a, $CC
-; min(a,15)
-	cp	a, 32
-	jr	c, $+4
-	ld	a, 31
-	ld	(ix+VX_VERTEX_UNIFORM), a
+; ; lightning model is here, infinite directionnal light, no pow
+; 	xor	a, a
+; 	ld	c, (iy+VX_VERTEX_NX)
+; .LV0=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; 	ld	c, (iy+VX_VERTEX_NY)
+; .LV1=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; 	ld	c, (iy+VX_VERTEX_NZ)
+; .LV2=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; ; max(a,0)
+; 	jp	p, $+5
+; 	xor	a, a
+; 	ld	c, a
+; .LE=$+1
+; 	ld	b, $CC
+; 	mlt	bc
+; 	ld	a, b
+; 	rl	c
+; .LA=$+1
+; 	adc	a, $CC
+; ; min(a,15)
+; 	cp	a, 32
+; 	jr	c, $+4
+; 	ld	a, 31
+; 	ld	(ix+VX_VERTEX_UNIFORM), a
 
 .perspective_divide:
 ;	ld	hl, (ix+VX_VERTEX_RY)
@@ -549,4 +392,300 @@ vxVertexCompute:
 	adc	hl, de
 	ld	(ix+VX_VERTEX_SX), hl
 	ret
+
+align 512
+.engine_000:
+; 232 cycles
+	ld	h, (iy+VX_VERTEX_VX+1)
+	ld	l, e
+	mlt	hl
+	ld	b, (iy+VX_VERTEX_VY+1)
+	ld	c, d
+	mlt	bc
+	add	hl, bc
+	ld	b, (iy+VX_VERTEX_VZ+1)
+	ld	c, a
+	mlt	bc
+	add	hl, bc
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	ld	b, (iy+VX_VERTEX_VX)
+	ld	c, e
+	mlt	bc
+	add	hl, bc
+	ld	e, (iy+VX_VERTEX_VY)
+	mlt	de
+	add	hl, de
+	ld	b, (iy+VX_VERTEX_VZ)
+	ld	c, a
+	mlt	bc
+	add	hl, bc
+	ret
+
+align 64
+.engine_001:
+; 241 cycles
+	ld	h, (iy+VX_VERTEX_VX+1)
+	ld	l, e
+	mlt	hl
+	ld	b, (iy+VX_VERTEX_VY+1)
+	ld	c, d
+	mlt	bc
+	add	hl, bc
+	ld	b, (iy+VX_VERTEX_VZ+1)
+	ld	c, a
+	mlt	bc
+	sbc	hl, bc
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	ld	b, (iy+VX_VERTEX_VX)
+	ld	c, e
+	mlt	bc
+	add	hl, bc
+	ld	e, (iy+VX_VERTEX_VY)
+	mlt	de
+	add	hl, de
+	ld	b, (iy+VX_VERTEX_VZ)
+	ld	c, a
+	mlt	bc
+	or	a, a
+	sbc	hl, bc
+	ret
+ 
+align 64
+.engine_010:
+; 241 cycles
+	ld	h, (iy+VX_VERTEX_VX+1)
+	ld	l, e
+	mlt	hl
+	ld	b, (iy+VX_VERTEX_VY+1)
+	ld	c, d
+	mlt	bc
+	sbc	hl, bc
+	ld	b, (iy+VX_VERTEX_VZ+1)
+	ld	c, a
+	mlt	bc
+	add	hl, bc
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	ld	b, (iy+VX_VERTEX_VX)
+	ld	c, e
+	mlt	bc
+	add	hl, bc
+	ld	e, (iy+VX_VERTEX_VY)
+	mlt	de
+	or	a, a
+	sbc	hl, de
+	ld	b, (iy+VX_VERTEX_VZ)
+	ld	c, a
+	mlt	bc
+	add	hl, bc
+	ret
+
+align 64
+.engine_011:
+; 253 cycles
+	ld	h, (iy+VX_VERTEX_VX+1)
+	ld	l, e
+	mlt	hl
+	ld	b, (iy+VX_VERTEX_VY+1)
+	ld	c, d
+	mlt	bc
+	sbc	hl, bc
+	ld	b, (iy+VX_VERTEX_VZ+1)
+	ld	c, a
+	mlt	bc
+	or	a, a
+	sbc	hl, bc
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	ld	b, (iy+VX_VERTEX_VX)
+	ld	c, e
+	mlt	bc
+	add	hl, bc
+	ld	e, (iy+VX_VERTEX_VY)
+	mlt	de
+	or	a, a
+	sbc	hl, de
+	ld	b, (iy+VX_VERTEX_VZ)
+	ld	c, a
+	mlt	bc
+	or	a, a
+	sbc	hl, bc
+	ret
+
+align 64
+.engine_100:
+; 241 cycles
+	ld	h, (iy+VX_VERTEX_VZ+1)
+	ld	l, a
+	mlt	hl
+	ld	b, (iy+VX_VERTEX_VX+1)
+	ld	c, e
+	mlt	bc
+	sbc	hl, bc
+	ld	b, (iy+VX_VERTEX_VY+1)
+	ld	c, d
+	mlt	bc
+	add	hl, bc
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	ld	b, (iy+VX_VERTEX_VX)
+	ld	c, e
+	mlt	bc
+	or	a, a
+	sbc	hl, bc
+	ld	e, (iy+VX_VERTEX_VY)
+	mlt	de
+	add	hl, de
+	ld	b, (iy+VX_VERTEX_VZ)
+	ld	c, a
+	mlt	bc
+	add	hl, bc
+	ret
+
+align 64
+.engine_101:
+; 253 cycles
+	ld	h, (iy+VX_VERTEX_VY+1)
+	ld	l, d
+	mlt	hl
+	ld	b, (iy+VX_VERTEX_VX+1)
+	ld	c, e
+	mlt	bc
+	sbc	hl, bc
+	ld	b, (iy+VX_VERTEX_VZ+1)
+	ld	c, a
+	mlt	bc
+	or	a, a
+	sbc	hl, bc
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	ld	b, (iy+VX_VERTEX_VX)
+	ld	c, e
+	mlt	bc
+	or	a, a
+	sbc	hl, bc
+	ld	e, (iy+VX_VERTEX_VY)
+	mlt	de
+	add	hl, de
+	ld	b, (iy+VX_VERTEX_VZ)
+	ld	c, a
+	mlt	bc
+	or	a, a
+	sbc	hl, bc
+	ret
+
+align 64
+.engine_110:
+; 253 cycles
+	ld	h, (iy+VX_VERTEX_VZ+1)
+	ld	l, a
+	mlt	hl
+	ld	b, (iy+VX_VERTEX_VX+1)
+	ld	c, e
+	mlt	bc
+	sbc	hl, bc
+	ld	b, (iy+VX_VERTEX_VY+1)
+	ld	c, d
+	mlt	bc
+	or	a, a
+	sbc	hl, bc
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	ld	b, (iy+VX_VERTEX_VX)
+	ld	c, e
+	mlt	bc
+	or	a, a
+	sbc	hl, bc
+	ld	e, (iy+VX_VERTEX_VY)
+	mlt	de
+	or	a, a
+	sbc	hl, de
+	ld	b, (iy+VX_VERTEX_VZ)
+	ld	c, a
+	mlt	bc
+	add	hl, bc
+	ret	
+
+align 64
+.engine_111:
+; 247 cycles
+	ld	h, (iy+VX_VERTEX_VX+1)
+	ld	l, e
+	mlt	hl
+	ld	b, (iy+VX_VERTEX_VY+1)
+	ld	c, d
+	mlt	bc
+	add	hl, bc
+	ld	b, (iy+VX_VERTEX_VZ+1)
+	ld	c, a
+	mlt	bc
+	add	hl, bc
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	ld	b, (iy+VX_VERTEX_VX)
+	ld	c, e
+	mlt	bc
+	add	hl, bc
+	ld	e, (iy+VX_VERTEX_VY)
+	mlt	de
+	add	hl, de
+	ld	b, (iy+VX_VERTEX_VZ)
+	ld	c, a
+	mlt	bc
+	add	hl, bc
+	ex	de, hl
+	sbc	hl, hl
+	sbc	hl, de
+	ret
+align 64
 endrelocate

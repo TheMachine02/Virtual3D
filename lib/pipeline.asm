@@ -240,7 +240,7 @@ vxVertexStream:
 	pop	iy
 ; iy = source, ix = matrix
 	ld	a, (iy+VX_STREAM_HEADER_OPTION)
-	ld	bc, (iy+VX_STREAM_HEADER_COUNT)
+; 	ld	bc, (iy+VX_STREAM_HEADER_COUNT)
 	lea	iy, iy+VX_STREAM_HEADER_SIZE
 ; iy+0 are options, so check those. Here, only bounding box is interesting.
 	and	a, VX_STREAM_HEADER_BBOX
@@ -248,33 +248,32 @@ vxVertexStream:
 	pop	ix
 	ret	c
 	cce	ge_vtx_transform
-	ld	a, c
-	dec	bc
-	inc	b
-	ld	c, b
-	ld	b, a
+	ld	(.SP_RET), sp
 ; ix = cache, iy = source, ix = matrix, bc = size
-vxVertexStreamLoop:
-	push	bc
-; read first source value, if value=32768, then compute bone
-	ld	bc, (iy+0)
-	ld	a, b
-	xor	VX_ANIMATION_BONE/256
-	or	a, c
-; wasn't a bone in source, so read vertex
-; call vertex shader
-	jr	z, vxVertexLoadBone
-	call	vxVertexCompute
+	ld	a, (iy+VX_VERTEX_SM)
+	dec	a
+	jp	z, .stream_end
+	dec	a
+	jp	z, .load_bone
+.compute:
+; 54 cycles can be saved here, (even a bit more in fact)
+	ld	sp, vxVertexShader.stack
+	call	vxVertexShader.fma_divide
 	lea	ix, ix+VX_VERTEX_SIZE
 	lea	iy, iy+VX_VERTEX_DATA_SIZE
-	pop	bc
-	djnz	vxVertexStreamLoop
-	dec	c
-	jr	nz, vxVertexStreamLoop
+.return:
+	ld	a, (iy+VX_VERTEX_SM)
+	cp	a, VX_ANIMATION_BONE
+	jr	z, .load_bone
+	dec	a
+	jp	nz, .compute
+.stream_end:	
 	ccr	ge_vtx_transform
+.SP_RET=$+1
+	ld	sp, $CCCCCC
 	or	a, a
 	ret
-vxVertexLoadBone:
+.load_bone:
 ; more complex stuff here. Need to restore initial matrix & do a multiplication with the correct bone key matrix
 ; once done, only advance in the source, not the cache
 	push	ix
@@ -309,7 +308,7 @@ vxVertexLoadBone:
 	add	iy, de
 	pop	ix
 	pop	bc
-	jp	vxVertexStreamLoop
+	jp	.return
 
 vxVertexStreamBox:
 	push	bc
@@ -321,13 +320,14 @@ vxVertexBoxLoop:
 	push	af
 	ld	bc, (iy+0)
 	ld	ix, VX_PATCH_VERTEX_POOL
-	call	vxVertexCompute
+;	call	vxVertexCompute
 	lea	iy, iy+VX_VERTEX_DATA_SIZE
 	pop	af
-	and	a, (ix+VX_VERTEX_CODE)
+;	and	a, (ix+VX_VERTEX_CODE)
 	pop	bc
 	djnz	vxVertexBoxLoop
 	pop	bc
+	xor	a, a
 	ret	z
 	scf
 	ret

@@ -444,7 +444,7 @@ bool load_obj(const char * path, unsigned short option)
         }
 		}
     }
-    out << "; end marker\n.db 1";    
+    out << "; end marker\n.dw 0,0,0\n.db 0,0,0\n.db 1";    
 
     if(option&SEPARATE)
     {

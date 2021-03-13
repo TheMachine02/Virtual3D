@@ -14,7 +14,7 @@ spasm -I lib/ example/file/CityTRIII1.inc bin/CITYF.8xv -E -S
 spasm -I lib/ example/file/TrainRoomTRIII0.inc bin/TRAINV.8xv -E -S
 spasm -I lib/ example/file/TrainRoomTRIII1.inc bin/TRAINF.8xv -E -S
 
-./tools/mdlconv  example/file/PoolTRIII.obj -T -N -S -B -X
+./tools/mdlconv  example/file/PoolTRIII.obj -T -N -S -B -X -F
 spasm -I lib/ example/file/PoolTRIII0.inc bin/POOLV.8xv -E -S
 spasm -I lib/ example/file/PoolTRIII1.inc bin/POOLF.8xv -E -S
 
@@ -78,7 +78,7 @@ echo "Converting TonberryFFVIII.obj..."
 spasm -I lib/ example/file/TonberryFFVIII0.inc bin/TONBV.8xv -E -S
 spasm -I lib/ example/file/TonberryFFVIII1.inc bin/TONBF.8xv -E -S
 
-./tools/mdlconv  example/file/UltimeciaFFVIII.obj -T -N -S -B -X
+./tools/mdlconv  example/file/UltimeciaFFVIII.obj -T -N -S -B -X -F
 spasm -I lib/ example/file/UltimeciaFFVIII0.inc bin/ULTIMV.8xv -E -S
 spasm -I lib/ example/file/UltimeciaFFVIII1.inc bin/ULTIMF.8xv -E -S
 

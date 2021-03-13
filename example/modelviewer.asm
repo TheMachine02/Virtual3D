@@ -226,15 +226,15 @@ World:
 
 Model:
 .vertex_appv:
-	db	ti.AppVarObj, "TONBV",0
+	db	ti.AppVarObj, "ULTIMV",0
 .vertex_source:
 	dl	0
 .triangle_appv:
-	db	ti.AppVarObj, "TONBF", 0
+	db	ti.AppVarObj, "ULTIMF", 0
 .triangle_source:
 	dl	0
 .texture_appv:
-	db	ti.AppVarObj, "TONBT", 0
+	db	ti.AppVarObj, "ULTIMT", 0
 .texture_source:
 	dl	0	
 .matrix:
