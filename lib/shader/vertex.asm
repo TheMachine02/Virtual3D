@@ -84,6 +84,10 @@ vxVertexShader:
 	ld	(.MTY), hl
 	ld	hl, (ix+VX_MATRIX0_TZ)
 	ld	(.MTZ), hl
+	ld	a, VX_SCREEN_HEIGHT
+	ld	(.SHY), a
+	xor	a, a
+	ld	(.SLY), a
 ; lightning write
 ; 	ld	a, (ix+VX_LIGHT0_VECTOR)
 ; 	ld	(.LV0), a
@@ -114,7 +118,7 @@ relocate VX_VERTEX_SHADER_CODE
 .fma_divide:
 	ld	sp, .trampoline_stack
 ; compute the Z coordinate from matrix register with FMA engine ;
-	ld	a, (iy+VX_VERTEX_SM)
+;	ld	a, (iy+VX_VERTEX_SM)
 .MS2:=$+1
 	xor	a, $CC
 	ld	hl, .engine_000 shr 1
@@ -226,6 +230,7 @@ relocate VX_VERTEX_SHADER_CODE
 	ld	a, (ix+VX_VERTEX_RZ+2)
 	rla
 	jr	c, .perspective_zclip
+.perspective_divide_ry:
 	xor	a, a
 	ld	(ix+VX_VERTEX_CODE), a
 	add	hl, hl
@@ -255,24 +260,24 @@ relocate VX_VERTEX_SHADER_CODE
 	sbc	hl, bc
 ; X < Z
 	jp	m, .clip_ry_0
-	or	a, 00100000b
+	or	a, 00100010b
 .clip_ry_0:
 	add	hl, bc
 	add	hl, bc
 	add	hl, hl
 	jr	nc, .clip_ry_1
-	or	a, 00010000b
+	or	a, 00010001b
 .clip_ry_1:
 	ld	hl, (ix+VX_VERTEX_RX)
 	sbc	hl, bc
 	jp	m, .clip_rx_0
-	or	a, 10000000b
+	or	a, 10001000b
 .clip_rx_0:
 	add	hl, bc
 	add	hl, bc
 	add	hl, hl
 	jr	nc, .clip_rx_1
-	or	a, 01000000b
+	or	a, 01000100b
 .clip_rx_1:
 	ld	(ix+VX_VERTEX_CODE), a
 	ret
@@ -284,40 +289,50 @@ relocate VX_VERTEX_SHADER_CODE
 	jr	nc, $+3
 	add	hl, bc
 	adc	a, a
-   	add	hl, hl
+	add	hl, hl
 	sbc	hl, bc
 	jr	nc, $+3
 	add	hl, bc
 	adc	a, a
-   	add	hl, hl
+	add	hl, hl
 	sbc	hl, bc
 	jr	nc, $+3
 	add	hl, bc
 	adc	a, a
-   	add	hl, hl
+	add	hl, hl
 	sbc	hl, bc
 	jr	nc, $+3
 	add	hl, bc
 	adc	a, a
-   	add	hl, hl
+	add	hl, hl
 	sbc	hl, bc
 	jr	nc, $+3
 	add	hl, bc
 	adc	a, a
-  	add	hl, hl
+	add	hl, hl
 	sbc	hl, bc
 	adc	a, a
-   	cpl
-   	add	a, a
-   	ld	l, VX_SCREEN_HEIGHT/2+1 ;precision stuffs
-   	ld	h, a
-   	mlt	hl
-   	ld	a, h
-   	jr	nc, $+3
-   	cpl
-   	adc	a, VX_SCREEN_HCENTER
+	cpl
+	add	a, a
+	ld	l, VX_SCREEN_HEIGHT/2+1 ;precision stuffs
+	ld	h, a
+	mlt	hl
+	ld	a, h
+	jr	nc, $+3
+	cpl
+	adc	a, VX_SCREEN_HCENTER
 	ld	(ix+VX_VERTEX_SY), a
-; do scissor here TODO
+.perspective_scissor_ry:
+; high y guardband if equivalent to negative Y due to inversed Y screen coordinate, 0001b if negative
+.SHY=$+1
+	cp	a, $CC + 1
+	jr	c, .perspective_high_y
+	set	0, (ix+VX_VERTEX_CODE)
+.perspective_high_y:
+.SLY=$+1
+	cp	a, $CC
+	jr	nc, .perspective_divide_rx
+	set	1, (ix+VX_VERTEX_CODE)
 .perspective_divide_rx:
 	ld	hl, (ix+VX_VERTEX_RX)
 	xor	a, a
@@ -648,7 +663,7 @@ align 64
 	ld	c, a
 	mlt	bc
 	add	hl, bc
-	ret	
+	ret
 
 align 64
 .engine_111:

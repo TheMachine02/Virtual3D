@@ -251,29 +251,29 @@ vxVertexStream:
 	ld	(.SP_RET), sp
 ; ix = cache, iy = source, ix = matrix, bc = size
 	ld	a, (iy+VX_VERTEX_SM)
-	dec	a
-	jp	z, .stream_end
-	dec	a
-	jp	z, .load_bone
-.compute:
+	cp	a, VX_ANIMATION_BONE
+	jr	z, .stream_load_bone
+	cp	a, VX_STREAM_END
+	jr	z, .stream_load_bone
+.stream_compute:
 ; 54 cycles can be saved here, (even a bit more in fact)
 	ld	sp, vxVertexShader.stack
 	call	vxVertexShader.fma_divide
 	lea	ix, ix+VX_VERTEX_SIZE
 	lea	iy, iy+VX_VERTEX_DATA_SIZE
-.return:
+.stream_return:
 	ld	a, (iy+VX_VERTEX_SM)
 	cp	a, VX_ANIMATION_BONE
-	jr	z, .load_bone
-	dec	a
-	jp	nz, .compute
+	jr	z, .stream_load_bone
+	cp	a, VX_STREAM_END
+	jr	nz, .stream_compute
 .stream_end:	
 	ccr	ge_vtx_transform
 .SP_RET=$+1
 	ld	sp, $CCCCCC
 	or	a, a
 	ret
-.load_bone:
+.stream_load_bone:
 ; more complex stuff here. Need to restore initial matrix & do a multiplication with the correct bone key matrix
 ; once done, only advance in the source, not the cache
 	push	ix
@@ -308,7 +308,7 @@ vxVertexStream:
 	add	iy, de
 	pop	ix
 	pop	bc
-	jp	.return
+	jp	.stream_return
 
 vxVertexStreamBox:
 	push	bc
