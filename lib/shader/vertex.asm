@@ -84,10 +84,14 @@ vxVertexShader:
 	ld	(.MTY), hl
 	ld	hl, (ix+VX_MATRIX0_TZ)
 	ld	(.MTZ), hl
-	ld	a, VX_SCREEN_HEIGHT
+	ld	a, VX_SCREEN_HEIGHT	; NOTE : this should be + 1
 	ld	(.SHY), a
 	xor	a, a
 	ld	(.SLY), a
+	ld	hl, VX_SCREEN_WIDTH	; NOTE : this should be + 1 for true bound, here the bound is 0-319
+	ld	(.SHX), hl
+	sbc	hl, hl
+	ld	(.SLX), hl
 ; lightning write
 ; 	ld	a, (ix+VX_LIGHT0_VECTOR)
 ; 	ld	(.LV0), a
@@ -406,6 +410,20 @@ relocate VX_VERTEX_SHADER_CODE
 	ld	de, VX_SCREEN_WCENTER
 	adc	hl, de
 	ld	(ix+VX_VERTEX_SX), hl
+.SLX=$+1
+	ld	de, $CCCCCC
+	or	a, a
+	sbc	hl, de
+	add	hl, de
+	jr	nc, .perspective_high_x
+	set	2, (ix+VX_VERTEX_CODE)
+	ret
+.perspective_high_x:
+.SHX=$+1
+	ld	de, $CCCCCC
+	sbc	hl, de
+	ret	c
+	set	3, (ix+VX_VERTEX_CODE)
 	ret
 
 align 512
