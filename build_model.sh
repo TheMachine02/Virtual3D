@@ -27,7 +27,7 @@ spasm -I lib/ example/file/XML1.ez80 bin/LARAF.8xv -E -S
 
 echo "Converting Suzanne..."
 
-./tools/mdlconv  example/file/Suzanne.obj -C -N -S -B -X
+./tools/mdlconv  example/file/Suzanne.obj -C -N -S -B -X -F
 spasm -I lib/ example/file/Suzanne0.inc bin/SUZANV.8xv -E -S
 spasm -I lib/ example/file/Suzanne1.inc bin/SUZANF.8xv -E -S
 
