@@ -20,8 +20,8 @@ relocate VX_PRIMITIVE_ASM_CODE
 
 vxPrimitiveAssembly:
 ; 4079 cc setup
-; 580 cc bfc / accept
-; 473 cc bfc / reject
+; 546/554 cc bfc / accept
+; 476 cc bfc / reject
 ; 212 cc clip reject
 .setup:
 ; input : iy=data, bc=size
@@ -77,8 +77,12 @@ vxPrimitiveAssembly:
 	add	hl, de
 	ld	de, VX_DEPTH_OFFSET
 	add	hl, de
+.MTR:=$+1
+	ld	l, $CC
 ; heavy but we'll need de later, so save it. Stack is also clobbered
-	ld	(.DPH), hl
+; write both the ID in the lower 8 bits and the depth in the upper 16 bits, we'll sort on the full 24 bit pair so similar material will be 'packed' together at best without breaking sorting
+	ld	(ix+VX_GEOMETRY_DEPTH), de
+;	ld	(ix+VX_GEOMETRY_ID), e
 ; we have hl and bc to do the bfc
 	ld	hl, VX_VIEW_MLTX shr 1
 	ld	l, (iy+VX_TRIANGLE_N0)		; between -32 and 32
@@ -99,16 +103,9 @@ vxPrimitiveAssembly:
 	add	hl, de
 	add	hl, hl
 	jr	nc, .discard
-.DPH:=$+1
-	ld	de, $CCCCCC
-.MTR:=$+1
-	ld	e, $CC
-;	ld	(ix+VX_GEOMETRY_ID), e
-; write both the ID in the lower 8 bits and the depth in the upper 16 bits, we'll sort on the full 24 bit pair so similar material will be 'packed' together at best without breaking sorting
-	ld	(ix+VX_GEOMETRY_DEPTH), de
 	ld	hl, VX_DEPTH_BUCKET + VX_GEOMETRY_SIZE
 	ld	a, l
-	ld	l, e
+	ld	l, (ix+VX_GEOMETRY_DEPTH)
 	add	a, (hl)
 	ld	(hl), a
 	jr	nc, .overflow
