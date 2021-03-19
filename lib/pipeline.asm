@@ -4,10 +4,8 @@ define	VX_GEOMETRY_QUEUE		$D10000	; 4*4096 (16K)
 define	VX_VERTEX_BUFFER		$D08000	; 16*2048 (32K)
 
 define	vxDepthSortTemp		$E30014
-
 define	VX_MAX_TRIANGLE			4096
 define	VX_MAX_VERTEX			2048
-define	VX_BATCH_DATA		$D03500
 
 ; TODO : create geometry shader in submission
 ; Better vertex shader with decoupled projection
@@ -525,6 +523,7 @@ vxCmdReadBuffer0=$+2
 	ld	a, c
 	ld	c, b
 	ld	b, a
+.llooping:
 	ld	e, 4		; size of final batch
 	ld	l, (ix+VX_GEOMETRY_DEPTH+2)
 	ld	a, e
@@ -535,9 +534,9 @@ vxCmdReadBuffer0=$+2
 	inc	(hl)
 	dec	h
 	lea	ix, ix+VX_GEOMETRY_SIZE
-	djnz	$-14
+	djnz	.llooping
 	dec	c
-	jr	nz, $-17
+	jr	nz, .llooping
 	ld	l, 255
 	ld	e, (hl)
 	inc	h
@@ -565,32 +564,29 @@ vxCmdRestoreBucket2:
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
-	lea	ix, ix-VX_GEOMETRY_SIZE
-
 	pop	bc
 	ld	a, c
-	inc	l
+	ld	iy, VX_GEOMETRY_QUEUE
 vxCmdFillBucket2:
+	lea	ix, ix-VX_GEOMETRY_SIZE
 	ld	l, (ix+VX_GEOMETRY_DEPTH+2)
 	ld	e, (hl)
 	inc	h
 	ld	d, (hl)
-	dec.sil	de
+	dec	de
 	dec	de
 	dec	de
 	dec	de
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
-	ld	iy, VX_GEOMETRY_QUEUE
-	add	iy, de
+	ld	iyh, d
+	ld	iyl, e
 ; copy only the triangle adress
 	ld	de, (ix+VX_GEOMETRY_INDEX)
 	ld	(iy+VX_GEOMETRY_INDEX), de
 	ld	l, (ix+VX_GEOMETRY_ID)
 	ld	(iy+VX_GEOMETRY_ID), l
-
-	lea	ix, ix-VX_GEOMETRY_SIZE
 	dec	a
 	jr	nz, vxCmdFillBucket2
 	djnz	vxCmdFillBucket2
