@@ -124,8 +124,8 @@ relocate VX_VERTEX_SHADER_CODE
 ; compute the Z coordinate from matrix register with FMA engine ;
 ;	ld	a, (iy+VX_VERTEX_SM)
 .MS2:=$+1
-	xor	a, $CC
-	ld	hl, .engine_000 shr 1
+	ld	hl, .engine_000 shr 1 or $CC
+	xor	a, l
 	ld	l, a
 	add	hl, hl
 .MC6:=$+1
@@ -142,8 +142,8 @@ relocate VX_VERTEX_SHADER_CODE
 ; X coordinate ;
 	ld	a, (iy+VX_VERTEX_SM)
 .MS0:=$+1
-	xor	a, $CC
-	ld	hl, .engine_000 shr 1
+	ld	hl, .engine_000 shr 1 or $CC
+	xor	a, l
 	ld	l, a
 	add	hl, hl
 .MC0:=$+1
@@ -160,8 +160,8 @@ relocate VX_VERTEX_SHADER_CODE
 ; Y coordinate ;
 	ld	a, (iy+VX_VERTEX_SM)
 .MS1:=$+1
-	xor	a, $CC
-	ld	hl, .engine_000 shr 1
+	ld	hl, .engine_000 shr 1 or $CC
+	xor	a, l
 	ld	l, a
 	add	hl, hl
 .MC3:=$+1
