@@ -1,4 +1,3 @@
-define	VX_DEPTH_BUCKET		$D03200
 define	VX_DEPTH_TEST		$01
 define	VX_DEPTH_BITS		24
 define	VX_DEPTH_MIN		0
@@ -8,11 +7,17 @@ define	VX_VIEW_MLT_OFFSET	132
 
 align	512
 VX_VIEW_MLTX:
-  rb	1024
+	rb	1024
 VX_VIEW_MLTY:
-  rb	1024
+	rb	1024
 VX_VIEW_MLTZ:
-  rb	1024
+	rb	1024
+VX_DEPTH_BUCKET_L:
+	rb	512
+VX_DEPTH_BUCKET_H:
+	rb	512
+VX_DEPTH_BUCKET_U:
+	rb	512
 
 VX_PRIMITIVE_ASM_COPY:
 ; relocate the shader to fast VRAM ($E30800)
@@ -81,8 +86,8 @@ vxPrimitiveAssembly:
 	ld	l, $CC
 ; heavy but we'll need de later, so save it. Stack is also clobbered
 ; write both the ID in the lower 8 bits and the depth in the upper 16 bits, we'll sort on the full 24 bit pair so similar material will be 'packed' together at best without breaking sorting
-	ld	(ix+VX_GEOMETRY_DEPTH), de
-;	ld	(ix+VX_GEOMETRY_ID), e
+	ld	(ix+VX_GEOMETRY_DEPTH), hl
+;	ld	(ix+VX_GEOMETRY_ID), l
 ; we have hl and bc to do the bfc
 	ld	hl, VX_VIEW_MLTX shr 1
 	ld	l, (iy+VX_TRIANGLE_N0)		; between -32 and 32
@@ -103,15 +108,33 @@ vxPrimitiveAssembly:
 	add	hl, de
 	add	hl, hl
 	jr	nc, .discard
-	ld	hl, VX_DEPTH_BUCKET + VX_GEOMETRY_SIZE
+	ld	hl, VX_DEPTH_BUCKET_L or VX_GEOMETRY_SIZE
 	ld	a, l
 	ld	l, (ix+VX_GEOMETRY_DEPTH)
 	add	a, (hl)
 	ld	(hl), a
-	jr	nc, .overflow
+	inc	h
+	jr	nc, .overflow_l
+	inc	(hl)
+.overflow_l:
+	inc	h
+	ld	a, VX_GEOMETRY_SIZE
+	ld	l, (ix+VX_GEOMETRY_DEPTH+1)
+	add	a, (hl)
+	ld	(hl), a
+	inc	h
+	jr	nc, .overflow_h
+	inc	(hl)
+.overflow_h:
+	inc	h
+	ld	a, 4
+	ld	l, (ix+VX_GEOMETRY_DEPTH+2)
+	add	a, (hl)
+	ld	(hl), a
+	jr	nc, .overflow_u
 	inc	h
 	inc	(hl)
-.overflow:
+.overflow_u:
 	ld	(ix+VX_GEOMETRY_INDEX), iy
 	lea	ix, ix+VX_GEOMETRY_SIZE
 .discard:
@@ -119,7 +142,7 @@ vxPrimitiveAssembly:
 	lea	iy, iy+$1C
 	ld	hl, (iy+VX_TRIANGLE_I0)
 	bit	0, l
-	jr	z, .pack
+	jp	z, .pack
 .SP_RET0:=$+1
 	ld	sp, $CCCCCC
 	ret

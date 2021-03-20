@@ -58,10 +58,9 @@ vxQueueSubmit:
 	ld	hl, (VX_LCD_BUFFER)
 	ld	(vxSubmissionQueue), hl
 	ld	iy, VX_GEOMETRY_QUEUE
-	ld	hl, VX_DEPTH_BUCKET
-	ld	de, VX_DEPTH_BUCKET+1
-	ld	bc, 511
-	ld	(hl), $00
+	ld	hl, OBLIVION
+	ld	de, VX_DEPTH_BUCKET_L
+	ld	bc, 256 * 6
 	ldir
 	ld	hl, VX_REGISTER_INTERPOLATION_COPY
 	ld	de, VX_REGISTER_INTERPOLATION_CODE
@@ -340,27 +339,54 @@ vxQueueDepthSort:
 	ld	de, VX_VERTEX_SHADER_CODE
 	ld	bc, VX_QUEUE_SORT_SIZE
 	ldir
-	jp	VX_VERTEX_SHADER_CODE
+	call	VX_VERTEX_SHADER_CODE
+	ccr	ge_z_sort
+	ret
 
 VX_QUEUE_BUFFER:=$
 relocate VX_VERTEX_SHADER_CODE
 ; sort the current submission queue
-	ld	ix, (vxSubmissionQueue)
+	ld	bc, (vxGeometrySize)
 	ld	hl, (vxDepthSortTemp)
-	ld	(vxCmdReadBuffer0), hl
 	ld	(vxCmdWriteBuffer0), hl
+	add	hl, bc
+	add	hl, bc
+	add	hl, bc
+	add	hl, bc
+	add	hl, bc
+	add	hl, bc
+	add	hl, bc
+	add	hl, bc
+	ld	(vxCmdReadBuffer0), hl
 	ld	de, VX_MAX_TRIANGLE*VX_GEOMETRY_SIZE
 	add	hl, de
-	ld	(vxCmdReadBuffer1), hl
 	ld	(vxCmdWriteBuffer1), hl
-
-; restore index position in array
-	ld	hl, VX_DEPTH_BUCKET+511
+	add	hl, bc
+	add	hl, bc
+	add	hl, bc
+	add	hl, bc
+	add	hl, bc
+	add	hl, bc
+	add	hl, bc
+	add	hl, bc
+	ld	(vxCmdReadBuffer1), hl
+; size computation
+	ld	a, c
+	dec	bc
+	inc	b
+	ld	c, b
+	ld	b, a
+	push	bc
+	push	bc
+	push	bc
+; actual sorting start here
+; restore index position in array for all three bucket
+	ld	hl, VX_DEPTH_BUCKET_L or 511
 	ld	d, (hl)
 	dec	h
 	ld	e, (hl)
 	dec	l
-vxCmdRestoreBucketLoop0:
+.restore_bucket_l:
 	ld	c, (hl)
 	inc	h
 	ld	b, (hl)
@@ -371,7 +397,7 @@ vxCmdRestoreBucketLoop0:
 	dec	h
 	ld	(hl), e
 	dec	l
-	jr	nz, vxCmdRestoreBucketLoop0
+	jr	nz, .restore_bucket_l
 	ld	c, (hl)
 	inc	h
 	ld	b, (hl)
@@ -381,193 +407,136 @@ vxCmdRestoreBucketLoop0:
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
-; and copy to the correct position
+; high bucket
+	ld	hl, VX_DEPTH_BUCKET_H or 511
+	ld	d, (hl)
+	dec	h
+	ld	e, (hl)
+	dec	l
+.restore_bucket_h:
+	ld	c, (hl)
+	inc	h
+	ld	b, (hl)
+	ex	de, hl
+	add	hl, bc
+	ex	de, hl
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
+	dec	l
+	jr	nz, .restore_bucket_h
+	ld	c, (hl)
+	inc	h
+	ld	b, (hl)
+	ex	de, hl
+	add	hl, bc
+	ex	de, hl
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
+; upper bucket
+	ld	hl, VX_DEPTH_BUCKET_U or 511
+	ld	d, (hl)
+	dec	h
+	ld	e, (hl)
+	dec	l
+.restore_bucket_u:
+	ld	c, (hl)
+	inc	h
+	ld	b, (hl)
+	ex	de, hl
+	add	hl, bc
+	ex	de, hl
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
+	dec	l
+	jr	nz, .restore_bucket_u
+	ld	c, (hl)
+	inc	h
+	ld	b, (hl)
+	ex	de, hl
+	add	hl, bc
+	ex	de, hl
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
+; sorting now, backward
+	ld	ix, (vxSubmissionQueue)
+	pop	bc
+.sort_bucket_l:
 	lea	ix, ix-VX_GEOMETRY_SIZE
-	ld	bc, (vxGeometrySize)
-	ld	a, c
-	dec	bc
-	inc	b
-	ld	c, a
-	push	bc
-	push	bc
-	push	bc
-	push	bc
-	ld	a, c
-vxCmdFillBucketOuter0:
-	push	bc
-	ld	b, 0
-vxCmdFillBucketInner0:
-	ld	hl, VX_DEPTH_BUCKET+VX_GEOMETRY_SIZE
-	ld	c, l
+	ld	hl, VX_DEPTH_BUCKET_L
 	ld	l, (ix+VX_GEOMETRY_DEPTH)
 	ld	e, (hl)
 	inc	h
 	ld	d, (hl)
-	ex	de, hl
-	sbc.s	hl, bc
-	ex	de, hl
+	dec	de
+	dec	de
+	dec	de
+	dec	de
+	dec	de
+	dec	de
+	dec	de
+	dec	de
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
 vxCmdWriteBuffer1=$+1
 	ld	hl, $0
 	add	hl, de
-	ex	de, hl
-	lea	hl, ix+0
-	dec	bc
-	dec	bc
-	ldir
-	lea	ix, ix-VX_GEOMETRY_SIZE
-	dec	a
-	jr	nz, vxCmdFillBucketInner0
-	pop	bc
-	djnz	vxCmdFillBucketOuter0
+	ld	iy, (ix+VX_GEOMETRY_INDEX)
+	ld	(hl), iy
+	inc	hl
+	inc	hl
+	inc	hl
+	ld	iy, (ix+VX_GEOMETRY_DEPTH)
+	ld	(hl), iy
+	djnz	.sort_bucket_l
+	dec	c
+	jr	nz, .sort_bucket_l
 
 vxCmdReadBuffer1=$+2
 	ld	ix, $0
-
-	ld	bc, 511
-	ld	hl, VX_DEPTH_BUCKET+511
-	ld	de, VX_DEPTH_BUCKET+510
-	ld	(hl), $00
-	lddr
-; restore size
 	pop	bc
-	ld	a, c
-	ld	c, b
-	ld	b, a
-	ld	e, VX_GEOMETRY_SIZE
-	ld	l, (ix+VX_GEOMETRY_DEPTH+1)
-	ld	a, e
-	add	a, (hl)
-	ld	(hl), a
-	jr	nc, $+5
-	inc	h
-	inc	(hl)
-	dec	h
-	lea	ix, ix+VX_GEOMETRY_SIZE
-	djnz	$-14
-	dec	c
-	jr	nz, $-17
-	ld	l, 255
-	ld	e, (hl)
-	inc	h
-	ld	d, (hl)
-	dec	h
-	dec	l
-vxCmdRestoreBucket1:
-	ld	c, (hl)
-	inc	h
-	ld	b, (hl)
-	ex	de, hl
-	add	hl, bc
-	ex	de, hl
-	ld	(hl), d
-	dec	h
-	ld	(hl), e
-	dec	l
-	jr	nz, vxCmdRestoreBucket1
-	ld	c, (hl)
-	inc	h
-	ld	b, (hl)
-	ex	de, hl
-	add	hl, bc
-	ex	de, hl
-	ld	(hl), d
-	dec	h
-	ld	(hl), e
+.sort_bucket_h:
 	lea	ix, ix-VX_GEOMETRY_SIZE
-
-	pop	bc
-	ld	a, c
-vxCmdFillBucketOuter1:
-	push	bc
-	ld	b, 0
-vxCmdFillBucketInner1:
-	ld	hl, VX_DEPTH_BUCKET+VX_GEOMETRY_SIZE
-	ld	c, l
+	ld	hl, VX_DEPTH_BUCKET_H
 	ld	l, (ix+VX_GEOMETRY_DEPTH+1)
 	ld	e, (hl)
 	inc	h
 	ld	d, (hl)
-	ex	de, hl
-	sbc.sil	hl, bc
-	ex	de, hl
+	dec	de
+	dec	de
+	dec	de
+	dec	de
+	dec	de
+	dec	de
+	dec	de
+	dec	de
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
 vxCmdWriteBuffer0=$+1
 	ld	hl, $0
 	add	hl, de
-	ex	de, hl
-	lea	hl, ix+0
-	dec	bc
-	dec	bc
-	ldir
-	lea	ix, ix-VX_GEOMETRY_SIZE
-	dec	a
-	jr	nz, vxCmdFillBucketInner1
-	pop	bc
-	djnz	vxCmdFillBucketOuter1
+	ld	iy, (ix+VX_GEOMETRY_INDEX)
+	ld	(hl), iy
+	inc	hl
+	inc	hl
+	inc	hl
+	ld	iy, (ix+VX_GEOMETRY_DEPTH)
+	ld	(hl), iy
+	djnz	.sort_bucket_h
+	dec	c
+	jr	nz, .sort_bucket_h
 
 vxCmdReadBuffer0=$+2
 	ld	ix, $0
-
-	ld	bc, 511
-	ld	hl, VX_DEPTH_BUCKET+511
-	ld	de, VX_DEPTH_BUCKET+510
-	ld	(hl), $00
-	lddr
-
 	pop	bc
-	ld	a, c
-	ld	c, b
-	ld	b, a
-.llooping:
-	ld	e, 4		; size of final batch
-	ld	l, (ix+VX_GEOMETRY_DEPTH+2)
-	ld	a, e
-	add	a, (hl)
-	ld	(hl), a
-	jr	nc, $+5
-	inc	h
-	inc	(hl)
-	dec	h
-	lea	ix, ix+VX_GEOMETRY_SIZE
-	djnz	.llooping
-	dec	c
-	jr	nz, .llooping
-	ld	l, 255
-	ld	e, (hl)
-	inc	h
-	ld	d, (hl)
-	dec	h
-	dec	l
-vxCmdRestoreBucket2:
-	ld	c, (hl)
-	inc	h
-	ld	b, (hl)
-	ex	de, hl
-	add	hl, bc
-	ex	de, hl
-	ld	(hl), d
-	dec	h
-	ld	(hl), e
-	dec	l
-	jr	nz, vxCmdRestoreBucket2
-	ld	c, (hl)
-	inc	h
-	ld	b, (hl)
-	ex	de, hl
-	add	hl, bc
-	ex	de, hl
-	ld	(hl), d
-	dec	h
-	ld	(hl), e
-	pop	bc
-	ld	a, c
-	ld	iy, VX_GEOMETRY_QUEUE
-vxCmdFillBucket2:
+	ld	de, VX_GEOMETRY_QUEUE
+	ld	hl, VX_DEPTH_BUCKET_U
+.sort_bucket_u:
 	lea	ix, ix-VX_GEOMETRY_SIZE
 	ld	l, (ix+VX_GEOMETRY_DEPTH+2)
 	ld	e, (hl)
@@ -580,17 +549,17 @@ vxCmdFillBucket2:
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
-	ld	iyh, d
-	ld	iyl, e
-; copy only the triangle adress
-	ld	de, (ix+VX_GEOMETRY_INDEX)
-	ld	(iy+VX_GEOMETRY_INDEX), de
-	ld	l, (ix+VX_GEOMETRY_ID)
-	ld	(iy+VX_GEOMETRY_ID), l
-	dec	a
-	jr	nz, vxCmdFillBucket2
-	djnz	vxCmdFillBucket2
-	ccr	ge_z_sort
+	ex	de, hl
+; copy 4 bytes
+	ld	a, (ix+VX_GEOMETRY_INDEX)
+	ld	(hl), a
+	inc	hl
+	ld	iy, (ix+VX_GEOMETRY_INDEX + 1)
+	ld	(hl), iy
+	ex	de, hl
+	djnz	.sort_bucket_u
+	dec	c
+	jr	nz, .sort_bucket_u
 	ret
 	
 VX_QUEUE_SORT_SIZE := $ - VX_VERTEX_SHADER_CODE

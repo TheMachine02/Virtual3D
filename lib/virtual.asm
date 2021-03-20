@@ -91,14 +91,12 @@ vxEngineInit:
 	ld	de, VX_LUT_SIN
 	ld	bc, VX_LUT_SIN_SIZE
 	ldir
-	ld	hl, VX_DEPTH_BUCKET
-	ld	de, VX_DEPTH_BUCKET+1
-	ld	(hl), c
-	inc	b
-	dec	c
+	ld	hl, OBLIVION
+	ld	de, VX_DEPTH_BUCKET_L
+	ld	b, 6	; 6*256 (3*512)
 	ldir
-	ld	hl, VX_VERTEX_BUFFER
-	ld	de, OBLIVION
+	ld	hl, OBLIVION
+	ld	de, VX_VERTEX_BUFFER
 	ld	bc, VX_MAX_VERTEX * VX_VERTEX_SIZE
 	ldir
 ; various other data
