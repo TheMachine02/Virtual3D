@@ -108,7 +108,8 @@ define	VX_POLYGON_I2			6
 
 ; geometry out buffer register ;
 
-define	VX_GEOMETRY_SIZE		8
+define	VX_GEOMETRY_SIZE		6
+define	VX_GEOMETRY_KEY_SIZE		4
 define	VX_GEOMETRY_INDEX		0
 define	VX_GEOMETRY_ID			3
 define	VX_GEOMETRY_DEPTH		3

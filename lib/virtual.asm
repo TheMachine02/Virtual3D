@@ -237,6 +237,7 @@ include	"vector.asm"
 include	"framebuffer.asm"
 include	"material.asm"
 include	"assembly.asm"
+include	"math.asm"
 include	"mipmap.asm"
 ; various LUT
 include	"data.inc"

@@ -95,7 +95,7 @@ vxPrimitiveDeferred:
 	ld	a, (hl)
 	inc	hl
 	ld	bc, (hl)			; subcache
-	pea	iy+4
+	pea	iy+VX_GEOMETRY_KEY_SIZE
 	ld	iy, (iy+VX_GEOMETRY_INDEX)	; read triangle data
 	call	vxPrimitiveRenderTriangle
 	pop	iy
@@ -150,14 +150,11 @@ vxQueueGeometry:
 	ld	(vxSubmissionQueue), hl
 	or	a, a
 	sbc	hl, de
-	sra	h
-	rr	l
-	sra	h
-	rr	l
-	sra	h
-	rr	l
-	ld	bc, (vxGeometrySize)
-	add	hl, bc
+	ex	de, hl
+	ld	bc, VX_GEOMETRY_SIZE
+	call	Math.div16	
+	ld	hl, (vxGeometrySize)
+	add	hl, de
 	ld	(vxGeometrySize), hl
 	ret
 
@@ -359,14 +356,10 @@ vxQueueDepthSortHelper:
 	add	hl, bc
 	add	hl, bc
 	add	hl, bc
-	add	hl, bc
-	add	hl, bc
 	ld	(.READ_B0), hl
-	ld	de, VX_MAX_TRIANGLE*VX_GEOMETRY_SIZE
+	ld	de, VX_MAX_TRIANGLE*8   ;VX_GEOMETRY_SIZE
 	add	hl, de
 	ld	(.WRITE_B1), hl
-	add	hl, bc
-	add	hl, bc
 	add	hl, bc
 	add	hl, bc
 	add	hl, bc
@@ -481,8 +474,6 @@ vxQueueDepthSortHelper:
 	dec	de
 	dec	de
 	dec	de
-	dec	de
-	dec	de
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
@@ -510,8 +501,6 @@ vxQueueDepthSortHelper:
 	ld	e, (hl)
 	inc	h
 	ld	d, (hl)
-	dec	de
-	dec	de
 	dec	de
 	dec	de
 	dec	de
@@ -554,7 +543,7 @@ vxQueueDepthSortHelper:
 	dec	h
 	ld	(hl), e
 	ex	de, hl
-; copy 4 bytes
+; copy 4 (VX_GEOMETRY_KEY_SIZE) bytes
 	ld	a, (ix+VX_GEOMETRY_INDEX)
 	ld	(hl), a
 	inc	hl

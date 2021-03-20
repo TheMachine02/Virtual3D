@@ -118,18 +118,18 @@ vxPrimitiveAssembly:
 	inc	(hl)
 .overflow_l:
 	inc	h
-	ld	a, VX_GEOMETRY_SIZE
 	ld	l, (ix+VX_GEOMETRY_DEPTH+1)
-	add	a, (hl)
+	ld	a, (hl)
+	add	a, VX_GEOMETRY_SIZE
 	ld	(hl), a
 	inc	h
 	jr	nc, .overflow_h
 	inc	(hl)
 .overflow_h:
 	inc	h
-	ld	a, 4
 	ld	l, (ix+VX_GEOMETRY_DEPTH+2)
-	add	a, (hl)
+	ld	a, (hl)
+	add	a, VX_GEOMETRY_KEY_SIZE
 	ld	(hl), a
 	jr	nc, .overflow_u
 	inc	h
