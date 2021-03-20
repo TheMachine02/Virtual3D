@@ -45,4 +45,4 @@ To convert texture, please use the texture converter provided.
 
 # Notes
 
-This is version alpha 0.9 - lot of thing missing, may be broken too. Don't hesitate to open issues.
+This is version 1.0a - lot of thing missing, may be broken too. Don't hesitate to open issues.
