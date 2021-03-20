@@ -1,7 +1,6 @@
 define	VX_TIMER_CTRL		$F20030
 define	VX_TIMER_COUNTER_GP	$F20000
 define	VX_TIMER_COUNTER_FR	$F20010
-define	RAM_NULL		$E40000
 
 macro	cce	register			; cycle counter enable, destroy 0
 if defined VX_DEBUG_CC_INSTRUCTION
@@ -73,7 +72,7 @@ vxTimer:
 	res	0, (hl)
 	ld	l, VX_TIMER_COUNTER_GP and $FF
 	ex	de, hl
-	ld	hl, RAM_NULL
+	ld	hl, NULL_RAM
 	ld	bc, 4
 	ldir
 	ld	e, VX_TIMER_COUNTER_FR and $FF

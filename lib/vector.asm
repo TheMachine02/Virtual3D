@@ -270,3 +270,70 @@ vxReflect:
 	sub	a, c
 	ld	(de), a
 	ret
+
+vxNClip:
+; we'll compute (y1-y0)*(x2-x1)+(y2-y1)*(x0-x1)
+	inc	hl
+	inc	bc
+	inc	de
+	push	hl
+	push	bc
+	ld	a, (bc)
+	inc	hl
+	ld	hl, (hl)
+	ex	de, hl
+	inc	hl
+	ld	bc, (hl)
+	ex	de, hl
+; hl-bc is x0-x1
+	or	a, a
+	sbc	hl, bc
+	sra	h
+	rr	l
+	ld	c, h
+	ex	de, hl
+	dec	hl
+	sub	a, (hl)
+	ld	d, a
+	ld	a, 0
+	jr	nc, $+3
+	sub	a, e
+	bit	7, c
+	jr	z, $+3
+	sub	a, d
+	mlt	de
+	add	a, d
+	ld	d, a
+; bc and hl need a restore
+; (y1-y0)*(x2-x1)
+;  a - (hl)*hl-bc
+	ld	a, (hl)
+	inc	hl
+	ld	c, (hl)	; b still hold correct value
+	pop	hl	; pop bc
+	inc	hl
+	ld	hl, (hl)
+	or	a, a
+	sbc	hl, bc
+	sra	h
+	rr	l
+	ld	c, h
+	ex	de, hl
+	ex	(sp), hl	; save previous de
+	sub	a, (hl)
+	ld	d, a
+	ld	a, 0
+	jr	nc, $+3
+	sub	a, e
+	bit	7, c
+	jr	z, $+3
+	sub	a, d
+	mlt	de
+	add	a, d
+	ld	d, a
+; do de + temp_value
+	pop	hl
+	add	hl, de
+	dec	hl
+	rl	h
+	ret

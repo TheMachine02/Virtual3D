@@ -28,7 +28,7 @@ define	VX_VERSION	$10
 define	VX_TRUE		$01
 define	VX_FALSE	$00
 
-define	OBLIVION	$E40000
+define	NULL_RAM	$E40000
 
 ; geometry ;
 
@@ -91,11 +91,11 @@ vxEngineInit:
 	ld	de, VX_LUT_SIN
 	ld	bc, VX_LUT_SIN_SIZE
 	ldir
-	ld	hl, OBLIVION
+	ld	hl, NULL_RAM
 	ld	de, VX_DEPTH_BUCKET_L
 	ld	b, 6	; 6*256 (3*512)
 	ldir
-	ld	hl, OBLIVION
+	ld	hl, NULL_RAM
 	ld	de, VX_VERTEX_BUFFER
 	ld	bc, VX_MAX_VERTEX * VX_VERTEX_SIZE
 	ldir
@@ -235,7 +235,6 @@ include	"matrix.asm"
 include	"quaternion.asm"
 include	"vector.asm"
 include	"framebuffer.asm"
-;include	"fma.asm"
 include	"material.asm"
 include	"assembly.asm"
 include	"mipmap.asm"

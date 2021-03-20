@@ -3,7 +3,7 @@ include	"include/ti84pceg.inc"
 include	"include/tiformat.inc"
 
 define	DELTA	4096
-define	VX_DEBUG_CC_INSTRUCTION
+;define	VX_DEBUG_CC_INSTRUCTION
 
 format	ti executable 'TEST2'
 
@@ -95,7 +95,7 @@ Main:
 	call	vxFramebufferClear
 	call	vxQueueSubmit
 
-	call	debug.display_panel
+	call	debug.display_frame
 
 	call	vxFramebufferSwap
 

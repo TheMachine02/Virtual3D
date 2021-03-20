@@ -2,8 +2,8 @@ include	"shader/vertex.asm"
 
 define	VX_GEOMETRY_QUEUE		$D10000	; 4*4096 (16K)
 define	VX_VERTEX_BUFFER		$D08000	; 16*2048 (32K)
-
-define	vxDepthSortTemp		$E30014
+define	VX_QUEUE_SORT_CODE		$E30800
+define	vxDepthSortTemp			$E30014
 define	VX_MAX_TRIANGLE			4096
 define	VX_MAX_VERTEX			2048
 
@@ -58,7 +58,7 @@ vxQueueSubmit:
 	ld	hl, (VX_LCD_BUFFER)
 	ld	(vxSubmissionQueue), hl
 	ld	iy, VX_GEOMETRY_QUEUE
-	ld	hl, OBLIVION
+	ld	hl, NULL_RAM
 	ld	de, VX_DEPTH_BUCKET_L
 	ld	bc, 256 * 6
 	ldir
@@ -335,20 +335,24 @@ vxQueueDepthSort:
 	or	a, c
 	ret	z
 	cce	ge_z_sort
-	ld	hl, VX_QUEUE_BUFFER
-	ld	de, VX_VERTEX_SHADER_CODE
+	ld	hl, VX_QUEUE_SORT_COPY
+	ld	de, VX_QUEUE_SORT_CODE
 	ld	bc, VX_QUEUE_SORT_SIZE
 	ldir
-	call	VX_VERTEX_SHADER_CODE
+	call	vxQueueDepthSortHelper
 	ccr	ge_z_sort
 	ret
 
-VX_QUEUE_BUFFER:=$
-relocate VX_VERTEX_SHADER_CODE
+VX_QUEUE_SORT_COPY:
+; relocate to fast RAM
+relocate VX_QUEUE_SORT_CODE
+
+vxQueueDepthSortHelper:
 ; sort the current submission queue
 	ld	bc, (vxGeometrySize)
+.setup:
 	ld	hl, (vxDepthSortTemp)
-	ld	(vxCmdWriteBuffer0), hl
+	ld	(.WRITE_B0), hl
 	add	hl, bc
 	add	hl, bc
 	add	hl, bc
@@ -357,10 +361,10 @@ relocate VX_VERTEX_SHADER_CODE
 	add	hl, bc
 	add	hl, bc
 	add	hl, bc
-	ld	(vxCmdReadBuffer0), hl
+	ld	(.READ_B0), hl
 	ld	de, VX_MAX_TRIANGLE*VX_GEOMETRY_SIZE
 	add	hl, de
-	ld	(vxCmdWriteBuffer1), hl
+	ld	(.WRITE_B1), hl
 	add	hl, bc
 	add	hl, bc
 	add	hl, bc
@@ -369,7 +373,7 @@ relocate VX_VERTEX_SHADER_CODE
 	add	hl, bc
 	add	hl, bc
 	add	hl, bc
-	ld	(vxCmdReadBuffer1), hl
+	ld	(.READ_B1), hl
 ; size computation
 	ld	a, c
 	dec	bc
@@ -482,8 +486,8 @@ relocate VX_VERTEX_SHADER_CODE
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
-vxCmdWriteBuffer1=$+1
-	ld	hl, $0
+.WRITE_B1=$+1
+	ld	hl, $CCCCCC
 	add	hl, de
 	ld	iy, (ix+VX_GEOMETRY_INDEX)
 	ld	(hl), iy
@@ -496,8 +500,8 @@ vxCmdWriteBuffer1=$+1
 	dec	c
 	jr	nz, .sort_bucket_l
 
-vxCmdReadBuffer1=$+2
-	ld	ix, $0
+.READ_B1=$+2
+	ld	ix, $CCCCCC
 	pop	bc
 .sort_bucket_h:
 	lea	ix, ix-VX_GEOMETRY_SIZE
@@ -517,8 +521,8 @@ vxCmdReadBuffer1=$+2
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
-vxCmdWriteBuffer0=$+1
-	ld	hl, $0
+.WRITE_B0=$+1
+	ld	hl, $CCCCCC
 	add	hl, de
 	ld	iy, (ix+VX_GEOMETRY_INDEX)
 	ld	(hl), iy
@@ -531,8 +535,8 @@ vxCmdWriteBuffer0=$+1
 	dec	c
 	jr	nz, .sort_bucket_h
 
-vxCmdReadBuffer0=$+2
-	ld	ix, $0
+.READ_B0=$+2
+	ld	ix, $CCCCCC
 	pop	bc
 	ld	de, VX_GEOMETRY_QUEUE
 	ld	hl, VX_DEPTH_BUCKET_U
@@ -562,72 +566,5 @@ vxCmdReadBuffer0=$+2
 	jr	nz, .sort_bucket_u
 	ret
 	
-VX_QUEUE_SORT_SIZE := $ - VX_VERTEX_SHADER_CODE
+VX_QUEUE_SORT_SIZE:= $ - VX_QUEUE_SORT_CODE
 endrelocate
-
-vxNClip:
-; we'll compute (y1-y0)*(x2-x1)+(y2-y1)*(x0-x1)
-	inc	hl
-	inc	bc
-	inc	de
-	push	hl
-	push	bc
-	ld	a, (bc)
-	inc	hl
-	ld	hl, (hl)
-	ex	de, hl
-	inc	hl
-	ld	bc, (hl)
-	ex	de, hl
-; hl-bc is x0-x1
-	or	a, a
-	sbc	hl, bc
-	sra	h
-	rr	l
-	ld	c, h
-	ex	de, hl
-	dec	hl
-	sub	a, (hl)
-	ld	d, a
-	ld	a, 0
-	jr	nc, $+3
-	sub	a, e
-	bit	7, c
-	jr	z, $+3
-	sub	a, d
-	mlt	de
-	add	a, d
-	ld	d, a
-; bc and hl need a restore
-; (y1-y0)*(x2-x1)
-;  a - (hl)*hl-bc
-	ld	a, (hl)
-	inc	hl
-	ld	c, (hl)	; b still hold correct value
-	pop	hl	; pop bc
-	inc	hl
-	ld	hl, (hl)
-	or	a, a
-	sbc	hl, bc
-	sra	h
-	rr	l
-	ld	c, h
-	ex	de, hl
-	ex	(sp), hl	; save previous de
-	sub	a, (hl)
-	ld	d, a
-	ld	a, 0
-	jr	nc, $+3
-	sub	a, e
-	bit	7, c
-	jr	z, $+3
-	sub	a, d
-	mlt	de
-	add	a, d
-	ld	d, a
-; do de + temp_value
-	pop	hl
-	add	hl, de
-	dec	hl
-	rl	h
-	ret
