@@ -90,10 +90,10 @@ Main:
 	ld	hl, (hl)
 	ld	(debug.triangle_count), hl
 
-	call	vxQueueDepthSort
+	call	vxPrimitiveDepthSort
 	
 	call	vxFramebufferClear
-	call	vxQueueSubmit
+	call	vxPrimitiveSubmit
 
 	call	debug.display_frame
 

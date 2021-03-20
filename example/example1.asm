@@ -72,10 +72,10 @@ Main:
 	inc	hl
 	ld	hl, (hl)
 	ld	(debug.triangle_count), hl
-	call	vxQueueDepthSort
+	call	vxPrimitiveDepthSort
 ; clear should happen after sort since sort use the target framebuffer as a temporary buffer
 	call	vxFramebufferClear
-	call	vxQueueSubmit
+	call	vxPrimitiveSubmit
 	call	debug.display_panel
 	call	vxFramebufferSwap
 .keyboard:

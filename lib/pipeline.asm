@@ -2,7 +2,7 @@ include	"shader/vertex.asm"
 
 define	VX_GEOMETRY_QUEUE		$D10000	; 4*4096 (16K)
 define	VX_VERTEX_BUFFER		$D08000	; 16*2048 (32K)
-define	VX_QUEUE_SORT_CODE		$E30800
+define	VX_PRIMITIVE_SORT_CODE		$E30800
 define	vxDepthSortTemp			$E30014
 define	VX_MAX_TRIANGLE			4096
 define	VX_MAX_VERTEX			2048
@@ -53,7 +53,7 @@ vxModelViewReverse:
  db	0,0,0
  dl	0,0,0
 
-vxQueueSubmit:
+vxPrimitiveSubmit:
 ; various reset blahblah
 	ld	hl, (VX_LCD_BUFFER)
 	ld	(vxSubmissionQueue), hl
@@ -252,7 +252,7 @@ vxVertexStream:
 .stream_compute:
 ; 54 cycles can be saved here, (even a bit more in fact)
 	ld	sp, vxVertexShader.stack
-	call	vxVertexShader.fma_divide
+	call	vxVertexShader.ftransform_trampoline
 	lea	ix, ix+VX_VERTEX_SIZE
 	lea	iy, iy+VX_VERTEX_DATA_SIZE
 .stream_return:
@@ -326,27 +326,26 @@ vxVertexBoxLoop:
 	scf
 	ret
 
-vxQueueDepthSort:
+vxPrimitiveDepthSort:
+	cce	ge_z_sort
+	ld	hl, VX_PRIMITIVE_SORT_COPY
+	ld	de, VX_PRIMITIVE_SORT_CODE
+	ld	bc, VX_PRIMITIVE_SORT_SIZE
+	ldir
+	call	vxPrimitiveDepthSortHelper
+	ccr	ge_z_sort
+	ret
+
+VX_PRIMITIVE_SORT_COPY:
+; relocate to fast RAM
+relocate VX_PRIMITIVE_SORT_CODE
+
+vxPrimitiveDepthSortHelper:
+; sort the current submission queue
 	ld	bc, (vxGeometrySize)
 	ld	a, b
 	or	a, c
 	ret	z
-	cce	ge_z_sort
-	ld	hl, VX_QUEUE_SORT_COPY
-	ld	de, VX_QUEUE_SORT_CODE
-	ld	bc, VX_QUEUE_SORT_SIZE
-	ldir
-	call	vxQueueDepthSortHelper
-	ccr	ge_z_sort
-	ret
-
-VX_QUEUE_SORT_COPY:
-; relocate to fast RAM
-relocate VX_QUEUE_SORT_CODE
-
-vxQueueDepthSortHelper:
-; sort the current submission queue
-	ld	bc, (vxGeometrySize)
 .setup:
 	ld	hl, (vxDepthSortTemp)
 	ld	(.WRITE_B0), hl
@@ -555,5 +554,5 @@ vxQueueDepthSortHelper:
 	jr	nz, .sort_bucket_u
 	ret
 	
-VX_QUEUE_SORT_SIZE:= $ - VX_QUEUE_SORT_CODE
+VX_PRIMITIVE_SORT_SIZE:= $ - VX_PRIMITIVE_SORT_CODE
 endrelocate

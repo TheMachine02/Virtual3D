@@ -109,7 +109,7 @@ MainLoop:
 	inc	hl
 	ld	hl, (hl)
 	ld	(debug.triangle_count), hl
-	call	vxQueueDepthSort
+	call	vxPrimitiveDepthSort
 	
 ;	ld	c, 11100000b
 ;	call	vxClearBuffer
@@ -118,7 +118,7 @@ MainLoop:
 ;	inc	b
 ;	call	Skybox.render
 	
-	call	vxQueueSubmit
+	call	vxPrimitiveSubmit
 
 	call	debug.display_panel
 

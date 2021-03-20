@@ -93,21 +93,21 @@ vxVertexShader:
 	sbc	hl, hl
 	ld	(.SLX), hl
 ; lightning write
-	ld	a, (ix+VX_LIGHT0_VECTOR)
-	ld	(.LV0), a
-	ld	a, (ix+VX_LIGHT0_VECTOR+1)
-	ld	(.LV1), a
-	ld	a, (ix+VX_LIGHT0_VECTOR+2)
-	ld	(.LV2), a
-	ld	a, (ix+VX_LIGHT0_AMBIENT)
-	ld	(.LA), a
-	ld	a, (ix+VX_LIGHT0_POW)
-	ld	(.LE), a
+; 	ld	a, (ix+VX_LIGHT0_VECTOR)
+; 	ld	(.LV0), a
+; 	ld	a, (ix+VX_LIGHT0_VECTOR+1)
+; 	ld	(.LV1), a
+; 	ld	a, (ix+VX_LIGHT0_VECTOR+2)
+; 	ld	(.LV2), a
+; 	ld	a, (ix+VX_LIGHT0_AMBIENT)
+; 	ld	(.LA), a
+; 	ld	a, (ix+VX_LIGHT0_POW)
+; 	ld	(.LE), a
 	ret
 
 .ftransform:
 
-relocate VX_VERTEX_SHADER_CODE	
+relocate VX_VERTEX_SHADER_CODE
 	
 .trampoline_stack:
  dl	.trampoline_v0_ret
@@ -119,7 +119,7 @@ relocate VX_VERTEX_SHADER_CODE
 ; iy = vertex data register [VX,VY,VZ,VN[0-2]]
 ; ix = output data register [RC,SY,SX,RI[0-1],RX,RY,RZ]
 
-.fma_divide:
+.ftransform_trampoline:
 	ld	sp, .trampoline_stack
 ; compute the Z coordinate from matrix register with FMA engine ;
 ;	ld	a, (iy+VX_VERTEX_SM)
@@ -176,57 +176,57 @@ relocate VX_VERTEX_SHADER_CODE
 	add	hl, de
 	ld	(ix+VX_VERTEX_RY), hl
 
-; lightning model is here, infinite directionnal light, no pow
-	xor	a, a
-	ld	c, (iy+VX_VERTEX_NX)
-.LV0=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-	ld	c, (iy+VX_VERTEX_NY)
-.LV1=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-	ld	c, (iy+VX_VERTEX_NZ)
-.LV2=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-; max(a,0)
-	jp	p, $+5
-	xor	a, a
-	ld	c, a
-.LE=$+1
-	ld	b, $CC
-	mlt	bc
-	ld	a, b
-	rl	c
-.LA=$+1
-	adc	a, $CC
-; min(a,15)
-	cp	a, 32
-	jr	c, $+4
-	ld	a, 31
-	ld	(ix+VX_VERTEX_UNIFORM), a
+; ; lightning model is here, infinite directionnal light, no pow
+; 	xor	a, a
+; 	ld	c, (iy+VX_VERTEX_NX)
+; .LV0=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; 	ld	c, (iy+VX_VERTEX_NY)
+; .LV1=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; 	ld	c, (iy+VX_VERTEX_NZ)
+; .LV2=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; ; max(a,0)
+; 	jp	p, $+5
+; 	xor	a, a
+; 	ld	c, a
+; .LE=$+1
+; 	ld	b, $CC
+; 	mlt	bc
+; 	ld	a, b
+; 	rl	c
+; .LA=$+1
+; 	adc	a, $CC
+; ; min(a,15)
+; 	cp	a, 32
+; 	jr	c, $+4
+; 	ld	a, 31
+; 	ld	(ix+VX_VERTEX_UNIFORM), a
 
 .perspective_divide:
 ;	ld	hl, (ix+VX_VERTEX_RY)

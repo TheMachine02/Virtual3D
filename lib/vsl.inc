@@ -18,6 +18,7 @@ define	VX_GEOMETRY_SHADER_CODE		$E30800
 define	VX_GEOMETRY_SHADER_SIZE		512
 
 define	VX_PRIMITIVE_ASM_CODE		$E30800
+define	VX_PRIMITIVE_ASM_DATA		$E30800
 
 define	VX_SHADER_TYPE			0
 define	VX_SHADER_SIZE			1
@@ -119,16 +120,16 @@ define	VX_GEOMETRY_DEPTH		3
 define	VX_GEOMETRY_FORMAT		0
 define	VX_GEOMETRY_BUFFER		1
 
-; geometry format ;
-
 ; format mask
 define	VX_FORMAT_STRIDE		31	; the triangle stride value
+define	VX_FORMAT_UNIFORM_MIX		32	; mix the uniform value (usually light) for per triangle value
 define	VX_FORMAT_UNPACK_UV		64	; unpack UV from the triangle data
 define	VX_FORMAT_INTERPOLATION		128	; use the interpolation routine
 
 ; bits
 define	VX_FORMAT_INTERPOLATION_BIT	7
 define	VX_FORMAT_UNPACK_UV_BIT		6
+define	VX_FORMAT_UNIFORM_MIX_BIT	5
 
 ; default
 define	VX_FORMAT_TEXTURE		21 or VX_FORMAT_INTERPOLATION or VX_FORMAT_UNPACK_UV
@@ -144,6 +145,21 @@ define	VX_STREAM_HEADER_BBOX		8
 ;define	VX_STREAM_HEADER_FORMAT_MASK	00011111b
 
 define	VX_STREAM_END			1
+
+; image format ;
+
+define	VX_IMAGE_ZX7_COMPRESSED		10000000b
+define	VX_IMAGE_RLE_COMPRESSED		01000000b
+define	VX_IMAGE_UNCOMPRESSED		00100000b
+define	VX_IMAGE_PAGE			$D30000
+
+; animation ;
+
+;define	VX_ANIMATION_BONE		32768
+define	VX_ANIMATION_BONE		2
+define	VX_ANIMATION_HEADER_SIZE	3
+define	VX_ANIMATION_HEADER_MAGIC	0
+define	VX_ANIMATION_HEADER_COUNT	2
 
 ; type constant ;
 
@@ -182,12 +198,6 @@ define	VX_VECTOR_WZ			4
 define	VX_VECTOR_LX			0
 define	VX_VECTOR_LY			3
 define	VX_VECTOR_LZ			6
-
-;define	VX_ANIMATION_BONE		32768
-define	VX_ANIMATION_BONE		2
-define	VX_ANIMATION_HEADER_SIZE	3
-define	VX_ANIMATION_HEADER_MAGIC	0
-define	VX_ANIMATION_HEADER_COUNT	2
 
 define	VX_ANIMATION_MATRIX_SIZE	15
 define	VX_ANIMATION_MATRIX_C0		0
