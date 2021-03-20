@@ -141,7 +141,7 @@ renderLevel:
 	ld	hl, (vxGeometrySize)
 	ld	(debug.visible_count), hl
 
-	call	vxQueueDepthSort
+	call	vxPrimitiveDepthSort
 	call	vxFramebufferClear
 ; 	ld	hl, (Skybox)
 ; 	ld	de, (vxFramebuffer)
@@ -151,7 +151,7 @@ renderLevel:
 ; 	ld	bc, 320*80
 ; 	ldir
 	
-	call	vxQueueSubmit
+	call	vxPrimitiveSubmit
 	
 ; timer & counter
 ; 	
