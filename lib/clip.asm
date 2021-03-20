@@ -4,12 +4,12 @@ define	VX_PLANE_BIT2		00100000b
 define	VX_PLANE_BIT3		00010000b
 define	VX_PLANE_BIT4		00001000b
 define	VX_VERTEX_DIRTY		00000001b
-define	VX_SCREEN_WIDTH        	320
-define	VX_SCREEN_HEIGHT        240
-define	VX_SCREEN_WCENTER       VX_SCREEN_WIDTH shr 1
-define	VX_SCREEN_HCENTER       VX_SCREEN_HEIGHT shr 1
+define	VX_SCREEN_WIDTH		320
+define	VX_SCREEN_HEIGHT	240
+define	VX_SCREEN_WIDTH_CENTER	VX_SCREEN_WIDTH shr 1
+define	VX_SCREEN_HEIGHT_CENTER	VX_SCREEN_HEIGHT shr 1
 define 	VX_MAX_PATCH_VERTEX    	8
-define 	VX_MAX_PATCH_SIZE    	64
+define 	VX_MAX_PATCH_SIZE	64
 define	VX_PATCH_INPUT		$D03480
 define	VX_PATCH_OUTPUT		$D034C0
 define	VX_PATCH_VERTEX_POOL	$D03400
@@ -166,12 +166,12 @@ vxPrimitiveClipPlane:
 ; vertex coordinate ry
 	pop	af
 	and	a, 00100000b
-	ld	a, VX_SCREEN_HCENTER-(VX_SCREEN_HEIGHT/2)
+	ld	a, VX_SCREEN_HEIGHT_CENTER-(VX_SCREEN_HEIGHT/2)
 	jr	nz, .HNeg
 	ex	de, hl
 	sbc	hl, hl
 	sbc	hl, de
-	ld	a, VX_SCREEN_HCENTER+(VX_SCREEN_HEIGHT/2)
+	ld	a, VX_SCREEN_HEIGHT_CENTER+(VX_SCREEN_HEIGHT/2)
 .HNeg:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_RY), hl
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SY), a
@@ -237,14 +237,14 @@ vxPrimitiveClipPlane:
 	jr	nc, $+3
 	cpl
 	ld	l, a
-	ld	de, VX_SCREEN_WCENTER
+	ld	de, VX_SCREEN_WIDTH_CENTER
 	adc	hl, de
 	jr	.writex
 .equal1:
 	rra
-	ld	hl, VX_SCREEN_WCENTER-(VX_SCREEN_WIDTH/2)
+	ld	hl, VX_SCREEN_WIDTH_CENTER-(VX_SCREEN_WIDTH/2)
 	jr	c, .writex
-	ld	hl, VX_SCREEN_WCENTER+(VX_SCREEN_WIDTH/2)
+	ld	hl, VX_SCREEN_WIDTH_CENTER+(VX_SCREEN_WIDTH/2)
 .writex:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SX), hl
 	xor	a, a
@@ -357,12 +357,12 @@ vxPrimitiveClipPlane:
 	pop	af
 	and	a, 10000000b
 	push	bc
-	ld	bc, VX_SCREEN_WCENTER+(VX_SCREEN_WIDTH/2)
+	ld	bc, VX_SCREEN_WIDTH_CENTER+(VX_SCREEN_WIDTH/2)
 	jr	nz, .VNeg
 	ex	de, hl
 	sbc	hl, hl
 	sbc	hl, de
-	ld	bc, VX_SCREEN_WCENTER-(VX_SCREEN_WIDTH/2)
+	ld	bc, VX_SCREEN_WIDTH_CENTER-(VX_SCREEN_WIDTH/2)
 .VNeg:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_RX), hl
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SX), bc
@@ -425,16 +425,16 @@ vxPrimitiveClipPlane:
 	ld	a, h
 	jr	nc, $+3
 	cpl
-	adc	a, VX_SCREEN_HCENTER
+	adc	a, VX_SCREEN_HEIGHT_CENTER
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SY), a
 	xor	a, a
 	jp	.parametricCCompute
 .equal0:
 	jr	nz, .clipy0
 	rra
-	ld	a, VX_SCREEN_HCENTER-(VX_SCREEN_HEIGHT/2)
+	ld	a, VX_SCREEN_HEIGHT_CENTER-(VX_SCREEN_HEIGHT/2)
 	jr	nc, $+4
-	ld	a, VX_SCREEN_HCENTER+(VX_SCREEN_HEIGHT/2)
+	ld	a, VX_SCREEN_HEIGHT_CENTER+(VX_SCREEN_HEIGHT/2)
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SY), a
 	jp	.parametricCCompute
 .clipz0:
@@ -445,9 +445,9 @@ vxPrimitiveClipPlane:
 ; so when it moves on to the y code, x won't be clipped anymore, only clamped, which is more than enough
 	rra
 	ld	c, 00100000b
-	ld	a, VX_SCREEN_HCENTER-(VX_SCREEN_HEIGHT/2)
+	ld	a, VX_SCREEN_HEIGHT_CENTER-(VX_SCREEN_HEIGHT/2)
 	jr	nc, .clipy1
-	ld	a, VX_SCREEN_HCENTER+(VX_SCREEN_HEIGHT/2)
+	ld	a, VX_SCREEN_HEIGHT_CENTER+(VX_SCREEN_HEIGHT/2)
 	ld	c, 00010000b
 .clipy1:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SY), a

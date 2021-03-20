@@ -1,4 +1,4 @@
-; shader will copy 1024 bytes from global_data to VX_VRAM. This load occurs at begin of stream instruction, to ensure maximum vertex throughput. About 2200 cycles per vertex are needed.
+; shader will copy shader_size bytes from global_data to VX_VRAM. This load occurs at begin of stream instruction, to ensure maximum vertex throughput.
 
 vxModelView:
  db    0,0,0
@@ -318,16 +318,16 @@ relocate VX_VERTEX_SHADER_CODE
 	adc	a, a
 	cpl
 	add	a, a
-	ld	l, VX_SCREEN_HEIGHT/2+1 ;precision stuffs
+	ld	l, VX_SCREEN_HEIGHT shr 1
 	ld	h, a
 	mlt	hl
 	ld	a, h
 	jr	nc, $+3
 	cpl
-	adc	a, VX_SCREEN_HCENTER
+	adc	a, VX_SCREEN_HEIGHT_CENTER
 	ld	(ix+VX_VERTEX_SY), a
 .perspective_scissor_ry:
-; high y guardband if equivalent to negative Y due to inversed Y screen coordinate, 0001b if negative
+; high y guardband is equivalent to negative Y due to inversed Y screen coordinate, 0001b if negative
 .SHY=$+1
 	cp	a, $CC + 1
 	jr	c, .perspective_high_y
@@ -400,14 +400,14 @@ relocate VX_VERTEX_SHADER_CODE
 	adc	a, a
 	cpl
 	ld	l, a
-	ld	h, VX_SCREEN_WIDTH/2+1
+	ld	h, VX_SCREEN_WIDTH shr 1
 	mlt	hl
 	ld	a, h
 	sbc	hl, hl
 	jr	nc, $+3
 	cpl
 	ld	l, a
-	ld	de, VX_SCREEN_WCENTER
+	ld	de, VX_SCREEN_WIDTH_CENTER
 	adc	hl, de
 	ld	(ix+VX_VERTEX_SX), hl
 .SLX=$+1
