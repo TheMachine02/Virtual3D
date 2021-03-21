@@ -10,3 +10,5 @@ if ~definite ez80cmd
 	end calminstruction
 	ez80cmd:=0
 end if
+
+define	nan 0
