@@ -20,7 +20,7 @@
 using namespace std;
 using namespace glm;
 
-bool load_obj(const char * path,unsigned short option);
+bool load_obj(const char * path, const char* name, unsigned short option);
 ivec2 map_texture(vec2 textcoord);
 unsigned short rgb8to256(float r, float g,float b);
 //unsigned short rgb8to256(float r,float g, float b);
@@ -52,6 +52,7 @@ int main(int argc, char* argv[])
 ///   arg = -N : normal
 ///   arg = -C : colors
     const char* path=NULL;
+    const char* name=NULL;
     unsigned short option=0;
 
     if(argc<2)
@@ -95,6 +96,9 @@ int main(int argc, char* argv[])
                 break;
 	    case 'F':
 		    option=option|FMA;
+	    case 'O':
+		    name = argv[arg];
+		    break;
             default:
                 printf("Unrecognized argument %s\n",argv[arg]);
             }
@@ -111,11 +115,15 @@ int main(int argc, char* argv[])
         printf("No file has been set\n");
         return false;
     }
-
-    load_obj(path,option);
+    if(name==NULL){
+	    printf("No output file has been set\n");
+	return false;
+}
+    
+    load_obj(path,name,option);
 }
 
-bool load_obj(const char * path, unsigned short option)
+bool load_obj(const char * path, const char * name, unsigned short option)
 {
     ifstream in(path,std::ios::in);
     if (!in)
@@ -187,7 +195,7 @@ bool load_obj(const char * path, unsigned short option)
             int datasize=(int)data.size()/3;
             if(datasize>3)
             {
-                printf("Model contains quads, please triangulate before using.dlconv");
+                printf("Model contains quads, please triangulate before usingdlconv");
                 exit(EXIT_FAILURE);
             }
 
@@ -388,30 +396,36 @@ bool load_obj(const char * path, unsigned short option)
 
 // in vertex shader we'll compute :
 // (acos(dot(normal,normalize(view)))-coffset) +- cangle (based on the angle : always toward 0)
-// 	out << "include \"lib/ez80.inc\"\n";
-//     out << "include \"lib/tiformat.inc\"\n";
+	out << "include \"include/ez80.inc\"\n";
+	out << "include \"include/tiformat.inc\"\n";
+	out << "format ti archived appvar \'";
 	
+	string o_name = name;
+	o_name = o_name.substr(3);
+	out << o_name;
+	out << "V" << "\'\n";
+
 //    out << "include \"vxModel.inc\"" << '\n';
     out << "VERTEX_STREAM:" << '\n';
-    out << ".dl " << (vertexTable.size()*256)+option << '\n';
+    out << "dl " << (vertexTable.size()*256)+option << '\n';
 
     if(option&BOUNDING_BOX)
     {
         vector <vec3> boundbox=getBoundingBox(vertexTable);
         for(i=0;i<boundbox.size();i++)
         {
-            out << ".dw ";
+            out << "dw ";
             out << round(boundbox[i][0]*256.0) << ",";
             out << round(boundbox[i][1]*256.0) << ",";
             out << round(boundbox[i][2]*256.0) << '\n';
             if(option&NORMAL)
             {
-                out << ".db 0,0,0\n";
+                out << "db 0,0,0\n";
             }
             if(option&FMA)
-			{
-				out << ".db 0\n";
-			}
+		{
+			out << "db 0\n";
+		}
         }
     }
 
@@ -419,32 +433,32 @@ bool load_obj(const char * path, unsigned short option)
     {
 		if(option&FMA)
 		{
-        out << ".dw ";
+        out << "dw ";
 		int sm = sgn(round(vertexTable[i][0]*256.0)) << 7 | ( sgn(round(vertexTable[i][1]*256.0)) << 6) | (sgn(round(vertexTable[i][2]*256.0)) << 5);
         out << abs(round(vertexTable[i][0]*256.0)) << ",";
         out << abs(round(vertexTable[i][1]*256.0)) << ",";
         out << abs(round(vertexTable[i][2]*256.0)) << '\n';
-        out << ".db ";
+        out << "db ";
         out << round(vertexNormalTable[i][0]*64.0) << ",";
         out << round(vertexNormalTable[i][1]*64.0) << ",";
         out << round(vertexNormalTable[i][2]*64.0) << '\n';
-		out << ".db "<< sm << "\n";
+		out << "db "<< sm << "\n";
 			
 		}else{
-        out << ".dw ";
+        out << "dw ";
         out << round(vertexTable[i][0]*256.0) << ",";
         out << round(vertexTable[i][1]*256.0) << ",";
         out << round(vertexTable[i][2]*256.0) << '\n';
         if(option&NORMAL)
         {
-            out << ".db ";
+            out << "db ";
             out << round(vertexNormalTable[i][0]*64.0) << ",";
             out << round(vertexNormalTable[i][1]*64.0) << ",";
             out << round(vertexNormalTable[i][2]*64.0) << '\n';
         }
 		}
     }
-    out << "; end marker\n.dw 0,0,0\n.db 0,0,0\n.db 1";    
+    out << "; end marker\ndw 0,0,0\ndb 0,0,0\ndb 1";    
 
     if(option&SEPARATE)
     {
@@ -460,18 +474,18 @@ bool load_obj(const char * path, unsigned short option)
         cerr << "Cannot open " << newpath2.c_str() << endl;
         exit(EXIT_FAILURE);
     }
-//     out << "include \"vxModel.inc\"" << '\n';
-// 		out << "include \"lib/ez80.inc\"\n";
-// 		out << "include \"lib/tiformat.inc\"\n";
+	out << "include \"include/ez80.inc\"\n";
+	out << "include \"include/tiformat.inc\"\n";
+	out << "format ti archived appvar \'" << o_name << "F" << "\'\n";
     }
 
     out << "INDEX_STREAM:" << '\n';
-    out << ".dl " << (face_index.size()/10)*256+option << '\n';
+    out << "dl " << (face_index.size()/10)*256+option << '\n';
 
     for(i=0; i<face_index.size()/10; i++)
     {
         current_material=materialTable[face_index[i*10]];
-        out << ".dl " << face_index[i*10+1] *16 << "," << face_index[i*10+4] *16 << "," << face_index[i*10+7] *16 << '\n';
+        out << "dl " << face_index[i*10+1] *16 << "," << face_index[i*10+4] *16 << "," << face_index[i*10+7] *16 << '\n';
 
 //         if(option&FACE_NORMAL)
 //        {
@@ -485,31 +499,31 @@ bool load_obj(const char * path, unsigned short option)
             vec3 cst2(256.0,256.0,256.0);
             norm = norm * cst;
             vec3 vertex = vertexTable[face_index[i*10+1]] * cst2;
-            out << ".db " << ((int)round(norm[0]))*2 << ',' << ((int)round(norm[1])*2) << ',' << ((int)round(norm[2]))*2 << '\n';
-            out << ".dl " << -round(dot(norm,vertex)) << '\n';
+            out << "db " << ((int)round(norm[0]))*2 << ',' << ((int)round(norm[1])*2) << ',' << ((int)round(norm[2]))*2 << '\n';
+            out << "dl " << -round(dot(norm,vertex)) << '\n';
             // n*(p-v)  n (64) *p (256)
 //        }
 
         if(option&COLOR)
         {
-            out << ".db " << current_material.color << '\n';
+            out << "db " << current_material.color << '\n';
         }
 
         if(option&TEXTURE)
         {
- //           out << ".db " << current_material.texID << '\n';
+ //           out << "db " << current_material.texID << '\n';
             ivec2 text;
             text=map_texture(textTable[face_index[i*10+2]]);
-            out << ".db " << text[0] << "," << text[1] << '\n';
+            out << "db " << text[0] << "," << text[1] << '\n';
             text=map_texture(textTable[face_index[i*10+5]]);
-            out << ".db " << text[0] << ',' << text[1] << '\n';
+            out << "db " << text[0] << ',' << text[1] << '\n';
             text=map_texture(textTable[face_index[i*10+8]]);
-            out << ".db " << text[0] << ',' << text[1] << '\n';
+            out << "db " << text[0] << ',' << text[1] << '\n';
         }
 
         
     }
-    out << "; end marker\n.db 1";
+    out << "; end marker\ndb 1";
     
     out.close();
     return true;

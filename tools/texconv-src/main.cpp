@@ -20,7 +20,7 @@
 using namespace std;
 
 typedef unsigned int uint;
-void convertTexturePage(string filename, unsigned char option);
+void convertTexturePage(string filename, string outname, unsigned char option);
 unsigned char subPixelDither(unsigned int x,unsigned int y,unsigned char red, unsigned char green, unsigned char blue);
 int closest_rg(unsigned int c);
 int closest_b(unsigned int c);
@@ -53,7 +53,8 @@ int main(int argc, char* argv[])
 {
 ///   arg = name
 ///   arg = -C : colors
-    string filename;
+    const char *filename=NULL;
+    const char *outputname=NULL;
     unsigned char option=0;
 
     if(argc<2)
@@ -73,17 +74,20 @@ int main(int argc, char* argv[])
     {
         if(argv[arg][0]=='-'||argv[arg][0]=='/')
         {
-            switch(argv[arg][1])
+            switch(toupper(argv[arg][1]))
             {
-            case 'd':
+            case 'D':
                 option|=DITHER;
                 break;
-            case 'a':
+            case 'A':
                 option|=ALPHA;
                 break;
-			case 'c':
+			case 'C':
 				option|=COMPRESS;
 				break;
+		case 'O':
+			outputname=argv[arg];
+			break;
             default:
                 printf("Unrecognized argument %s\n",argv[arg]);
             }
@@ -94,7 +98,18 @@ int main(int argc, char* argv[])
         }
         arg++;
     }
-    convertTexturePage(filename, option);
+        if(filename==NULL){
+	printf("No input file has been set\n");
+	return false;
+	}
+	if(outputname==NULL){
+	    printf("No output file has been set\n");
+	return false;
+	}
+	
+	string outname = outputname;
+	outname = outname.substr(3);
+	convertTexturePage(filename, outname, option);
 }
 
 int closest_rg(unsigned int c) {
@@ -144,7 +159,7 @@ unsigned int subPixelDitherAlpha(unsigned int x,unsigned int y,unsigned char red
     return ((int)roundf(red*7.0/255.0)<<5) | ((int)roundf(blue*3.0/255.0)<<3) | ((int)roundf(green*7.0/255.0));
 }*/
 
-void convertTexturePage(string filename, unsigned char option)
+void convertTexturePage(string filename, string outname, unsigned char option)
 {
     unsigned int lastindex = filename.find_last_of(".");
 	if(lastindex == string::npos) return;
@@ -156,6 +171,11 @@ void convertTexturePage(string filename, unsigned char option)
 		cout << "Can't open output file" << std::endl;
 		return;
 	}
+	
+	out << "include \"include/ez80.inc\"\n";
+	out << "include \"include/tiformat.inc\"\n";
+	out << "format ti archived appvar \'";
+	out << outname << "\'\n";
 
   std::vector<unsigned char> image; //the raw pixels
   unsigned width, height;
@@ -226,7 +246,7 @@ void convertTexturePage(string filename, unsigned char option)
         return;
     }
     
-    out << ".db ";
+    out << "db ";
     for(unsigned int j=0;j<outsize;j++) {
         out << (int)ret[j];
         if(j!=(outsize-1)) out <<",";
@@ -234,7 +254,7 @@ void convertTexturePage(string filename, unsigned char option)
 	}
 	else{
 
-	out << ".db ";
+	out << "db ";
     for(unsigned int j=0;j<(image_size/4);j++) {
         out << (int)texture[j];
         if(j!=((image_size/4)-1)) out <<",";

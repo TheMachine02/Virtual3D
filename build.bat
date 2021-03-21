@@ -1,19 +1,29 @@
 @echo off
+@cls
 color 0F
-:Loop
-echo -----------------------------------
-echo Building example.ez80...
-spasm -L -T -E -A -S -I include/ -I lib/ example.ez80 bin/TEST.8xp
-echo -----------------------------------
-echo Building example1.ez80...
-spasm -L -T -E -A -S -I include/ -I lib/ example1.ez80 bin/TEST1.8xp
-echo -----------------------------------
-echo Building example2.ez80...
-spasm -L -T -E -A -S -I include/ -I lib/ example2.ez80 bin/TEST2.8xp
+mkdir bin
 
-echo -----------------------------------
-echo Building lvl.ez80...
-spasm -L -T -E -A -S -I include/ -I lib/ lvl.ez80 bin/TESTLVL.8xp
+:Loop
+
+echo building library ram image...
+fasmg lib/bss.asm lib/bss
+lz4.exe -f -l --best lib/bss lib/image
+del lib/bss
+
+echo "building example..."
+fasmg example/example.asm bin/V3DALPHA.8xp
+
+echo "building example 1..."
+fasmg example/example1.asm bin/V3DFLAT.8xp
+
+echo "building example 2..."
+fasmg example/modelviewer.asm bin/V3DVIEW.8xp
+
+echo "building level example..."
+fasmg example/lvl.asm bin/LVL.8xp
+
+echo "building animation example..."
+fasmg example/animation.asm bin/ANIMATE.8xp
 
 pause
 goto Loop
