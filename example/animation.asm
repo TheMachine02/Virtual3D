@@ -84,7 +84,7 @@ Main:
 	ld	iy, ModelMatrix
 	ld	hl, (Vertex)
 	ld	bc, (Triangle)
-	call	vxQueueGeometry
+	call	vxPrimitiveStream
 
 	ld	hl, (vxGeometrySize)
 	ld	(debug.visible_count), hl

@@ -105,7 +105,7 @@ vxPrimitiveDeferred:
 	jr	nz, vxPrimitiveDeferred
 	ret 
 	
-vxQueueGeometry:
+vxPrimitiveStream:
 ; hl : vertex source
 ;  a : material ID
 ; bc : triangle source

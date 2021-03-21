@@ -3,9 +3,9 @@ include	"include/ti84pceg.inc"
 include	"include/tiformat.inc"
 
 define	DELTA	4096
-;define	VX_DEBUG_CC_INSTRUCTION
+define	VX_DEBUG_CC_INSTRUCTION
 
-format	ti executable 'TEST2'
+format	ti executable archived 'V3DVIEW'
 
 Main:
 	ld	hl, Model.vertex_appv
@@ -81,7 +81,7 @@ Main:
 	ld	hl, (Model.vertex_source)
 	ld	bc, (Model.triangle_source)
 	ld	a, VX_MATERIAL0
-	call	vxQueueGeometry
+	call	vxPrimitiveStream
 
 	ld	hl, (vxGeometrySize)
 	ld	(debug.visible_count), hl
@@ -95,7 +95,7 @@ Main:
 	call	vxFramebufferClear
 	call	vxPrimitiveSubmit
 
-	call	debug.display_frame
+	call	debug.display_panel
 
 	call	vxFramebufferSwap
 

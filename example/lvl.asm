@@ -136,7 +136,7 @@ renderLevel:
 	pop	de
 	pop	hl
 
-	call	vxQueueGeometry
+	call	vxPrimitiveStream
 
 	ld	hl, (vxGeometrySize)
 	ld	(debug.visible_count), hl
@@ -713,7 +713,7 @@ Render:
 	pop	de
 	pop	hl
 	
-	call	vxQueueGeometry
+	call	vxPrimitiveStream
 
 	pop	bc
 	inc	c

@@ -2,11 +2,12 @@ include	"include/ez80.inc"
 include	"include/ti84pceg.inc"
 include	"include/tiformat.inc"
 
-format	ti executable 'TEST'
-
 define	VX_DEBUG_CC_INSTRUCTION
 
+format	ti executable archived 'V3DALPHA'
 
+Main:
+.init:
 	ld	hl, VertexName
 	call	find
 	ret	c
@@ -85,7 +86,7 @@ MainLoop:
 	ld	hl, (Vertex)
 	ld	bc, (Triangle)
 	ld	a, VX_MATERIAL0
-	call	vxQueueGeometry
+	call	vxPrimitiveStream
 
 ;	ld	a, VX_GEOMETRY_TI9
 ;	ld	ix, WorldMatrix
