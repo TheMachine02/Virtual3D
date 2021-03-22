@@ -29,9 +29,8 @@ vxFramebufferSetup:
 	ld	l, VX_LCD_ICR and $FF
 	ld	(hl), $FF
 ; setup 8bpp mode
-	ld	a, VX_BPP8
 	ld	l, VX_LCD_CTRL and $FF
-	ld	(hl), a
+	ld	(hl), VX_BPP8
 ; load vram buffer
 	ld	l, VX_LCD_BUFFER and $FF
 	ld	bc, VX_FRAMEBUFFER_AUX0
@@ -84,8 +83,7 @@ vxFramebufferRestore:
 	ld	l, VX_LCD_ICR and $FF
 	ld	(hl), $FF
 	ld	l, VX_LCD_CTRL and $FF
-	ld	a, VX_BPP16
-	ld	(hl),a
+	ld	(hl), VX_BPP16
 	ld	bc, VX_FRAMEBUFFER_AUX0
 	ld	l, VX_LCD_BUFFER and $FF
 	ld	(hl), bc
@@ -108,10 +106,10 @@ vxFramebufferAllocate:
 
 
 
-	ld	bc, VX_FRAMEBUFFER_AUX0
-	ld	(VX_LCD_BUFFER), bc
-	ld	bc, VX_FRAMEBUFFER_AUX1
-	ld	(vxFramebuffer), bc
+	ld	hl, VX_FRAMEBUFFER_AUX0
+	ld	(VX_LCD_BUFFER), hl
+	ld	hl, VX_FRAMEBUFFER_AUX1
+	ld	(vxFramebuffer), hl
 	ret
 
 vxFramebufferSwap:
@@ -127,7 +125,7 @@ vxFramebufferVsync:
 	bit	2, (hl)
 	jr	z, .waitVcomp
 ; wait until the LCD finish displaying the frame
-	ld	hl, VX_LCD_ICR
+	ld	l, VX_LCD_ICR and $FF
 	set	2, (hl)
 	ret
 
