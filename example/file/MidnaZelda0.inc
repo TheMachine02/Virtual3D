@@ -1,5 +1,6 @@
-include "include/ez80.inc"
-include "include/tiformat.inc"
+include "include/fasmg/ez80.inc"
+include "include/fasmg/tiformat.inc"
+define nan 0
 format ti archived appvar 'MIDNAV'
 VERTEX_STREAM:
 dl 416891
@@ -28,10 +29,10 @@ dw 1148,-1180,-143
 db 0,0,0
 db 0
 dw 708,94,41
-db -45,-0,-45
+db 4,-61,20
 db 128
 dw 728,83,31
-db -5,-52,-38
+db -5,-52,-37
 db 128
 dw 728,83,40
 db -19,-53,31

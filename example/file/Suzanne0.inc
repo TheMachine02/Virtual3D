@@ -1,5 +1,6 @@
-include "include/ez80.inc"
-include "include/tiformat.inc"
+include "include/fasmg/ez80.inc"
+include "include/fasmg/tiformat.inc"
+define nan 0
 format ti archived appvar 'SUZANV'
 VERTEX_STREAM:
 dl 129918
@@ -28,13 +29,13 @@ dw 350,-252,-218
 db 0,0,0
 db 0
 dw 112,42,196
-db 48,-41,-12
+db 0,-0,0
 db 32
 dw 112,42,196
-db -2,64,-1
+db -48,-41,-12
 db 160
 dw 128,24,176
-db 64,-2,-2
+db 38,-32,-40
 db 32
 dw 128,24,176
 db -38,-32,-40
@@ -1054,13 +1055,13 @@ dw 56,72,110
 db 60,-20,-7
 db 96
 dw 56,72,110
-db -63,-12,-3
+db -0,-0,0
 db 224
 dw 54,58,120
-db 56,-10,-29
+db 0,0,-0
 db 96
 dw 54,58,120
-db 45,-0,46
+db -56,-10,-29
 db 224
 dw 52,44,128
 db 47,-42,-12
@@ -1186,13 +1187,13 @@ dw 110,50,54
 db 28,-56,14
 db 64
 dw 110,50,54
-db -35,-52,13
+db -0,-0,0
 db 192
 dw 228,104,60
-db -8,45,-45
+db -0,0,-0
 db 0
 dw 228,104,60
-db 46,1,45
+db 8,45,-45
 db 128
 dw 198,36,32
 db 5,-38,-51

@@ -1,5 +1,6 @@
-include "include/ez80.inc"
-include "include/tiformat.inc"
+include "include/fasmg/ez80.inc"
+include "include/fasmg/tiformat.inc"
+define nan 0
 format ti archived appvar 'MJRNV'
 VERTEX_STREAM:
 dl 123259
@@ -28,7 +29,7 @@ dw 86,0,-28
 db 0,0,0
 db 0
 dw 10,162,1
-db -45,-0,-45
+db -62,-3,-17
 db 0
 dw 14,72,17
 db -63,9,1

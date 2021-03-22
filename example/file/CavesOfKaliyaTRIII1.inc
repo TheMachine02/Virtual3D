@@ -1,5 +1,6 @@
-include "include/ez80.inc"
-include "include/tiformat.inc"
+include "include/fasmg/ez80.inc"
+include "include/fasmg/tiformat.inc"
+define nan 0
 format ti archived appvar 'KALIYAF'
 INDEX_STREAM:
 dl 231035

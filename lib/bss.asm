@@ -1,4 +1,4 @@
-include	'include/ez80.inc'
+include	'include/fasmg/ez80.inc'
 
 if $ <> $D00000
  org	$D00000

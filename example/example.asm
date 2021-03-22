@@ -1,6 +1,6 @@
-include	"include/ez80.inc"
+include	"include/fasmg/ez80.inc"
+include	"include/fasmg/tiformat.inc"
 include	"include/ti84pceg.inc"
-include	"include/tiformat.inc"
 
 define	VX_DEBUG_CC_INSTRUCTION
 

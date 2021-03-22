@@ -396,8 +396,9 @@ bool load_obj(const char * path, const char * name, unsigned short option)
 
 // in vertex shader we'll compute :
 // (acos(dot(normal,normalize(view)))-coffset) +- cangle (based on the angle : always toward 0)
-	out << "include \"include/ez80.inc\"\n";
-	out << "include \"include/tiformat.inc\"\n";
+	out << "include \"include/fasmg/ez80.inc\"\n";
+	out << "include \"include/fasmg/tiformat.inc\"\n";
+	out << "define nan 0\n";
 	out << "format ti archived appvar \'";
 	
 	string o_name = name;
@@ -474,8 +475,9 @@ bool load_obj(const char * path, const char * name, unsigned short option)
         cerr << "Cannot open " << newpath2.c_str() << endl;
         exit(EXIT_FAILURE);
     }
-	out << "include \"include/ez80.inc\"\n";
-	out << "include \"include/tiformat.inc\"\n";
+	out << "include \"include/fasmg/ez80.inc\"\n";
+	out << "include \"include/fasmg/tiformat.inc\"\n";
+	out << "define nan 0\n";
 	out << "format ti archived appvar \'" << o_name << "F" << "\'\n";
     }
 

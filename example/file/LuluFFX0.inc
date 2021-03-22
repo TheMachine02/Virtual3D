@@ -1,5 +1,6 @@
-include "include/ez80.inc"
-include "include/tiformat.inc"
+include "include/fasmg/ez80.inc"
+include "include/fasmg/tiformat.inc"
+define nan 0
 format ti archived appvar 'LULUV'
 VERTEX_STREAM:
 dl 451451
@@ -28,13 +29,13 @@ dw 407,-539,-221
 db 0,0,0
 db 0
 dw 85,29,19
-db -45,0,-45
+db 45,0,45
 db 96
 dw 87,83,58
-db 42,3,-48
+db 0,0,-0
 db 32
 dw 75,32,44
-db 26,32,-49
+db 0,0,-0
 db 96
 dw 42,75,61
 db -34,1,-54
@@ -1780,13 +1781,13 @@ dw 198,367,35
 db -23,28,-53
 db 160
 dw 210,326,49
-db -45,0,-45
+db 45,0,45
 db 160
 dw 227,339,35
-db -32,35,-43
+db -0,0,-0
 db 160
 dw 193,385,13
-db -42,48,-7
+db 0,0,-0
 db 160
 dw 235,347,6
 db -42,48,-2

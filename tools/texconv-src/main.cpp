@@ -172,8 +172,9 @@ void convertTexturePage(string filename, string outname, unsigned char option)
 		return;
 	}
 	
-	out << "include \"include/ez80.inc\"\n";
-	out << "include \"include/tiformat.inc\"\n";
+	out << "include \"include/fasmg/ez80.inc\"\n";
+	out << "include \"include/fasmg/tiformat.inc\"\n";
+	out << "define nan 0\n";
 	out << "format ti archived appvar \'";
 	out << outname << "\'\n";
 

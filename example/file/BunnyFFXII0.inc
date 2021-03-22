@@ -1,5 +1,6 @@
-include "include/ez80.inc"
-include "include/tiformat.inc"
+include "include/fasmg/ez80.inc"
+include "include/fasmg/tiformat.inc"
+define nan 0
 format ti archived appvar 'FLUFFYV'
 VERTEX_STREAM:
 dl 103035
@@ -31,10 +32,10 @@ dw 16,42,5
 db -9,-2,-63
 db 32
 dw 43,43,13
-db -0,64,-0
+db -13,-3,-63
 db 32
 dw 44,93,14
-db 64,-0,-0
+db 30,-47,-32
 db 32
 dw 71,76,20
 db -13,-3,-63

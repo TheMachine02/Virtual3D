@@ -1,5 +1,6 @@
-include "include/ez80.inc"
-include "include/tiformat.inc"
+include "include/fasmg/ez80.inc"
+include "include/fasmg/tiformat.inc"
+define nan 0
 format ti archived appvar 'VIERAV'
 VERTEX_STREAM:
 dl 259707
@@ -28,7 +29,7 @@ dw 509,-4,-509
 db 0,0,0
 db 0
 dw 160,142,38
-db 0,-0,0
+db -61,-2,-20
 db 128
 dw 159,143,66
 db -53,-9,34

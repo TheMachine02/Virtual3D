@@ -1,5 +1,6 @@
-include "include/ez80.inc"
-include "include/tiformat.inc"
+include "include/fasmg/ez80.inc"
+include "include/fasmg/tiformat.inc"
+define nan 0
 format ti archived appvar 'KALIYAV'
 VERTEX_STREAM:
 dl 118907
@@ -28,13 +29,13 @@ dw 1558,-0,-1351
 db 0,0,0
 db 0
 dw 247,459,1351
-db nan,nan,nan
+db -45,0,-45
 db 32
 dw 15,197,1351
-db 0,-0,0
+db 0,-0,64
 db 160
 dw 15,459,1351
-db -0,0,0
+db -0,0,64
 db 160
 dw 772,983,1089
 db 0,-54,34

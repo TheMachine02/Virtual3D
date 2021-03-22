@@ -64,6 +64,8 @@ macro endrelocate
 	org	$ - norg + oorg
 end macro
 
+define	nan	0
+
 ; functions
 
 vxEngine:

@@ -1,5 +1,6 @@
-include "include/ez80.inc"
-include "include/tiformat.inc"
+include "include/fasmg/ez80.inc"
+include "include/fasmg/tiformat.inc"
+define nan 0
 format ti archived appvar 'BOMBOV'
 VERTEX_STREAM:
 dl 39803
@@ -28,13 +29,13 @@ dw 211,-2,-211
 db 0,0,0
 db 0
 dw 65,178,95
-db 31,11,55
+db 45,0,45
 db 0
 dw 113,192,43
-db 50,18,35
+db 0,-64,0
 db 0
 dw 101,128,70
-db 37,-11,51
+db -64,-0,0
 db 0
 dw 147,164,47
 db 55,16,29

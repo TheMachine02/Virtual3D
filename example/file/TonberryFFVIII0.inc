@@ -1,5 +1,6 @@
-include "include/ez80.inc"
-include "include/tiformat.inc"
+include "include/fasmg/ez80.inc"
+include "include/fasmg/tiformat.inc"
+define nan 0
 format ti archived appvar 'TONBV'
 VERTEX_STREAM:
 dl 149627
@@ -28,13 +29,13 @@ dw 174,-152,-217
 db 0,0,0
 db 0
 dw 58,103,8
-db -0,0,-0
+db 6,63,-9
 db 32
 dw 68,72,129
-db 0,-64,0
+db 0,0,0
 db 64
 dw 81,96,88
-db -64,-0,0
+db 0,-0,0
 db 64
 dw 63,84,31
 db 56,5,-30

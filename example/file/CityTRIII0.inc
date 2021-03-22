@@ -1,5 +1,6 @@
-include "include/ez80.inc"
-include "include/tiformat.inc"
+include "include/fasmg/ez80.inc"
+include "include/fasmg/tiformat.inc"
+define nan 0
 format ti archived appvar 'CITYV'
 VERTEX_STREAM:
 dl 417659
@@ -28,10 +29,10 @@ dw 2817,-1149,-1951
 db 0,0,0
 db 0
 dw 1902,2390,2505
-db 59,24,0
+db 59,24,-0
 db 128
 dw 1902,2455,2767
-db 0,64,0
+db 64,0,0
 db 128
 dw 1902,2455,2505
 db 64,0,0

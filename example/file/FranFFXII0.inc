@@ -1,5 +1,6 @@
-include "include/ez80.inc"
-include "include/tiformat.inc"
+include "include/fasmg/ez80.inc"
+include "include/fasmg/tiformat.inc"
+define nan 0
 format ti archived appvar 'FRANV'
 VERTEX_STREAM:
 dl 228219
@@ -31,10 +32,10 @@ dw 28,430,14
 db 48,-4,-43
 db 0
 dw 13,432,10
-db 0,-0,-0
+db 30,32,-47
 db 32
 dw 2,434,22
-db -0,0,-0
+db 56,4,-30
 db 160
 dw 31,428,13
 db -47,-6,-43

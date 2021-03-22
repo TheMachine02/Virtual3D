@@ -1,5 +1,6 @@
-include "include/ez80.inc"
-include "include/tiformat.inc"
+include "include/fasmg/ez80.inc"
+include "include/fasmg/tiformat.inc"
+define nan 0
 format ti archived appvar 'ULTIMV'
 VERTEX_STREAM:
 dl 354939
@@ -28,7 +29,7 @@ dw 521,-35,-106
 db 0,0,0
 db 0
 dw 276,402,141
-db -0,-0,-0
+db 63,-6,-6
 db 128
 dw 278,404,152
 db 0,-64,0

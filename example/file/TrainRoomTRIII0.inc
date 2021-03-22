@@ -1,5 +1,6 @@
-include "include/ez80.inc"
-include "include/tiformat.inc"
+include "include/fasmg/ez80.inc"
+include "include/fasmg/tiformat.inc"
+define nan 0
 format ti archived appvar 'TRAINV'
 VERTEX_STREAM:
 dl 161915
@@ -31,10 +32,10 @@ dw 514,452,1285
 db 0,-0,-64
 db 0
 dw 257,452,1285
-db 0,-0,-0
+db 0,0,-64
 db 0
 dw 257,323,1285
-db -0,-0,-0
+db 0,-0,-64
 db 0
 dw 516,326,1287
 db 57,-0,-29

@@ -1,0 +1,4 @@
+ 
+[submodule "include/fasmg"]
+	path = include/fasmg
+	url = https://github.com/jacobly0/fasmg-ez80

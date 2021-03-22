@@ -1,5 +1,6 @@
-include "include/ez80.inc"
-include "include/tiformat.inc"
+include "include/fasmg/ez80.inc"
+include "include/fasmg/tiformat.inc"
+define nan 0
 format ti archived appvar 'POOLV'
 VERTEX_STREAM:
 dl 157563
@@ -28,7 +29,7 @@ dw 1045,-1016,-1524
 db 0,0,0
 db 0
 dw 790,295,1622
-db 36,-47,-24
+db -23,-25,-54
 db 128
 dw 1053,229,1622
 db 23,-18,-57
