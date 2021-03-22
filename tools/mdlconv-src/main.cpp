@@ -7,7 +7,7 @@
 #include <fstream>
 
 #include <vector>
-#include "glm/glm.hpp"
+#include "glm/glm/glm.hpp"
 
 #define TEXTURE 1
 #define NORMAL  2
