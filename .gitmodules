@@ -2,3 +2,9 @@
 [submodule "include/fasmg"]
 	path = include/fasmg
 	url = https://github.com/jacobly0/fasmg-ez80
+[submodule "tools/texconv-src/lodepng"]
+	path = tools/texconv-src/lodepng
+	url = https://github.com/lvandeve/lodepng
+[submodule "tools/mdlconv-src/glm"]
+	path = tools/mdlconv-src/glm
+	url = https://github.com/g-truc/glm

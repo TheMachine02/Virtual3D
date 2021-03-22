@@ -556,9 +556,9 @@ ivec2 map_texture(vec2 texcoord)
 vector <vec3> getBoundingBox(vector <vec3> stream)
 {
     vector <vec3> box;
-    vec3 tmp;
-    vec3 vmax;
-    vec3 vmin;
+    vec3 tmp(0.0f,0.0f,0.0f);
+    vec3 vmax(0.0f,0.0f,0.0f);
+    vec3 vmin(0.0f,0.0f,0.0f);
     unsigned int i;
     for(i=0;i<stream.size();i++)
     {
