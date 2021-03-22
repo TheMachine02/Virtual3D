@@ -81,7 +81,7 @@ vxPrimitiveSubmit:
 	sbc	hl, hl
 	ld	(vxGeometrySize), hl
 	ld	a, b
-	or	c
+	or	a, c
 	ret	z
 	ld	a, c
 	dec	bc
@@ -295,8 +295,7 @@ vxVertexStream:
 	ld	iy, vxLightUniform
 	call	vxMatrixLightning
 	pop	iy
-	ld	a, (iy-1)
-	ld	e, a
+	ld	e, (iy-1)
 	ld	d, VX_ANIMATION_MATRIX_SIZE
 	mlt	de
 	add	iy, de
