@@ -131,11 +131,10 @@ vxMipmapLevel:
 	ld	(iy+VX_FDUDY), hl
 .adj0:
 	bit	7, (iy+VX_FDVDX+1)
-	jr	z, .adj1
+	ret	z
 	ld	hl, (iy+VX_FDUDX)
 	dec.s	hl
 	ld	(iy+VX_FDUDX), hl
-.adj1:
 	ret
 
 
