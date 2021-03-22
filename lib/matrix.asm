@@ -68,8 +68,8 @@ vxMatrixProjection:
 	push	de
 	ld	h, (iy+2)
 	ld	l, a
-	mlt	hl
-	bit	7, (iy+2)
+	bit	7, h
+	mlt	hl	; condition bits NOT affected
 	jr	z, $+6
 	neg
 	add	a, h
