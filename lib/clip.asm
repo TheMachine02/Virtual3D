@@ -66,16 +66,14 @@ vxPrimitiveClipPlane:
 ; iy : clipped patch (VX_PATCH_OUPUT)
 ;  b : number of point
 	ld	c, a
-	ld	a, b
-	or	a, a
+	xor 	a, a
+	cp	a, b
 	ret	z
-	xor	a, a
 	ld	(vxPatchSize), a
 	push	iy
 	push	ix
 ; b : count, c : planemask
 .clipSutherHodgmanLoop:
-	push	bc
 	ld	hl, (iy+VX_POLYGON_I1)
 	ld	de, (iy+VX_POLYGON_I0)
 	ld	a, (de)
@@ -94,7 +92,6 @@ vxPrimitiveClipPlane:
 	ld	(vxPatchSize), a
 .noEdge:
 	lea	iy, iy + 3
-	pop	bc
 	djnz	.clipSutherHodgmanLoop
 	ld	a, (vxPatchSize)
 	ld	b, a
@@ -105,6 +102,7 @@ vxPrimitiveClipPlane:
 	ret
 ; all works is here ;
 .clipEdge:
+	push	bc
 	ld	a, (de)
 	and	a, c
 	push	af
@@ -297,6 +295,7 @@ vxPrimitiveClipPlane:
 	ld	bc, VX_VERTEX_SIZE
 	ldir
 	ld	(vxPatchVertexCache), de
+	pop	bc
 	jp	.incEdge
 ; parametric compute for horizontal plane ;
 .clipVerticalPlane:
