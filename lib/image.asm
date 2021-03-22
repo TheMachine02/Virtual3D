@@ -56,7 +56,7 @@ vxImageSubSwap:
 	inc	hl
 	jp	pe, .swap_inner
 	pop	hl
-	ld	bc, 256
+	inc	b
 	add	hl, bc
 	pop	de
 	ex	de, hl

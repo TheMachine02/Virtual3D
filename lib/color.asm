@@ -25,14 +25,14 @@
 	ret	z
 	cce	ge_pxl_raster
 	ld	ix, $FF0000
-	ld	iy, $FF0000
+	lea	iy, ix+0
 	ld	ixl, a
 	neg
 	ld	(vxDeltaY0), a
 ; x1-x0
 	ld	a, (de)
 	ld	(vxValueY1), a
-	sub	(hl)
+	sub	a, (hl)
 	push	af
 	ld	iyl, a
 	neg
@@ -120,7 +120,7 @@
 	ld	a, (vxDeltaY0) ; y2-y0
 	ld	c, a
 	ld	a, (vxDeltaY1)
-	sub	c
+	sub	a, c
 	ret	z
 	cce	ge_pxl_raster
 	push	af
