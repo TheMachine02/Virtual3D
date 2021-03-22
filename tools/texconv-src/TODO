@@ -1,1 +1,0 @@
-take alpha mask indicating which part of the image should be process for alpha and which shouldn't : allow full 256x256 combined alpha / non alpha texture 

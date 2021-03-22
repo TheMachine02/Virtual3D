@@ -1,3 +1,4 @@
+#!/bin/bash
 g++ -o mdlconv mdlconv-src/main.cpp -fexceptions -fpie -fstack-clash-protection -Wall -O2 -pipe -D_FORTIFY_SOURCE=2
 g++ -o texconv texconv-src/main.cpp -fexceptions -fpie -fstack-clash-protection -Wall -O2 -pipe -D_FORTIFY_SOURCE=2
 g++ -o xmlconv xmlconv-src/main.cpp -fexceptions -fpie -fstack-clash-protection -Wall -O2 -pipe -D_FORTIFY_SOURCE=2
