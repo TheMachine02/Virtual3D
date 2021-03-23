@@ -125,7 +125,7 @@ vxPrimitiveStream:
 	ex	de, hl
 	call	vxVertexStream		; stream vertex data to cache
 	pop	iy			; polygon list
-	ret	c			; quit the stream if carry set (bounding box test failed)
+	ret	nz			; quit the stream if nz set (bounding box test failed)
 ; copy geometry shader
 	ld	hl, VX_PRIMITIVE_ASM_COPY
 	ld	de, VX_PRIMITIVE_ASM_CODE
@@ -238,9 +238,11 @@ vxVertexStream:
 	lea	iy, iy+VX_STREAM_HEADER_SIZE
 ; iy+0 are options, so check those. Here, only bounding box is interesting.
 	and	a, VX_STREAM_HEADER_BBOX
-	call	nz, vxVertexStreamBox
+	call	nz, .bounding_box
 	pop	ix
-	ret	c
+	ret	nz
+; actual stream start
+.stream:
 	cce	ge_vtx_transform
 	ld	(.SP_RET), sp
 ; ix = cache, iy = source, ix = matrix, bc = size
@@ -265,7 +267,7 @@ vxVertexStream:
 	ccr	ge_vtx_transform
 .SP_RET=$+1
 	ld	sp, $CCCCCC
-	or	a, a
+	xor	a, a
 	ret
 .stream_load_bone:
 ; more complex stuff here. Need to restore initial matrix & do a multiplication with the correct bone key matrix
@@ -302,27 +304,28 @@ vxVertexStream:
 	pop	ix
 	pop	bc
 	jp	.stream_return
-
-vxVertexStreamBox:
-	push	bc
+.bounding_box:
 ; check the bounding box
-	ld	a, $FF
-	ld	b, 8
-vxVertexBoxLoop:
-	push	bc
-	push	af
-	ld	bc, (iy+0)
+; stream the bounding box as standard vertex stream into the stream routine
 	ld	ix, VX_PATCH_VERTEX_POOL
-;	call	vxVertexCompute
+	call	.stream
+; account for end marker
 	lea	iy, iy+VX_VERTEX_DATA_SIZE
-	pop	af
-;	and	a, (ix+VX_VERTEX_CODE)
-	pop	bc
-	djnz	vxVertexBoxLoop
-	pop	bc
-	xor	a, a
+	ld	a, (ix-16)
+	and	a, (ix-32)
 	ret	z
-	scf
+	and	a, (ix-48)
+	ret	z
+	and	a, (ix-64)
+	ret	z
+	and	a, (ix-80)
+	ret	z
+	and	a, (ix-96)
+	ret	z
+	and	a, (ix-112)
+	ret	z
+	and	a, (ix-128)
+; z = inside / clip, nz = outside
 	ret
 
 vxPrimitiveDepthSort:

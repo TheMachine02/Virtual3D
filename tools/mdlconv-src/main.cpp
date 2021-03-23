@@ -409,25 +409,30 @@ bool load_obj(const char * path, const char * name, unsigned short option)
 //    out << "include \"vxModel.inc\"" << '\n';
     out << "VERTEX_STREAM:" << '\n';
     out << "dl " << (vertexTable.size()*256)+option << '\n';
-
+	int sm=0;
+    
     if(option&BOUNDING_BOX)
     {
         vector <vec3> boundbox=getBoundingBox(vertexTable);
         for(i=0;i<boundbox.size();i++)
         {
-            out << "dw ";
-            out << round(boundbox[i][0]*256.0) << ",";
-            out << round(boundbox[i][1]*256.0) << ",";
-            out << round(boundbox[i][2]*256.0) << '\n';
-            if(option&NORMAL)
-            {
-                out << "db 0,0,0\n";
-            }
-            if(option&FMA)
-		{
-			out << "db 0\n";
-		}
-        }
+//             out << "dw ";
+//             out << round(boundbox[i][0]*256.0) << ",";
+//             out << round(boundbox[i][1]*256.0) << ",";
+//             out << round(boundbox[i][2]*256.0) << '\n';
+
+		
+        out << "dw ";
+	sm = sgn(round(boundbox[i][0]*256.0)) << 7 | ( sgn(round(boundbox[i][1]*256.0)) << 6) | (sgn(round(boundbox[i][2]*256.0)) << 5);
+        out << abs(round(boundbox[i][0]*256.0)) << ",";
+        out << abs(round(boundbox[i][1]*256.0)) << ",";
+        out << abs(round(boundbox[i][2]*256.0)) << '\n';
+        if(option & NORMAL){
+		out << "db 0,0,0\n";
+	}
+	out << "db "<< sm << "\n";
+	}
+    out << "; end marker\ndw 0,0,0\ndb 0,0,0\ndb 1\n";    
     }
 
     for(i=0; i<vertexTable.size(); i++)
@@ -435,7 +440,7 @@ bool load_obj(const char * path, const char * name, unsigned short option)
 		if(option&FMA)
 		{
         out << "dw ";
-		int sm = sgn(round(vertexTable[i][0]*256.0)) << 7 | ( sgn(round(vertexTable[i][1]*256.0)) << 6) | (sgn(round(vertexTable[i][2]*256.0)) << 5);
+		sm = sgn(round(vertexTable[i][0]*256.0)) << 7 | ( sgn(round(vertexTable[i][1]*256.0)) << 6) | (sgn(round(vertexTable[i][2]*256.0)) << 5);
         out << abs(round(vertexTable[i][0]*256.0)) << ",";
         out << abs(round(vertexTable[i][1]*256.0)) << ",";
         out << abs(round(vertexTable[i][2]*256.0)) << '\n';
