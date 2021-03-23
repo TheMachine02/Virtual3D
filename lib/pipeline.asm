@@ -54,14 +54,15 @@ vxModelViewReverse:
  dl	0,0,0
 
 vxPrimitiveSubmit:
+.reset:
 ; various reset blahblah
 	ld	hl, (VX_LCD_BUFFER)
 	ld	(vxSubmissionQueue), hl
-	ld	iy, VX_GEOMETRY_QUEUE
 	ld	hl, NULL_RAM
 	ld	de, VX_DEPTH_BUCKET_L
 	ld	bc, 256 * 6
 	ldir
+.setup_pixel:
 	ld	hl, VX_REGISTER_INTERPOLATION_COPY
 	ld	de, VX_REGISTER_INTERPOLATION_CODE
 	ld	bc, VX_REGISTER_INTERPOLATION_SIZE
@@ -75,24 +76,25 @@ vxPrimitiveSubmit:
 	ld	(vxShaderAdress1Write), hl
 	ld	hl, (vxShaderAdress2)
 	ld	(vxShaderAdress2Write), hl
-; reset geometry size
-	ld	bc, (vxGeometrySize)
-	or	a, a
+.setup:
+; check primitive count and reset it
+	ld	de, (vxGeometrySize)
+	ld	a, d
+	or	a, e
+	ret	z
 	sbc	hl, hl
 	ld	(vxGeometrySize), hl
-	ld	a, b
-	or	a, c
-	ret	z
-	ld	a, c
-	dec	bc
-	inc	b
-	ld	c, b
-	ld	b, a
-; TODO : change to endpoint writing instead of looping ?
-vxPrimitiveDeferred:
-	push	bc
-	ld	hl, VX_MATERIAL_DATA
-	ld	l, (iy+VX_GEOMETRY_ID)
+	ld	iy, VX_GEOMETRY_QUEUE
+	ex	de, hl
+	lea	de, iy+VX_GEOMETRY_ID
+	add	hl, hl
+	add	hl, hl
+	add	hl, de
+	ld	(hl), VX_STREAM_END
+	jr	.index
+; TODO : reallocate .deferred into fast RAM, use jr .index as long jump
+; TODO : remove the call vxPrimitiveRenderTriangle
+.deferred:
 	ld	a, (hl)
 	inc	hl
 	ld	bc, (hl)			; subcache
@@ -100,11 +102,12 @@ vxPrimitiveDeferred:
 	ld	iy, (iy+VX_GEOMETRY_INDEX)	; read triangle data
 	call	vxPrimitiveRenderTriangle
 	pop	iy
-	pop	bc
-	djnz	vxPrimitiveDeferred
-	dec	c
-	jr	nz, vxPrimitiveDeferred
-	ret 
+.index:
+	ld	hl, VX_MATERIAL_DATA
+	ld	l, (iy+VX_GEOMETRY_ID)
+	bit	0, l
+	jr	z, .deferred
+	ret
 	
 vxPrimitiveStream:
 ; hl : vertex source
