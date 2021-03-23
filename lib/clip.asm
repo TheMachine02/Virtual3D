@@ -28,6 +28,7 @@ vxPrimitiveClipFrustrum:
 ; output ;
 ; iy : clipped patch (take this address only and not INPUT or OUTPUT)
 ;  b : number of point
+	ld	ix, VX_PATCH_OUTPUT
 	ld	hl, VX_PATCH_VERTEX_POOL
 	ld	(vxPatchVertexCache), hl
 	rla
@@ -70,7 +71,7 @@ vxPrimitiveClipPlane:
 	ret	z
 	ld	(vxPatchSize), a
 	push	iy
-	ld	ix, VX_PATCH_OUTPUT
+	push	ix
 ; b : count, c : planemask
 .clipSutherHodgmanLoop:
 	ld	hl, (iy+VX_POLYGON_I1)
@@ -97,6 +98,7 @@ vxPrimitiveClipPlane:
 	pop	iy
 	ld	hl, (iy+VX_POLYGON_I0)
 	ld	(ix+VX_POLYGON_I0), hl
+	pop	ix
 	ret
 ; all works is here ;
 .clipEdge:
