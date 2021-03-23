@@ -108,7 +108,7 @@ vxPrimitiveAssembly:
 	add	hl, de
 	add	hl, hl
 	jr	nc, .discard
-	ld	hl, VX_DEPTH_BUCKET_L or VX_GEOMETRY_SIZE
+	ld	hl, VX_DEPTH_BUCKET_L or (VX_GEOMETRY_SIZE shr 1)
 	ld	a, l
 	ld	l, (ix+VX_GEOMETRY_DEPTH)
 	add	a, (hl)
@@ -120,7 +120,7 @@ vxPrimitiveAssembly:
 	inc	h
 	ld	l, (ix+VX_GEOMETRY_DEPTH+1)
 	ld	a, (hl)
-	add	a, VX_GEOMETRY_SIZE
+	add	a, VX_GEOMETRY_SIZE shr 1
 	ld	(hl), a
 	inc	h
 	jr	nc, .overflow_h

@@ -469,14 +469,12 @@ vxPrimitiveDepthSortHelper:
 	dec	de
 	dec	de
 	dec	de
-	dec	de
-	dec	de
-	dec	de
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
 .WRITE_B1=$+1
 	ld	hl, $CCCCCC
+	add	hl, de
 	add	hl, de
 	ld	iy, (ix+VX_GEOMETRY_INDEX)
 	ld	(hl), iy
@@ -502,14 +500,12 @@ vxPrimitiveDepthSortHelper:
 	dec	de
 	dec	de
 	dec	de
-	dec	de
-	dec	de
-	dec	de
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
 .WRITE_B0=$+1
 	ld	hl, $CCCCCC
+	add	hl, de
 	add	hl, de
 	ld	iy, (ix+VX_GEOMETRY_INDEX)
 	ld	(hl), iy
