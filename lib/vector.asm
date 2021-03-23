@@ -136,12 +136,12 @@ vxDotProduct:
 	ld	a, h
 	rla
 	sbc	a, a
-	and	l
+	and	a, l
 	ld	e, a
 	ld	a, l
 	rla
 	sbc	a, a
-	and	h
+	and	a, h
 	add	a, e
 	mlt	hl
 	ld	e, a
@@ -150,12 +150,12 @@ vxDotProduct:
 	ld	a, b
 	rla
 	sbc	a, a
-	and	c
+	and	a, c
 	ld	d, a
 	ld	a, c
 	rla
 	sbc	a, a
-	and	b
+	and	a, b
 	add	a, d
 	mlt	bc
 	add	hl, bc
@@ -201,23 +201,22 @@ vxReflect:
 	ld	a, h
 	rla
 	sbc	a, a
-	and	l
+	and	a, l
 	ld	c, a
 	ld	a, l
 	rla
 	sbc	a, a
-	and	h
+	and	a, h
 	add	a, c
 	ld	c, a
 	mlt	hl
 	ld	a, h
-	sub	c
+	sub	a, c
 	ld	h, a
 	add	hl, hl
 	add	hl, hl
-	ld	c, h
 	ld	a, (ix+0)
-	sub	a, c
+	sub	a, h
 	ld	(de), a
 	inc	de
 
@@ -226,23 +225,22 @@ vxReflect:
 	ld	a, h
 	rla
 	sbc	a, a
-	and	l
+	and	a, l
 	ld	c, a
 	ld	a, l
 	rla
 	sbc	a, a
-	and	h
+	and	a, h
 	add	a, c
 	ld	c, a
 	mlt	hl
 	ld	a, h
-	sub	c
+	sub	a, c
 	ld	h, a
 	add	hl, hl
 	add	hl, hl
-	ld	c, h
 	ld	a, (ix+1)
-	sub	a, c
+	sub	a, h
 	ld	(de), a
 	inc	de
 
@@ -251,23 +249,22 @@ vxReflect:
 	ld	a, h
 	rla
 	sbc	a, a
-	and	l
+	and	a, l
 	ld	c, a
 	ld	a, l
 	rla
 	sbc	a, a
-	and	h
+	and	a, h
 	add	a, c
 	ld	c, a
 	mlt	hl
 	ld	a, h
-	sub	c
+	sub	a, c
 	ld	h, a
 	add	hl, hl
 	add	hl, hl
-	ld	c, h
 	ld	a, (ix+2)
-	sub	a, c
+	sub	a, h
 	ld	(de), a
 	ret
 
