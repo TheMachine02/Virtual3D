@@ -242,7 +242,8 @@ vxPrimitiveClipPlane:
 	rra
 	ld	hl, $000140	;=VX_SCREEN_WIDTH_CENTER+(VX_SCREEN_WIDTH/2)
 	jr	nc, .writex
-	dec	h \ ld	l, h	;=VX_SCREEN_WIDTH_CENTER-(VX_SCREEN_WIDTH/2)
+	dec	h
+	ld	l, h	;=VX_SCREEN_WIDTH_CENTER-(VX_SCREEN_WIDTH/2)
 .writex:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SX), hl
 	xor	a, a
@@ -361,7 +362,8 @@ vxPrimitiveClipPlane:
 	ex	de, hl
 	sbc	hl, hl
 	sbc	hl, de
-	dec	b \ ld	c,b	;=VX_SCREEN_WIDTH_CENTER-(VX_SCREEN_WIDTH/2)
+	dec	b
+	ld	c,b	;=VX_SCREEN_WIDTH_CENTER-(VX_SCREEN_WIDTH/2)
 .VNeg:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_RX), hl
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SX), bc
