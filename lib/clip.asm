@@ -28,7 +28,6 @@ vxPrimitiveClipFrustrum:
 ; output ;
 ; iy : clipped patch (take this address only and not INPUT or OUTPUT)
 ;  b : number of point
-	ld	ix, VX_PATCH_OUTPUT
 	ld	hl, VX_PATCH_VERTEX_POOL
 	ld	(vxPatchVertexCache), hl
 	rla
@@ -71,7 +70,7 @@ vxPrimitiveClipPlane:
 	ret	z
 	ld	(vxPatchSize), a
 	push	iy
-	push	ix
+	ld	ix, VX_PATCH_OUTPUT
 ; b : count, c : planemask
 .clipSutherHodgmanLoop:
 	ld	hl, (iy+VX_POLYGON_I1)
@@ -98,7 +97,6 @@ vxPrimitiveClipPlane:
 	pop	iy
 	ld	hl, (iy+VX_POLYGON_I0)
 	ld	(ix+VX_POLYGON_I0), hl
-	pop	ix
 	ret
 ; all works is here ;
 .clipEdge:
@@ -240,9 +238,9 @@ vxPrimitiveClipPlane:
 	jr	.writex
 .equal1:
 	rra
-	ld	hl, VX_SCREEN_WIDTH_CENTER-(VX_SCREEN_WIDTH/2)
-	jr	c, .writex
-	ld	hl, VX_SCREEN_WIDTH_CENTER+(VX_SCREEN_WIDTH/2)
+	ld	hl, $000140	;=VX_SCREEN_WIDTH_CENTER+(VX_SCREEN_WIDTH/2)
+	jr	nc, .writex
+	dec	h \ ld	l, h	;=VX_SCREEN_WIDTH_CENTER-(VX_SCREEN_WIDTH/2)
 .writex:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SX), hl
 	xor	a, a
@@ -356,12 +354,12 @@ vxPrimitiveClipPlane:
 	pop	af
 	and	a, 10000000b
 	push	bc
-	ld	bc, VX_SCREEN_WIDTH_CENTER+(VX_SCREEN_WIDTH/2)
+	ld	bc, $000140	;=VX_SCREEN_WIDTH_CENTER+(VX_SCREEN_WIDTH/2)
 	jr	nz, .VNeg
 	ex	de, hl
 	sbc	hl, hl
 	sbc	hl, de
-	ld	bc, VX_SCREEN_WIDTH_CENTER-(VX_SCREEN_WIDTH/2)
+	dec	b \ ld	c,b	;=VX_SCREEN_WIDTH_CENTER-(VX_SCREEN_WIDTH/2)
 .VNeg:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_RX), hl
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SX), bc
@@ -431,9 +429,9 @@ vxPrimitiveClipPlane:
 .equal0:
 	jr	nz, .clipy0
 	rra
-	ld	a, VX_SCREEN_HEIGHT_CENTER-(VX_SCREEN_HEIGHT/2)
-	jr	nc, $+4
 	ld	a, VX_SCREEN_HEIGHT_CENTER+(VX_SCREEN_HEIGHT/2)
+	jr	c, $+3
+	xor	a, a	;=VX_SCREEN_HEIGHT_CENTER-(VX_SCREEN_HEIGHT/2)
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SY), a
 	jp	.parametricCCompute
 .clipz0:
@@ -443,11 +441,11 @@ vxPrimitiveClipPlane:
 ; we need to take care of extra clipping incurring on y plane only, since vertical plane will be both clipped proprely at first (and it doesn't change anything)
 ; so when it moves on to the y code, x won't be clipped anymore, only clamped, which is more than enough
 	rra
-	ld	c, 00100000b
-	ld	a, VX_SCREEN_HEIGHT_CENTER-(VX_SCREEN_HEIGHT/2)
-	jr	nc, .clipy1
-	ld	a, VX_SCREEN_HEIGHT_CENTER+(VX_SCREEN_HEIGHT/2)
 	ld	c, 00010000b
+	ld	a, VX_SCREEN_HEIGHT_CENTER+(VX_SCREEN_HEIGHT/2)
+	jr	c, .clipy1
+	xor	a, a	;=VX_SCREEN_HEIGHT_CENTER-(VX_SCREEN_HEIGHT/2)
+	ld	c, 00100000b
 .clipy1:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SY), a
 	ld	a, c
@@ -518,15 +516,15 @@ vxParametricFactor:
 	ex	de, hl
 	or	a, a
 	sbc	hl, de
-	push	de
 ; abs(de-hl), if >0 then de <0
 	jp	p, .deltaAbs
+	push	de
 	add	hl, de
 	ex	de, hl
 	or	a, a
 	sbc	hl, de
-.deltaAbs:
 	pop	de
+.deltaAbs:
 	ex	de, hl
 	add	hl, hl
 	jr	nc, .absValue
