@@ -175,9 +175,9 @@ vxQuatDivide:
 vxQuaternionGetMatrix:
 ; iy quaternion, ix matrix
 ; (qw, qx, qy, qz)
-; 1 - 2*qy² - 2*qz² 	2*qx*qy - 2*qz*qw 	2*qx*qz + 2*qy*qw
-; 2*qx*qy + 2*qz*qw 	1 - 2*qx² - 2*qz² 	2*qy*qz - 2*qx*qw
-; 2*qx*qz - 2*qy*qw 	2*qy*qz + 2*qx*qw 	1 - 2*qx² - 2*qy²
+; 1 - 2*qyÂ² - 2*qzÂ² 	2*qx*qy - 2*qz*qw 	2*qx*qz + 2*qy*qw
+; 2*qx*qy + 2*qz*qw 	1 - 2*qxÂ² - 2*qzÂ² 	2*qy*qz - 2*qx*qw
+; 2*qx*qz - 2*qy*qw 	2*qy*qz + 2*qx*qw 	1 - 2*qxÂ² - 2*qyÂ²
 	ld	hl, (iy+VX_QUATERNION_QZ)
 	ld	de, (iy+VX_QUATERNION_QW)
 	call	vxQuatMlt
@@ -234,7 +234,7 @@ vxQuaternionGetMatrix:
 	add	hl, de
 	add	hl, de
 	ld	(ix+7), h
-; 1-2*qy²-2qz²
+; 1-2*qyÂ²-2qzÂ²
 	ld	hl, (iy+VX_QUATERNION_QY)
 	call	vxQuatSquare
 	push	hl
@@ -249,7 +249,7 @@ vxQuaternionGetMatrix:
 	or	a, a
 	sbc	hl, de
 	ld	(ix+0), h
-; 1-2*qz²-2qx²	
+; 1-2*qzÂ²-2qxÂ²	
 	push	de
 	ld	hl, (iy+VX_QUATERNION_QX)
 	call	vxQuatSquare
@@ -261,7 +261,7 @@ vxQuaternionGetMatrix:
 	or	a, a
 	sbc	hl, de
 	ld	(ix+4), h
-; 1-2qx²-2qy²
+; 1-2qxÂ²-2qyÂ²
 	pop	bc
 	ld	hl, $004000
 	or	a, a
@@ -380,7 +380,7 @@ vxQuatMlt:
 	ret
 vxQuatSquare:
 ; bc is kept intact
-; HL²/256
+; HLÂ²/256
 ; Destroy DE,A [16bits]
 ; (HxH*256+LxH*2+LxL/256)
 	bit	7, h
@@ -439,24 +439,14 @@ vxSin:
 vxSinSkp1:
 	bit	1, h
 	ld	hl, VX_LUT_SIN shr 1
-	jr	nz, vxSinNegate
 	ld	l, a
-	add	hl, hl
-	ld	bc, (hl)
-	or	a, a
+	add	hl, hl	; sure c flag will be reset!
+	ld	de, (hl)
+	ex.s	de, hl
+	ret	z
+	ex	de, hl
 	sbc	hl, hl
-	ld	h, b
-	ld	l, c
-	ret
-vxSinNegate:
-	ld	l, a
-	add	hl, hl
-	ld	bc, (hl)
-	inc.s	bc
-	dec.s	bc
-	or	a, a
-	sbc	hl, hl
-	sbc	hl, bc
+	sbc	hl, de
 	ret
 vxQuatIndexZero:
 	bit	1, h
