@@ -20,12 +20,10 @@ vxShaderLoad:
 	lea	hl, ix+VX_SHADER_CODE		; load shader
 	ld	de, VX_PIXEL_SHADER_CODE
 	ldir			; copy first part
-	push de
 	ld	hl, vxShaderGeneralInterpolation0
 	ld	c, 32
 	ldir			; copy constant part
-	pop de
-	ld	hl, VX_SMC_EDGEFIX - vxShaderGeneralInterpolation0
+	ld	hl, VX_SMC_EDGEFIX - vxShaderGeneralInterpolation0 -32
 	add hl, de
 	ld	(vxShaderAdress2), hl
 
@@ -56,10 +54,8 @@ vxShaderCreate0:
 
 	ld	de, 0
 	ld	e, (ix+VX_SHADER_DATA1)
-	ld	hl, VX_PIXEL_SHADER_CODE
+	ld	hl, VX_PIXEL_SHADER_CODE-2
 	add	hl, de
-	dec	hl
-	dec	hl
 	ld	(vxShaderAdress0), hl
 	ex	de, hl
 	add	hl, de
