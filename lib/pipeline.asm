@@ -128,12 +128,12 @@ vxPrimitiveStream:
 	pop	iy			; polygon list
 	ret	nz			; quit the stream if nz set (bounding box test failed)
 	lea	iy, iy+VX_STREAM_HEADER_SIZE
+	cce	ge_pri_assembly
 ; copy primitive assembly within fast area
 	ld	hl, VX_PRIMITIVE_ASM_COPY
 	ld	de, VX_PRIMITIVE_ASM_CODE
 	ld	bc, VX_PRIMITIVE_ASM_SIZE
 	ldir
-	cce	ge_pri_assembly
 ;would be nice to encode the format within
 	call	vxPrimitiveAssembly
 	ccr	ge_pri_assembly
