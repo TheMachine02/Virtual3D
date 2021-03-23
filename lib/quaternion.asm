@@ -441,15 +441,12 @@ vxSinSkp1:
 	ld	hl, VX_LUT_SIN shr 1
 	ld	l, a
 	add	hl, hl	; sure c flag will be reset!
-	ld	hl, (hl)
-	inc.s	hl
-	dec.s	hl
+	ld	de, (hl)
+	ex.s	de, hl
 	ret	z
-	inc.s	bc
-	ld	b, h
-	ld	c, l
+	ex	de, hl
 	sbc	hl, hl
-	sbc	hl, bc
+	sbc	hl, de
 	ret
 vxQuatIndexZero:
 	bit	1, h
