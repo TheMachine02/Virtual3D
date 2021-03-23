@@ -75,7 +75,7 @@ vxPrimitiveSubmit:
 	ld	(vxShaderAdress1Write), hl
 	ld	hl, (vxShaderAdress2)
 	ld	(vxShaderAdress2Write), hl
-; reset geometry size >>> change to endpoint writing instead of looping ? TODO
+; reset geometry size
 	ld	bc, (vxGeometrySize)
 	or	a, a
 	sbc	hl, hl
@@ -88,6 +88,7 @@ vxPrimitiveSubmit:
 	inc	b
 	ld	c, b
 	ld	b, a
+; TODO : change to endpoint writing instead of looping ?
 vxPrimitiveDeferred:
 	push	bc
 	ld	hl, VX_MATERIAL_DATA
@@ -126,19 +127,12 @@ vxPrimitiveStream:
 	call	vxVertexStream		; stream vertex data to cache
 	pop	iy			; polygon list
 	ret	nz			; quit the stream if nz set (bounding box test failed)
-; copy geometry shader
+	lea	iy, iy+VX_STREAM_HEADER_SIZE
+; copy primitive assembly within fast area
 	ld	hl, VX_PRIMITIVE_ASM_COPY
 	ld	de, VX_PRIMITIVE_ASM_CODE
 	ld	bc, VX_PRIMITIVE_ASM_SIZE
 	ldir
-; continue processing
-	ld	bc, (iy+VX_STREAM_HEADER_COUNT)
-	ld	a, c
-	dec	bc
-	inc	b
-	ld	c, b
-	ld	b, a
-	lea	iy, iy+VX_STREAM_HEADER_SIZE
 	cce	ge_pri_assembly
 ;would be nice to encode the format within
 	call	vxPrimitiveAssembly
@@ -163,6 +157,7 @@ vxVertexStream:
 ; de is the vertex shader program
 ; vertex source have size at the begining
 ; support animation
+.setup:
 	push	bc
 	push	hl
 ; load shader first

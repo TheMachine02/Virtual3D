@@ -138,8 +138,8 @@ define	VX_FORMAT_COLOR			16
 ; stream header ;
 
 define	VX_STREAM_HEADER_SIZE 		3
-define	VX_STREAM_HEADER_OPTION		0
-define	VX_STREAM_HEADER_COUNT		1
+define	VX_STREAM_HEADER_OPTION		0	; stream options
+define	VX_STREAM_HEADER_COUNT		1	; 2 bytes, count of vertex
 
 define	VX_STREAM_HEADER_BBOX		8
 ;define	VX_STREAM_HEADER_FORMAT_MASK	00011111b
