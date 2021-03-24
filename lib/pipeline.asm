@@ -245,9 +245,9 @@ vxVertexStream:
 	ld	(.SP_RET), sp
 ; ix = cache, iy = source, ix = matrix, bc = size
 	ld	a, (iy+VX_VERTEX_SM)
-	cp	a, VX_ANIMATION_BONE
+	dec	a	;cp a, VX_STREAM_END
 	jr	z, .stream_load_bone
-	cp	a, VX_STREAM_END
+	dec	a	;cp a, VX_ANIMATION_BONE
 	jr	z, .stream_load_bone
 .stream_compute:
 ; 54 cycles can be saved here, (even a bit more in fact)
