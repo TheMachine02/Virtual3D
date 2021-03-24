@@ -24,7 +24,7 @@ vxShaderLoad:
 	ld	c, 32
 	ldir			; copy constant part
 	ld	hl, VX_SMC_EDGEFIX - vxShaderGeneralInterpolation0 -32
-	add hl, de
+	add	hl, de
 	ld	(vxShaderAdress2), hl
 
 	ld	c, (ix+VX_SHADER_DATA1)
@@ -33,14 +33,13 @@ vxShaderLoad:
 ; VX_CALL0_NEG
 	ld	de, VX_PIXEL_SHADER_CODE
 	ld	b, 160
-	ld	iy, VX_LUT_PIXEL_LENGTH-(320*4)
+	ld	iy, VX_LUT_PIXEL_LENGTH-(319*4)
 vxShaderCreate0:
-	ld	(iy+1), de
-	ld	(iy+5), hl
+	ld	(iy-3), de
+	ld	(iy+1), hl
 	lea	iy, iy+8
 	djnz vxShaderCreate0
 
-	push	de
 	push	hl
 	
 	ld	a, (ix+VX_SHADER_DATA1)
@@ -48,20 +47,18 @@ vxShaderCreate0:
 	add	a, a
 	add	a, VX_PIXEL_SHADER_CODE mod 256
 	ld	l, a
-	ld	(iy+1), hl
+	ld	(iy-3), hl
 	ld	(vxShaderJump), hl
-	lea	iy, iy+4
-
-	ld	de, 0
-	ld	e, (ix+VX_SHADER_DATA1)
+	
+	ld	c, (ix+VX_SHADER_DATA1)
 	ld	hl, VX_PIXEL_SHADER_CODE-2
-	add	hl, de
+	add	hl, bc
 	ld	(vxShaderAdress0), hl
-	ex	de, hl
-	add	hl, de
+	add	hl, bc
 	ld	(vxShaderAdress1), hl	
-	pop	de
+	
 	pop	hl
+	ex	de, hl
 	ld	b, 160
 
 vxShaderCreate1:
