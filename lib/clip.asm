@@ -119,12 +119,12 @@ vxPrimitiveClipPlane:
 	inc	hl
 	inc	hl
 	ld	hl, (hl)
+	bit	5, a
+	jr	z, .hinv0
 	sbc	hl, bc
-	tst	a, 00100000b
-	jr	nz, .hinv0
-	add	hl, bc
-	add	hl, bc
+	.db	$0e	; beginning of "ld c,$09"
 .hinv0:
+	add	hl, bc
 	ex	de, hl
 	ld	bc, VX_VERTEX_RY
 	add	hl, bc
@@ -133,12 +133,12 @@ vxPrimitiveClipPlane:
 	inc	hl
 	inc	hl
 	ld	hl, (hl)
+	bit	5, a
+	jr	z, .hinv1
 	sbc	hl, bc
-	tst	a, 00100000b
-	jr	nz, .hinv1
-	add	hl, bc
-	add	hl, bc
+	.db	$0e	; beginning of "ld c,$09"
 .hinv1:
+	add	hl, bc
 ; parametric compute for horizontal plane ;
 .parametricHCompute:
 	push	ix
