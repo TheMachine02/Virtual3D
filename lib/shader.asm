@@ -58,12 +58,11 @@ vxShaderCreate0:
 	ld	(vxShaderAdress1), hl	
 	
 	pop	hl
-	ex	de, hl
 	ld	b, 160
 
 vxShaderCreate1:
-	ld	(iy+1), de
-	ld	(iy+5), hl
+	ld	(iy+1), hl
+	ld	(iy+5), de
 	lea	iy, iy+8
 	djnz vxShaderCreate1
 	ret
