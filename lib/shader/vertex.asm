@@ -317,8 +317,7 @@ relocate VX_VERTEX_SHADER_CODE
 	sbc	hl, bc
 	adc	a, a
 	cpl
-	add	a, a
-	ld	l, VX_SCREEN_HEIGHT shr 1
+	ld	l, VX_SCREEN_HEIGHT
 	ld	h, a
 	mlt	hl
 	ld	a, h
