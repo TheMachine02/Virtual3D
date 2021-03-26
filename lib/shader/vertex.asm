@@ -15,69 +15,7 @@ vxVertexShader:
 .write_uniform:
 ; matrix write
 	ld	ix, vxModelView
-	ld	c, 0
-	ld	a, (ix+VX_MATRIX0_C0)
-	bit	7, a
-	jr	z, $+6
-	neg
-	set	7, c
-	ld	(.MC0), a
-	ld	a, (ix+VX_MATRIX0_C1)
-	bit	7, a
-	jr	z, $+6
-	neg
-	set	6, c
-	ld	(.MC1), a
-	ld	a, (ix+VX_MATRIX0_C2)
-	bit	7, a
-	jr	z, $+6
-	neg
-	set	5, c
-	ld	(.MC2), a
-	ld	a, c
-	ld	(.MS0), a
-	ld	c, 0
-	ld	a, (ix+VX_MATRIX0_C3)
-	bit	7, a
-	jr	z, $+6
-	neg
-	set	7, c
-	ld	(.MC3), a
-	ld	a, (ix+VX_MATRIX0_C4)
-	bit	7, a
-	jr	z, $+6
-	neg
-	set	6, c
-	ld	(.MC4), a
-	ld	a, (ix+VX_MATRIX0_C5)
-	bit	7, a
-	jr	z, $+6
-	neg
-	set	5, c
-	ld	(.MC5), a
-	ld	a, c
-	ld	(.MS1), a
-	ld	c, 0
-	ld	a, (ix+VX_MATRIX0_C6)
-	bit	7, a
-	jr	z, $+6
-	neg
-	set	7, c
-	ld	(.MC6), a
-	ld	a, (ix+VX_MATRIX0_C7)
-	bit	7, a
-	jr	z, $+6
-	neg
-	set	6, c
-	ld	(.MC7), a
-	ld	a, (ix+VX_MATRIX0_C8)
-	bit	7, a
-	jr	z, $+6
-	neg
-	set	5, c
-	ld	(.MC8), a
-	ld	a, c
-	ld	(.MS2), a
+	
 	ld	hl, (ix+VX_MATRIX0_TX)
 	ld	(.MTX), hl
 	ld	hl, (ix+VX_MATRIX0_TY)
@@ -92,6 +30,70 @@ vxVertexShader:
 	ld	(.SHX), hl
 	sbc	hl, hl
 	ld	(.SLX), hl
+	
+	ld	c, 128
+	ld	a, (ix+VX_MATRIX0_C0)
+	bit	7, a
+	jr	z, $+5
+	neg
+	ld	h, c
+	ld	(.MC0), a
+	ld	a, (ix+VX_MATRIX0_C1)
+	bit	7, a
+	jr	z, $+6
+	neg
+	set	6, h
+	ld	(.MC1), a
+	ld	a, (ix+VX_MATRIX0_C2)
+	bit	7, a
+	jr	z, $+6
+	neg
+	set	5, h
+	ld	(.MC2), a
+	ld	a, h
+	ld	(.MS0), a
+	ld	h, l
+	ld	a, (ix+VX_MATRIX0_C3)
+	bit	7, a
+	jr	z, $+5
+	neg
+	ld	h, c
+	ld	(.MC3), a
+	ld	a, (ix+VX_MATRIX0_C4)
+	bit	7, a
+	jr	z, $+6
+	neg
+	set	6, h
+	ld	(.MC4), a
+	ld	a, (ix+VX_MATRIX0_C5)
+	bit	7, a
+	jr	z, $+6
+	neg
+	set	5, h
+	ld	(.MC5), a
+	ld	a, h
+	ld	(.MS1), a
+	ld	h, l
+	ld	a, (ix+VX_MATRIX0_C6)
+	bit	7, a
+	jr	z, $+5
+	neg
+	ld	h, c
+	ld	(.MC6), a
+	ld	a, (ix+VX_MATRIX0_C7)
+	bit	7, a
+	jr	z, $+6
+	neg
+	set	6, h
+	ld	(.MC7), a
+	ld	a, (ix+VX_MATRIX0_C8)
+	bit	7, a
+	jr	z, $+6
+	neg
+	set	5, h
+	ld	(.MC8), a
+	ld	a, h
+	ld	(.MS2), a
 ; lightning write
 	ld	a, (ix+VX_LIGHT0_VECTOR)
 	ld	(.LV0), a
