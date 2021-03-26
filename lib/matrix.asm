@@ -301,7 +301,8 @@ vxMatrixTransform:
 	ld	de, vxPosition
 	ex	de, hl
 	ldir
-	ld	bc, -VX_MATRIX_SIZE
+	dec	bc
+	ld	c, -VX_MATRIX_SIZE
 	ex	de, hl
 	add	hl, bc
 	ret
