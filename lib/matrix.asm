@@ -121,16 +121,14 @@ vxMatrixRotationX:
 	ld	(ix+VX_MATRIX_C7), a
 	neg
 	ld	(ix+VX_MATRIX_C5), a
+	ld	hl, 64
+	ld	(ix+VX_MATRIX_C0), hl
+	ld	(ix+VX_MATRIX_C3), h
+	ld	(ix+VX_MATRIX_C6), h
 	pop	hl
 	call	vxCos
 	ld	(ix+VX_MATRIX_C4), h
 	ld	(ix+VX_MATRIX_C8), h
-	ld	(ix+VX_MATRIX_C0), 64
-	xor	a, a
-	ld	(ix+VX_MATRIX_C1), a
-	ld	(ix+VX_MATRIX_C2), a
-	ld	(ix+VX_MATRIX_C3), a
-	ld	(ix+VX_MATRIX_C6), a
 	ret
 
 vxMatrixRotationZ:
@@ -140,16 +138,15 @@ vxMatrixRotationZ:
 	ld	(ix+VX_MATRIX_C3), a
 	neg
 	ld	(ix+VX_MATRIX_C1), a
+	or	a, a
+	sbc	hl, hl
+	ld	(ix+VX_MATRIX_C2), l
+	ld	(ix+VX_MATRIX_C5), hl
 	pop	hl
 	call	vxCos
 	ld	(ix+VX_MATRIX_C0), h
 	ld	(ix+VX_MATRIX_C4), h
 	ld	(ix+VX_MATRIX_C8), 64
-	xor	a, a
-	ld	(ix+VX_MATRIX_C2), a
-	ld	(ix+VX_MATRIX_C6), a
-	ld	(ix+VX_MATRIX_C7), a
-	ld	(ix+VX_MATRIX_C5), a
 	ret
 
 vxMatrixRotationY:
@@ -159,16 +156,14 @@ vxMatrixRotationY:
 	ld	(ix+VX_MATRIX_C2), a
 	neg
 	ld	(ix+VX_MATRIX_C6), a
+	ld	hl, $004000
+	ld	(ix+VX_MATRIX_C3), hl
+	ld	(ix+VX_MATRIX_C1), l
+	ld	(ix+VX_MATRIX_C7), l
 	pop	hl
 	call	vxCos
 	ld	(ix+VX_MATRIX_C0), h
 	ld	(ix+VX_MATRIX_C8), h
-	ld	(ix+VX_MATRIX_C4), 64
-	xor	a, a
-	ld	(ix+VX_MATRIX_C1), a
-	ld	(ix+VX_MATRIX_C3), a
-	ld	(ix+VX_MATRIX_C5), a
-	ld	(ix+VX_MATRIX_C7), a
 	ret
 
 vxMatrixMlt:
