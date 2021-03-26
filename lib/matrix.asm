@@ -171,41 +171,40 @@ vxMatrixMlt:
 ; WARNING : hl can't be equal to ix
 ; 116 bytes, ~3800 TStates
 	ex	de, hl
-	ld	bc, 768
+	ld	bc, $000303
 vxMatrixColLoop:
 	push	bc
-	ld	b, 3
-	ld	c, b
+	ld	b, c
 vxMatrixRowLoop:
 	push	bc
 	ld	h, (ix+0)
 	ld	l, (iy+0)
 	xor	a, a
 	bit	7, h
-	jr z, $+3
-	sub a, l
+	jr	z, $+3
+	sub	a, l
 	bit	7, l
-	jr z, $+3
-	sub a, h
+	jr	z, $+3
+	sub	a, h
 	mlt	hl
 	ld	b, (ix+1)
 	ld	c, (iy+3)
 	bit	7, b
-	jr z, $+3
-	sub a, c
+	jr	z, $+3
+	sub	a, c
 	bit	7, c
-	jr z, $+3
-	sub a, b
+	jr	z, $+3
+	sub	a, b
 	mlt	bc
 	add	hl, bc
 	ld	b, (ix+2)
 	ld	c, (iy+6)
 	bit	7, b
-	jr z, $+3
-	sub a, c
+	jr	z, $+3
+	sub	a, c
 	bit	7, c
-	jr z, $+3
-	sub a, b
+	jr	z, $+3
+	sub	a, b
 	mlt	bc
 	add	hl, bc
 	ld	b, a
@@ -224,8 +223,7 @@ vxMatrixRowLoop:
 	lea	iy, iy-3
 	pop	bc
 	djnz	vxMatrixColLoop
-	dec	bc
-	ld	c,-9
+	ld	bc, -9
 	add	ix, bc
 	ex	de, hl
 	add	hl, bc
@@ -303,25 +301,26 @@ vxMatrixTransform:
 	ld	de, vxPosition
 	ex	de, hl
 	ldir
-	ld	bc, -VX_MATRIX_SIZE
+	dec	bc
+	ld	c, -VX_MATRIX_SIZE
 	ex	de, hl
 	add	hl, bc
 	ret
 
 vxMatrixTranspose:
-; 192 TStates + translation
-	ld	c, (ix+VX_MATRIX_C3)
+; 160 TStates + translation
+	
 	ld	a, (ix+VX_MATRIX_C1)
+	ld	h, (ix+VX_MATRIX_C2)
+	ld	e, (ix+VX_MATRIX_C3)
+	ld	c, (ix+VX_MATRIX_C5)
+	ld	d, (ix+VX_MATRIX_C6)
+	ld	l, (ix+VX_MATRIX_C7)
+	ld	(ix+VX_MATRIX_C1), de
 	ld	(ix+VX_MATRIX_C3), a
-	ld	(ix+VX_MATRIX_C1), c
-	ld	c, (ix+VX_MATRIX_C6)
-	ld	a, (ix+VX_MATRIX_C2)
-	ld	(ix+VX_MATRIX_C6), a
-	ld	(ix+VX_MATRIX_C2), c
-	ld	c, (ix+VX_MATRIX_C7)
-	ld	a, (ix+VX_MATRIX_C5)
-	ld	(ix+VX_MATRIX_C7), a
-	ld	(ix+VX_MATRIX_C5), c	
+	ld	(ix+VX_MATRIX_C5), hl
+	ld	(ix+VX_MATRIX_C7), c	
+	
 	ld	de, (ix+VX_MATRIX_TX)
 	or	a, a
 	sbc	hl, hl
