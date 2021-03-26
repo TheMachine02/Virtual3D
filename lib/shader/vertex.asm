@@ -212,8 +212,9 @@ relocate VX_VERTEX_SHADER_CODE
 	mlt	bc
 	add	a, b
 ; max(a,0)
-	jp	p, $+5
+	jp	p, .LE-2
 	xor	a, a
+	jr	.LA-1
 	ld	c, a
 .LE=$+1
 	ld	b, $CC
@@ -317,7 +318,8 @@ relocate VX_VERTEX_SHADER_CODE
 	sbc	hl, bc
 	adc	a, a
 	cpl
-	ld	l, VX_SCREEN_HEIGHT
+	add	a, a
+	ld	l, VX_SCREEN_HEIGHT shr 1
 	ld	h, a
 	mlt	hl
 	ld	a, h
