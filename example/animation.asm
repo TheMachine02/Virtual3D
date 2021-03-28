@@ -254,5 +254,5 @@ Material:
 	db	VX_FORMAT_TEXTURE
 	dl	VX_VERTEX_BUFFER
 	dl	vxVertexShader.ftransform
-	dl	0
-	dl	0
+	dl	vxVertexShader.uniform
+	dl	vxPixelShader.texture

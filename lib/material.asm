@@ -2,7 +2,9 @@ define	VX_MATERIAL_DATA		$D03500
 define	VX_MATERIAL_FORMAT		0	; 1 byte, format of the material (stride / polygon format)
 define	VX_MATERIAL_CACHE		1	; 3 bytes, vertex buffer cache
 define	VX_MATERIAL_VERTEX_SHADER	4	; 3 bytes, vertex shader pointer
-define	VX_MATERIAL_PIXEL_SHADER	7	; 3 bytes, pixel shader pointer
+define	VX_MATERIAL_VERTEX_UNIFORM	7	; 3 bytes, vertex shader setup pointer
+define	VX_MATERIAL_PIXEL_SHADER	10	; 3 bytes, pixel shader pointer
+define	VX_MATERIAL_PIXEL_UNIFORM	13	; 3 bytes, pixel shader setup pointer
 define	VX_MATERIAL_SIZE		16	; 16 bytes per material data, the buffer is 256
 define	VX_MAX_MATERIAL			16	; 16 material can be defined
 ; define the material 0-15

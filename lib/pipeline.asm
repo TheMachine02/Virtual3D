@@ -209,7 +209,7 @@ vxVertexStream:
 	ld	de, vxWorldEye
 	call	vxfPositionExtract
 
-	call	vxVertexShader.write_uniform
+	call	vxVertexShader.uniform
 	
 	pop	iy
 ; modelworld=modelworld0
@@ -284,7 +284,7 @@ vxVertexStream:
 	call	vxMatrixTransform	; (hl)=(iy)*(ix)
 ; I have the correct modelview matrix in shader cache area
 ; next one is reduced matrix without translation, since it will only be a direction vector mlt. However, the light vector position also need to be transformed by the transposed matrix
-	call	vxVertexShader.write_uniform
+	call	vxVertexShader.uniform
 ; light = lightuniform*transpose(bonemodel*modelworld)
 	ld	ix, vxModelWorld
 	lea	hl, ix+VX_MATRIX_SIZE

@@ -12,7 +12,7 @@ vxLight:
 
 vxVertexShader:
 
-.write_uniform:
+.uniform:
 ; matrix write
 	ld	ix, vxModelView
 	ld	c, 0
