@@ -238,13 +238,13 @@ relocate VX_VERTEX_SHADER_CODE
 .perspective_divide_ry:
 	ld	(ix+VX_VERTEX_CODE), a
 	add	hl, hl
-	jr	nc, .absolute_ry
+	jr	nc, .perspective_absolute_ry
 	rla
 	ex	de, hl
 	sbc	hl, hl
 	sbc	hl, de
 	or	a, a
-.absolute_ry:
+.perspective_absolute_ry:
 	sbc	hl, bc
 	jr	c, .perspective_iterate_ry
 	sbc	hl, bc
@@ -262,26 +262,26 @@ relocate VX_VERTEX_SHADER_CODE
 .perspective_zclip:
 	sbc	hl, bc
 ; X < Z
-	jp	m, .clip_ry_0
+	jp	m, .perspective_clip_ry_0
 	or	a, 00100010b
-.clip_ry_0:
+.perspective_clip_ry_0:
 	add	hl, bc
 	add	hl, bc
 	add	hl, hl
-	jr	nc, .clip_ry_1
+	jr	nc, .perspective_clip_ry_1
 	or	a, 00010001b
-.clip_ry_1:
+.perspective_clip_ry_1:
 	ld	hl, (ix+VX_VERTEX_RX)
 	sbc	hl, bc
-	jp	m, .clip_rx_0
+	jp	m, .perspective_clip_rx_0
 	or	a, 10001000b
-.clip_rx_0:
+.perspective_clip_rx_0:
 	add	hl, bc
 	add	hl, bc
 	add	hl, hl
-	jr	nc, .clip_rx_1
+	jr	nc, .perspective_clip_rx_1
 	or	a, 01000100b
-.clip_rx_1:
+.perspective_clip_rx_1:
 	ld	(ix+VX_VERTEX_CODE), a
 	ret
 .perspective_iterate_ry:
@@ -340,13 +340,13 @@ relocate VX_VERTEX_SHADER_CODE
 	ld	hl, (ix+VX_VERTEX_RX)
 	xor	a, a
 	add	hl, hl
-	jr	nc, .absolute_rx
+	jr	nc, .perspective_absolute_rx
 	rla
 	ex	de, hl
 	sbc	hl, hl
 	sbc	hl, de
 	or	a, a
-.absolute_rx:
+.perspective_absolute_rx:
 	sbc	hl, bc
 	jr	c, .perspective_iterate_rx
 ; potential clipping issue

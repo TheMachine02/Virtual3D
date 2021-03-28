@@ -1,7 +1,13 @@
-; code start - framebuffer functions
+define	VX_SCREEN_WIDTH		320
+define	VX_SCREEN_HEIGHT	240
+define	VX_SCREEN_WIDTH_CENTER	VX_SCREEN_WIDTH shr 1
+define	VX_SCREEN_HEIGHT_CENTER	VX_SCREEN_HEIGHT shr 1
 
-define	VX_FRAMEBUFFER_AUX0	$D40000		; first VRAM buffer
-define	VX_FRAMEBUFFER_AUX1	$D52C00		; second VRAM buffer
+; TODO : allow settings width and height when allocating the framebuffer
+
+define	VX_FRAMEBUFFER		$D40000
+define	VX_FRAMEBUFFER_AUX0	$D40000		; VRAM buffer
+define	VX_FRAMEBUFFER_AUX1	$D52C00
 define	VX_FRAMEBUFFER_SIZE	$12C00
 define	VX_VRAM			$E30800
 define	VX_BPP8			ti.lcdBpp8	; LCD 8 bpp mode bits
