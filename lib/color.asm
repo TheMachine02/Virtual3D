@@ -41,14 +41,10 @@
 	push	af
 	push	bc
 	inc	hl
-	ld	bc, (hl)
-	inc.s	bc
-	dec.s	bc
+	ld.s	bc, (hl)
 	ex	de, hl
 	inc	hl
-	ld	hl, (hl)
-	inc.s	hl
-	dec.s	hl
+	ld.s	hl, (hl)
 	ld	(vxValueX1), hl
 	jr	z, .rasterNoEdgeWrite
 	ld	a, $13
@@ -77,9 +73,7 @@
 	pop	hl
 ; x2-x0
 	inc	hl
-	ld	hl, (hl)
-	inc.s	hl
-	dec.s	hl
+	ld.s	hl, (hl)
 	ld	(vxValueX2), hl
 	ld	a, $23			; inc hl
 	or	a, a
