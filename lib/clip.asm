@@ -14,6 +14,10 @@ define	VX_PATCH_INPUT		$D03480
 define	VX_PATCH_OUTPUT		$D034C0
 define	VX_PATCH_VERTEX_POOL	$D03400
 
+define	VX_CLIPPLANE_3D_MASK	11110000b
+define	VX_CLIPPLANE_2D_MASK	00001111b
+
+
 vxPatchSize:
  db	0
 vxPatchVertexCache:

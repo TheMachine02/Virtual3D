@@ -81,6 +81,7 @@ vxPrimitiveRenderTriangle:
 	or	a, (hl)
 	ex	de, hl
 	or	a, (hl)
+	and	a, VX_CLIPPLANE_3D_MASK
 	jr	z, vxPrimitiveTextureTriangle
 .clipdrawTextureTriangle:
 	ld	iy, VX_PATCH_INPUT
@@ -119,6 +120,8 @@ vxPrimitiveTextureTriangle:
 ; de = p1 adress
 ; bc = p2 adress
 #include "texture.asm"
+
+assert $ < ($E30800+1024)
 endrelocate
 
 _inner_renderTriangleColor:
@@ -147,6 +150,7 @@ _inner_renderTriangleColor:
 	or	a, (hl)
 	ex	de, hl
 	or	a, (hl)
+	and	a, VX_CLIPPLANE_3D_MASK
 	jr	z, vxPrimitiveFillTriangle
 	
 _inner_clipdrawColorTriangle:

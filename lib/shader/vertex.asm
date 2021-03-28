@@ -84,11 +84,11 @@ vxVertexShader:
 	ld	(.MTY), hl
 	ld	hl, (ix+VX_MATRIX0_TZ)
 	ld	(.MTZ), hl
-	ld	a, VX_SCREEN_HEIGHT	; NOTE : this should be + 1
+	ld	a, VX_SCREEN_HEIGHT+1	; NOTE : this should be + 1
 	ld	(.SHY), a
 	xor	a, a
 	ld	(.SLY), a
-	ld	hl, VX_SCREEN_WIDTH	; NOTE : this should be + 1 for true bound, here the bound is 0-319
+	ld	hl, VX_SCREEN_WIDTH+1	; NOTE : this should be + 1 for true bound, here the bound is 0-320
 	ld	(.SHX), hl
 	sbc	hl, hl
 	ld	(.SLX), hl
@@ -232,11 +232,10 @@ relocate VX_VERTEX_SHADER_CODE
 .perspective_divide:
 ;	ld	hl, (ix+VX_VERTEX_RY)
 	ld	bc, (ix+VX_VERTEX_RZ)
-	ld	a, (ix+VX_VERTEX_RZ+2)
-	rla
-	jr	c, .perspective_zclip
+	xor	a, a	
+	bit	7, (ix+VX_VERTEX_RZ+2)
+	jr	nz, .perspective_zclip
 .perspective_divide_ry:
-	xor	a, a
 	ld	(ix+VX_VERTEX_CODE), a
 	add	hl, hl
 	jr	nc, .absolute_ry
@@ -261,7 +260,6 @@ relocate VX_VERTEX_SHADER_CODE
 	jr	.perspective_divide_rx
 ; we got a gap here, were we can put zclip
 .perspective_zclip:
-	xor	a, a
 	sbc	hl, bc
 ; X < Z
 	jp	m, .clip_ry_0
@@ -722,4 +720,6 @@ align 64
 	sbc	hl, de
 	ret
 align 64
+
+assert ($ mod 1024) = 0
 endrelocate
