@@ -76,6 +76,8 @@ vxEngineInit:
 	call	ti.RunIndicOff
 ; disable interrupts
 	di
+	ld	a, $D0
+	ld	MB, a
 	ld	hl, $E00005
 	ld	(hl), 2	; Set flash wait states to 5 + 2 = 7 (total access time = 8)
 	call	ti.boot.ClearVRAM
