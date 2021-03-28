@@ -80,6 +80,8 @@ vxPrimitiveAssembly:
 	add	hl, sp
 	ld	hl, (hl)
 	add	hl, de
+	add	hl, hl
+	add	hl, hl
 	ld	de, VX_DEPTH_OFFSET
 	add	hl, de
 ; write both the ID in the lower 8 bits and the depth in the upper 16 bits, we'll sort on the full 24 bit pair so similar material will be 'packed' together at best without breaking sorting
