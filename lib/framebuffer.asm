@@ -132,6 +132,7 @@ vxFramebufferVsync:
 	
 vxFramebufferClearColor:
 	cce	fb_ops
+	or	a, a
 	ld	h, c
 	add	hl, hl
 	add	hl, hl
