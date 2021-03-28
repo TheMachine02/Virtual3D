@@ -1,3 +1,6 @@
+; WARNING : this routine assume vertex buffer is in the first 64K of RAM
+assert VX_PATCH_VERTEX_POOL < $D10000
+assert VX_VERTEX_BUFFER < $D10000
 	inc	hl
 	inc	de
 	inc	bc
