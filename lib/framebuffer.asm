@@ -132,7 +132,6 @@ vxFramebufferVsync:
 	
 vxFramebufferClearColor:
 	cce	fb_ops
-	or	a, a
 	ld	h, c
 	add	hl, hl
 	add	hl, hl
@@ -144,6 +143,7 @@ vxFramebufferClearColor:
 	add	hl, hl
 	ld	h, c
 	ld	l, c
+	or	a, a
 	jr	vxFramebufferClear.entry
 
 vxFramebufferClear:
