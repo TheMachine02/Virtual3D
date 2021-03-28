@@ -138,8 +138,6 @@ vxFramebufferVsync:
 	
 vxFramebufferClearColor:
 	cce	fb_ops
-	or	a, a
-	sbc	hl, hl
 	ld	h, c
 	add	hl, hl
 	add	hl, hl
@@ -151,17 +149,16 @@ vxFramebufferClearColor:
 	add	hl, hl
 	ld	h, c
 	ld	l, c
-	ex	de, hl
-	sbc	hl, hl
+	or	a, a
 	jr	vxFramebufferClear.entry
 
 vxFramebufferClear:
 	cce	fb_ops
 	or      a, a
 	sbc     hl, hl
+.entry:
 	ex	de, hl
 	sbc	hl, hl
-.entry:
 	add     hl, sp           ; saves SP in HL
 	ld	ix, (vxFramebuffer)
 	ld	bc, 76800
@@ -182,8 +179,8 @@ vxFramebufferScale2x:
 	call	vxFramebufferVsync
 	ld	hl, (vxFramebuffer)
 	ld	de, (VX_LCD_BUFFER)
-	ld	bc, 0
-	ld	a, 120
+	ld	bc, 120
+	ld	a, c
 .outerWriteVram:
 	push	af
 	ld	c, 160

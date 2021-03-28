@@ -37,13 +37,13 @@ vxPrimitiveAssembly:
 ; we'll need to generate actual LUT table for bc * a (signed)
 ; bc is know is advance, but we have 3 table for -64 to 64
 	ld	de, (vxWorldEye)
-	ld	ix, VX_VIEW_MLTX + VX_VIEW_MLT_OFFSET
+	ld	hl, VX_VIEW_MLTX + VX_VIEW_MLT_OFFSET
 	call	.view_mlt
 	ld	de, (vxWorldEye+3)
-	ld	ix, VX_VIEW_MLTY + VX_VIEW_MLT_OFFSET
+	ld	hl, VX_VIEW_MLTY + VX_VIEW_MLT_OFFSET
 	call	.view_mlt
 	ld	de, (vxWorldEye+6)
-	ld	ix, VX_VIEW_MLTZ + VX_VIEW_MLT_OFFSET
+	ld	hl, VX_VIEW_MLTZ + VX_VIEW_MLT_OFFSET
 	call	.view_mlt
 ; setup the various SMC
 ; geometry format STR
@@ -148,7 +148,9 @@ vxPrimitiveAssembly:
 ; a (signed) time bc (know is advance), so we can use a LUT table to perform this multiplication at a quite low cost (64 values*3 to compute, we can even push them at cost of 2 bytes + 3 write)
 .view_mlt:
 	ld	(.SP_RET1), sp
-	or	a, a
+	ld	sp, hl
+	ld	ix, 512 - VX_VIEW_MLT_OFFSET
+	add	ix, sp
 	sbc	hl, hl
 	sbc	hl, de
 	ex	de, hl
@@ -157,7 +159,6 @@ vxPrimitiveAssembly:
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
-	ld	sp, ix
 	ld	b, 8
 .view_mlt_pos:
 	dec	sp
@@ -173,8 +174,6 @@ vxPrimitiveAssembly:
 	push	hl
 	add	hl, de
 	djnz	.view_mlt_pos
-	ld	bc, 512 - VX_VIEW_MLT_OFFSET
-	add	ix, bc
 	ld	sp, ix
 	ld	b, 8
 .view_mlt_neg:
