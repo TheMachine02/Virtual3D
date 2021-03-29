@@ -1,5 +1,3 @@
-; shader will copy 1024 bytes from global_data to VX_VRAM. This load occurs at begin of stream instruction, to ensure maximum vertex throughput. About 2200 cycles per vertex are needed.
-
 vxModelView:
  db    0,0,0
  db    0,0,0
@@ -12,10 +10,11 @@ vxLight:
 
 vxVertexShader:
 
+; this is non-critical code, called only one time per vertex stream execution
 .uniform:
 ; matrix write
 	ld	hl, vxModelView
-	ld	de, 3
+	ld	de, VX_LONG_STRIDE
 	ld	c, d
 	ld	a, (hl)
 	bit	7, a
@@ -108,31 +107,26 @@ vxVertexShader:
 	ldi
 	ld	de, .LE
 	ldi
-		
-	ld	a, VX_SCREEN_HEIGHT+1	; NOTE : this should be + 1
+; scissor set
+; NOTE : this should be + 1
+	ld	a, VX_SCREEN_HEIGHT+1
 	ld	(.SHY), a
 	xor	a, a
 	ld	(.SLY), a
-	ld	hl, VX_SCREEN_WIDTH+1	; NOTE : this should be + 1 for true bound, here the bound is 0-320
+; NOTE : this should be + 1 for true bound, here the bound is 0-320
+	ld	hl, VX_SCREEN_WIDTH+1
 	ld	(.SHX), hl
 	sbc	hl, hl
 	ld	(.SLX), hl
 	ret
 
-.ftransform:
-
-relocate VX_VERTEX_SHADER_CODE	
-	
-.trampoline_stack:
- dl	.trampoline_v0_ret
- dl	.trampoline_v1_ret
- dl	.trampoline_v2_ret
- dl	0
-.stack:
-
+; NOTE : the vertex shader ftransform should be relocated to VRAM at the begining of the routine (after the label, since the label is used in material as copying, for 1024 bytes of data / code)
+; This load occurs at begin of stream instruction, to ensure maximum vertex throughput. About 1800 cycles per vertex are needed.
 ; iy = vertex data register [VX,VY,VZ,VN[0-2]]
 ; ix = output data register [RC,SY,SX,RI[0-1],RX,RY,RZ]
-
+; SMC registers are set with uniform routine
+.ftransform:
+relocate VX_VERTEX_SHADER_CODE
 .ftransform_trampoline:
 	ld	sp, .trampoline_stack
 ; compute the Z coordinate from matrix register with FMA engine ;
@@ -439,6 +433,15 @@ relocate VX_VERTEX_SHADER_CODE
 	set	3, (ix+VX_VERTEX_CODE)
 	ret
 
+.trampoline_stack:
+ dl	.trampoline_v0_ret
+ dl	.trampoline_v1_ret
+ dl	.trampoline_v2_ret
+ dl	0
+.stack:
+
+; free space between alignement
+
 align 512
 .engine_000:
 ; 232 cycles
@@ -733,7 +736,6 @@ align 64
 	sbc	hl, hl
 	sbc	hl, de
 	ret
-align 64
 
-assert ($ mod 1024) = 0
+assert $ < $E30C00
 endrelocate

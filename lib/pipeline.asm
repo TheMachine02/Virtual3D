@@ -179,14 +179,12 @@ vxVertexStream:
 ; modelViewReverseTranslate = modelViewTranslate * transpose(modelview)
 ; equivalent to eye position in worldspace (worldpos)
 	push	iy
-
 	ld	hl, vxModelView
 	ld	de, vxModelViewReverse
 	ld	bc, VX_MATRIX_SIZE
 	ldir
 	ld	ix, vxModelViewReverse
 	call	vxMatrixTranspose
-
 	ld	de, 0
 	ld	hl, (ix+VX_MATRIX_TZ)
 	ld	(ix+VX_MATRIX_TZ), de
@@ -203,14 +201,13 @@ vxVertexStream:
 	add	hl, hl
 	add	hl, hl
 	ld	(vxWorldEye-1), hl
-
 	ld	iy, vxWorldEye
 	call	vxfTransform
 	ld	de, vxWorldEye
 	call	vxfPositionExtract
-
-	call	vxVertexShader.uniform
-	
+	ld	ix, (vxPrimitiveMaterial)
+	ld	hl, (ix+VX_MATERIAL_VERTEX_UNIFORM)
+	call	.uniform
 	pop	iy
 ; modelworld=modelworld0
 ; tmodelworld=transpose(modelworld)
@@ -325,6 +322,8 @@ vxVertexStream:
 	and	a, (ix-128)
 ; z = inside / clip, nz = outside
 	ret
+.uniform:
+	jp	(hl)
 
 vxPrimitiveDepthSort:
 	cce	ge_z_sort
