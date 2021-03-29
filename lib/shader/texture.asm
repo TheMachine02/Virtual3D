@@ -11,7 +11,6 @@ relocate	VX_PIXEL_SHADER_CODE
 	adc	hl, sp
 	ld	h, a
 	ld	a, (hl)
-;	ld	a, b
 	ld	(de), a
 	inc	de
 	exx
@@ -21,7 +20,6 @@ relocate	VX_PIXEL_SHADER_CODE
 	adc	hl, sp
 	ld	h, a
 	ld	a, (hl)
-;	ld	a, b
 	ld	(de), a
 	inc	de
 	exx
