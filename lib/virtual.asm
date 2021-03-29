@@ -93,13 +93,12 @@ vxEngineInit:
 	ldir
 	ld	hl, VX_LUT_SIN_DATA
 	ld	de, VX_LUT_SIN
-	ld	bc, VX_LUT_SIN_SIZE
+	ld	b, 2	; bc=VX_LUT_SIN_SIZE
 	ldir
-	ld	hl, NULL_RAM
+	ld	hl, NULL_RAM+6
 	ld	de, VX_DEPTH_BUCKET_L
-	ld	b, 6	; 6*256 (3*512)
+	ld	b, l	; 6*256 (3*512)
 	ldir
-	ld	hl, NULL_RAM
 	ld	de, VX_VERTEX_BUFFER
 	ld	bc, VX_MAX_VERTEX * VX_VERTEX_SIZE
 	ldir
