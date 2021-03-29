@@ -208,15 +208,15 @@ vxVertexStream:
 	ld	ix, (vxPrimitiveMaterial)
 	ld	hl, (ix+VX_MATERIAL_VERTEX_UNIFORM)
 	call	.uniform
-	pop	iy
+	pop	hl
 ; modelworld=modelworld0
 ; tmodelworld=transpose(modelworld)
-	lea	hl, iy+0
 	ld	de, vxModelWorld
 	ld	bc, VX_MATRIX_SIZE
 	ldir
-	lea	hl, iy+0
 	ld	c, VX_MATRIX_SIZE
+	or	a, a
+	sbc	hl, bc
 	ldir
 	ld	ix, vxTModelWorld
 	call	vxMatrixTranspose

@@ -156,14 +156,14 @@ vxQuaternionConjugate:
 	sbc	hl, hl
 	sbc	hl, de
 	ld	(ix+3), hl
+	add	hl, de
 	ld	de, (ix+6)
 	or	a, a
-	sbc	hl, hl
 	sbc	hl, de
 	ld	(ix+6), hl
+	add	hl, de
 	ld	de, (ix+9)
 	or	a, a
-	sbc	hl, hl
 	sbc	hl, de
 	ld	(ix+9), hl
 	ret
