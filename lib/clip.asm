@@ -632,7 +632,7 @@ vxParametricFactor:
 	jr	z, .clipplane_null
 .clipplane_dispatch:
 ; based on value of outcode plane, stored in uniform (new vertex create inherit some clip plane propriety)
-	ld	a, (ix+VX_VERTEX_UNIFORM)
+	ld	a, (ix+VX_VERTEX_GPR2)
 	rrca
 	rrca
 	ld	hl, .clipplane_table

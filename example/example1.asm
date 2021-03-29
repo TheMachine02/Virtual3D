@@ -37,6 +37,10 @@ Main:
 	ld	hl, Material
 	ld	a, VX_MATERIAL0
 	call	vxMaterialLoad
+	
+	ld	ix, gouraudShader
+	call	vxShaderLoad
+	
 .loop:
 	call	vxTimer.reset
 	ld	hl, (LightAngle)
@@ -191,8 +195,8 @@ LightAngle:
 	dl	0,0,0
 
 Material:
-	db	VX_FORMAT_COLOR
+	db	VX_FORMAT_GOURAUD
 	dl	VX_VERTEX_BUFFER
 	dl	vxVertexShader.ftransform
 	dl	vxVertexShader.uniform
-	dl	vxPixelShader.texture
+	dl	0

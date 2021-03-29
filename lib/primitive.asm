@@ -33,7 +33,23 @@ VX_REGISTER_DATA:
  db	3072	dup	$D3
 
 vxPrimitive:
-  
+
+.render_target_gouraud:
+; interpolated, no u&v unpack, unpack color
+; this target could also be used if you want no uv, the pixel shader uniform color (c) will be set randomly in this case
+; take iy as input, bc as vertex
+	ld	hl, (iy+VX_TRIANGLE_I1)
+	add	hl, bc
+	ex	de, hl
+	ld	hl, (iy+VX_TRIANGLE_I0)
+	add	hl, bc
+	ld	ix, (iy+VX_TRIANGLE_I2)
+	add	ix, bc
+	lea	bc, ix+0
+	ld	a, (iy+VX_TRIANGLE_COLOR)
+	ld	(vxShaderUniform0), a
+	jp	vxPrimitiveRenderTriangle.render_target_interpolate
+
 VX_REGISTER_INTERPOLATION_COPY:
 relocate VX_REGISTER_INTERPOLATION_CODE
  
@@ -42,8 +58,11 @@ vxPrimitiveRenderTriangle:
 ; bc = vertex cache adress
 ;  a = encoding format of triangle data
 ; nicely optimized for 3 points
+; TODO : please optimise this with a truth jump table
 	rla		; VX_FORMAT_INTERPOLATION_MASK
 	jp	nc, _inner_renderTriangleColor
+	rla
+	jp	nc, vxPrimitive.render_target_gouraud
 .renderTriangleTexture:
 ; take iy as input, bc as vertex
 	lea	hl, iy+VX_TRIANGLE_UV0
@@ -77,6 +96,7 @@ vxPrimitiveRenderTriangle:
 	lea	bc, iy+4
 	lea	de, ix+2
 	pop	hl
+.render_target_interpolate:
 	ld	a, (bc)
 	or	a, (hl)
 	ex	de, hl
@@ -94,6 +114,17 @@ vxPrimitiveRenderTriangle:
 	cce	ge_pri_clip
 	call	vxPrimitiveClipFrustrum
 	ccr	ge_pri_clip
+	jp	vxPrimitiveTexturePolygon
+vxPrimitiveTextureTriangle:
+; hl = p0 adress
+; de = p1 adress
+; bc = p2 adress
+#include "texture.asm"
+
+assert $ < ($E30800+1024)
+endrelocate
+
+; TODO : we miss space in this render scope, optimize it please
 ; fall through drawing polygon :
 vxPrimitiveTexturePolygon:
 ; iy : point to a list of transformed vertex adress
@@ -115,27 +146,19 @@ _inner_cyclicLoop0:
 	pop	bc
 	djnz	_inner_cyclicLoop0
 	ret
-vxPrimitiveTextureTriangle:
-; hl = p0 adress
-; de = p1 adress
-; bc = p2 adress
-#include "texture.asm"
-
-assert $ < ($E30800+1024)
-endrelocate
 
 _inner_renderTriangleColor:
 	ld	ix, (iy+VX_TRIANGLE_I0)
 	add	ix, bc
-	ld	a, (ix+VX_VERTEX_UNIFORM)
+	ld	a, (ix+VX_VERTEX_GPR2)
 	lea	hl, ix+0
 	ld	ix, (iy+VX_TRIANGLE_I1)
 	add	ix, bc
-	add	a, (ix+VX_VERTEX_UNIFORM)
+	add	a, (ix+VX_VERTEX_GPR2)
 	lea	de, ix+0
 	ld	ix, (iy+VX_TRIANGLE_I2)
 	add	ix, bc
-	add	a, (ix+VX_VERTEX_UNIFORM)
+	add	a, (ix+VX_VERTEX_GPR2)
 	ld	b, a
 	ld	c, 86
 	mlt	bc
@@ -234,7 +257,7 @@ _inner_cacheCompute:
 	sbc	hl, hl
 _inner_uniformCompute:
 	ld	ix, (iy+VX_POLYGON_I0)
-	ld	e, (ix+VX_VERTEX_UNIFORM)
+	ld	e, (ix+VX_VERTEX_GPR2)
 	add	hl, de
 	lea	iy, iy+3
 	djnz	_inner_uniformCompute

@@ -235,7 +235,9 @@ relocate VX_VERTEX_SHADER_CODE
 	cp	a, 32
 	jr	c, $+4
 	ld	a, 31
-	ld	(ix+VX_VERTEX_UNIFORM), a
+;	ld	(ix+VX_VERTEX_GPR2), a
+; use this target for gouraud shading, this is v register
+	ld	(ix+VX_VERTEX_GPR1), a
 
 .perspective_divide:
 ;	ld	hl, (ix+VX_VERTEX_RY)

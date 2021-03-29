@@ -177,7 +177,7 @@ vxVertexStream:
 	ld	bc, VX_MATRIX_SIZE
 	ldir
 ; modelViewReverseTranslate = modelViewTranslate * transpose(modelview)
-; equivalent to eye position in worldspace (worldpos)
+; equivalent to eye position in modelspace
 	push	iy
 	ld	hl, vxModelView
 	ld	de, vxModelViewReverse
