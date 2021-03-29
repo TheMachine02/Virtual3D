@@ -14,21 +14,24 @@ vxVertexShader:
 
 .uniform:
 ; matrix write
-	ld	ix, vxModelView
-	ld	c, 0
-	ld	a, (ix+VX_MATRIX0_C0)
+	ld	hl, vxModelView
+	ld	de, 3
+	ld	c, d
+	ld	a, (hl)
 	bit	7, a
 	jr	z, $+6
 	neg
 	set	7, c
 	ld	(.MC0), a
-	ld	a, (ix+VX_MATRIX0_C1)
+	inc	hl
+	ld	a, (hl)
 	bit	7, a
 	jr	z, $+6
 	neg
 	set	6, c
 	ld	(.MC1), a
-	ld	a, (ix+VX_MATRIX0_C2)
+	inc	hl
+	ld	a, (hl)
 	bit	7, a
 	jr	z, $+6
 	neg
@@ -36,20 +39,23 @@ vxVertexShader:
 	ld	(.MC2), a
 	ld	a, c
 	ld	(.MS0), a
-	ld	c, 0
-	ld	a, (ix+VX_MATRIX0_C3)
+	ld	c, d
+	inc	hl
+	ld	a, (hl)
 	bit	7, a
 	jr	z, $+6
 	neg
 	set	7, c
 	ld	(.MC3), a
-	ld	a, (ix+VX_MATRIX0_C4)
+	inc	hl
+	ld	a, (hl)
 	bit	7, a
 	jr	z, $+6
 	neg
 	set	6, c
 	ld	(.MC4), a
-	ld	a, (ix+VX_MATRIX0_C5)
+	inc	hl	
+	ld	a, (hl)
 	bit	7, a
 	jr	z, $+6
 	neg
@@ -57,20 +63,23 @@ vxVertexShader:
 	ld	(.MC5), a
 	ld	a, c
 	ld	(.MS1), a
-	ld	c, 0
-	ld	a, (ix+VX_MATRIX0_C6)
+	ld	c, d
+	inc	hl
+	ld	a, (hl)
 	bit	7, a
 	jr	z, $+6
 	neg
 	set	7, c
 	ld	(.MC6), a
-	ld	a, (ix+VX_MATRIX0_C7)
+	inc	hl
+	ld	a, (hl)
 	bit	7, a
 	jr	z, $+6
 	neg
 	set	6, c
 	ld	(.MC7), a
-	ld	a, (ix+VX_MATRIX0_C8)
+	inc	hl
+	ld	a, (hl)
 	bit	7, a
 	jr	z, $+6
 	neg
@@ -78,12 +87,28 @@ vxVertexShader:
 	ld	(.MC8), a
 	ld	a, c
 	ld	(.MS2), a
-	ld	hl, (ix+VX_MATRIX0_TX)
-	ld	(.MTX), hl
-	ld	hl, (ix+VX_MATRIX0_TY)
-	ld	(.MTY), hl
-	ld	hl, (ix+VX_MATRIX0_TZ)
-	ld	(.MTZ), hl
+	inc	hl
+	ld	bc, (hl)
+	ld	(.MTX), bc
+	add	hl, de
+	ld	bc, (hl)
+	ld	(.MTY), bc
+	add	hl, de
+	ld	bc, (hl)
+	ld	(.MTZ), bc
+; lightning write
+	add	hl, de
+	ld	de, .LV0
+	ldi
+	ld	de, .LV1
+	ldi
+	ld	de, .LV2
+	ldi
+	ld	de, .LA
+	ldi
+	ld	de, .LE
+	ldi
+		
 	ld	a, VX_SCREEN_HEIGHT+1	; NOTE : this should be + 1
 	ld	(.SHY), a
 	xor	a, a
@@ -92,17 +117,6 @@ vxVertexShader:
 	ld	(.SHX), hl
 	sbc	hl, hl
 	ld	(.SLX), hl
-; lightning write
-	ld	a, (ix+VX_LIGHT0_VECTOR)
-	ld	(.LV0), a
-	ld	a, (ix+VX_LIGHT0_VECTOR+1)
-	ld	(.LV1), a
-	ld	a, (ix+VX_LIGHT0_VECTOR+2)
-	ld	(.LV2), a
-	ld	a, (ix+VX_LIGHT0_AMBIENT)
-	ld	(.LA), a
-	ld	a, (ix+VX_LIGHT0_POW)
-	ld	(.LE), a
 	ret
 
 .ftransform:
