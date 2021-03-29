@@ -38,6 +38,10 @@ echo "Converting FFXII test models..."
 fasmg example/file/BunnyFFXII0.inc bin/FLUFFYV.8xv
 fasmg example/file/BunnyFFXII1.inc bin/FLUFFYF.8xv
 
+# ./tools/mdlconv example/file/BunnyFFXII.obj -C -N -S -B -X -F -o=FLUFFY
+# fasmg example/file/BunnyFFXII0.inc bin/FLUFFYV.8xv
+# fasmg example/file/BunnyFFXII1.inc bin/FLUFFYF.8xv
+
 ./tools/mdlconv  example/file/FranFFXII.obj -T -N -S -B -X -F -o=FRAN
 fasmg example/file/FranFFXII0.inc bin/FRANV.8xv
 fasmg example/file/FranFFXII1.inc bin/FRANF.8xv
@@ -75,7 +79,8 @@ echo "Converting TonberryFFVIII.obj..."
 fasmg example/file/TonberryFFVIII0.inc bin/TONBV.8xv 
 fasmg example/file/TonberryFFVIII1.inc bin/TONBF.8xv 
 
-./tools/mdlconv  example/file/UltimeciaFFVIII.obj -T -N -S -B -X -F -o=ULTIM
+./tools/mdlconv  example/file/UltimeciaFFVIII.obj -C -N -S -B -X -F -o=ULTIM
+# -T -N -S -B -X -F -o=ULTIM
 fasmg example/file/UltimeciaFFVIII0.inc bin/ULTIMV.8xv 
 fasmg example/file/UltimeciaFFVIII1.inc bin/ULTIMF.8xv 
 

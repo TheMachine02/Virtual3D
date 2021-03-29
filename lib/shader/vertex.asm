@@ -5,7 +5,7 @@ vxModelView:
  dl    0,0,0
 vxLight:
  db    0,0,0
- db    0,0,0
+ db    0,0
  dw    0,0,0
 
 vxVertexShader:
@@ -220,15 +220,22 @@ relocate VX_VERTEX_SHADER_CODE
 	mlt	bc
 	add	a, b
 ; max(a,0)
-	jp	p, .LE-2
+	jp	p, .light_scale
 	xor	a, a
-	jr	.LA-1
+	jr	.light_ambient
+.light_scale:
 	ld	c, a
+; LE have a 64 scaling
 .LE=$+1
 	ld	b, $CC
 	mlt	bc
+	rl	c
+	rl	b
+	rl	c
+	rl	b
 	ld	a, b
 	rl	c
+.light_ambient:
 .LA=$+1
 	adc	a, $CC
 ; min(a,15)

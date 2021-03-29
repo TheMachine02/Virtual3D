@@ -61,8 +61,8 @@ Main:
 
 	call	.random
 	ld	a, l
-	and	a, 31
-	add	a, 224
+	and	a, 7
+	add	a, 56
 	ld	(vxLightUniform+4), a
 
 	ld	hl, (World.euler_angle)
@@ -219,7 +219,7 @@ World:
 .light:
 	db	0,0,-64
 	db	8
-	db	255
+	db	64
 	dw	0,0,0
 .euler_angle:
 	dl	0,0,0

@@ -30,9 +30,9 @@ Main:
 	ld	hl, 65536
 	ld	(ix+15), hl		; Z translation of the matrix
 ; define a little light \o/
-	ld	a, 8
+	ld	a, 0
 	ld	(vxLightUniform+3), a
-	ld	a, 255
+	ld	a, 96
 	ld	(vxLightUniform+4), a
 	ld	hl, Material
 	ld	a, VX_MATERIAL0
