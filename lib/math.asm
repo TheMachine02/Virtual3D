@@ -2,6 +2,9 @@ vxMath:
 
 .sin_88:
 ; input a 0-255 angle and ouput a 8.8 fixed point sinus [hlu is undefined]
+	or	a, a
+	sbc	hl, hl
+	ld	l, a
 	add	hl, hl
 	add	hl, hl
 	call	.sin
@@ -14,6 +17,9 @@ vxMath:
 	ret
 .cos_88:
 ; input a 0-255 angle and ouput a 8.8 fixed point cosinus [hlu is undefined]
+	or	a, a
+	sbc	hl, hl
+	ld	l, a
 	add	hl, hl
 	add	hl, hl
 	call	.cos
