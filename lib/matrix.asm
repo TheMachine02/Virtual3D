@@ -116,7 +116,7 @@ vxMatrixLoadIdentity:
 
 vxMatrixRotationX:
 	push	hl
-	call	vxSin
+	call	vxMath.sin
 	ld	a, h
 	ld	(ix+VX_MATRIX_C7), a
 	neg
@@ -126,14 +126,14 @@ vxMatrixRotationX:
 	ld	(ix+VX_MATRIX_C3), h
 	ld	(ix+VX_MATRIX_C6), h
 	pop	hl
-	call	vxCos
+	call	vxMath.cos
 	ld	(ix+VX_MATRIX_C4), h
 	ld	(ix+VX_MATRIX_C8), h
 	ret
 
 vxMatrixRotationZ:
 	push	hl
-	call	vxSin
+	call	vxMath.sin
 	ld	a, h
 	ld	(ix+VX_MATRIX_C3), a
 	neg
@@ -143,7 +143,7 @@ vxMatrixRotationZ:
 	ld	(ix+VX_MATRIX_C2), l
 	ld	(ix+VX_MATRIX_C5), hl
 	pop	hl
-	call	vxCos
+	call	vxMath.cos
 	ld	(ix+VX_MATRIX_C0), h
 	ld	(ix+VX_MATRIX_C4), h
 	ld	(ix+VX_MATRIX_C8), 64
@@ -151,7 +151,7 @@ vxMatrixRotationZ:
 
 vxMatrixRotationY:
 	push	hl
-	call	vxSin
+	call	vxMath.sin
 	ld	a, h
 	ld	(ix+VX_MATRIX_C2), a
 	neg
@@ -161,7 +161,7 @@ vxMatrixRotationY:
 	ld	(ix+VX_MATRIX_C1), l
 	ld	(ix+VX_MATRIX_C7), l
 	pop	hl
-	call	vxCos
+	call	vxMath.cos
 	ld	(ix+VX_MATRIX_C0), h
 	ld	(ix+VX_MATRIX_C8), h
 	ret

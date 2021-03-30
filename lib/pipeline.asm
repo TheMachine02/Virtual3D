@@ -149,7 +149,7 @@ vxPrimitiveStream:
 	sbc	hl, de
 	ex	de, hl
 	ld	bc, VX_GEOMETRY_SIZE
-	call	Math.div16	
+	call	vxMath.div16	
 	ld	hl, (vxGeometrySize)
 	add	hl, de
 	ld	(vxGeometrySize), hl

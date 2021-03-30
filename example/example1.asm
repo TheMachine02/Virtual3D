@@ -44,14 +44,11 @@ Main:
 .loop:
 	call	vxTimer.reset
 	ld	hl, (LightAngle)
-	ld	de, 32
-	add	hl, de
-	ld	(LightAngle), hl
-	call	vxSin
+	call	vxMath.sin
 	ld	a, h
 	ld	(vxLightUniform+2), a
 	ld	hl, (LightAngle)
-	call	vxCos
+	call	vxMath.cos
 	ld	a, h
 	ld	(vxLightUniform), a
 	ld	hl, (EulerAngle)
@@ -136,6 +133,14 @@ Main:
 	add	hl, de
 .kskip4:
 	ld	(WorldMatrix+15), hl
+	ld	a, ($F5001C)
+	bit	0, a
+	jr	z, .kskip7
+	ld	hl, (LightAngle)
+	ld	de, 16
+	add	hl, de
+	ld	(LightAngle), hl
+.kskip7:
 	ld	a, ($F5001C)
 	bit	6, a
 	jp	z, .loop

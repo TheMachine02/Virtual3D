@@ -279,7 +279,7 @@ vxQuaternionRotationAxis:
 ; qy = axis.y*sin(angle/2)
 ; qz = axis.z*sin(angle/2)
 	push	hl
-	call	vxSin
+	call	vxMath.sin
 ; hl = sin
 	ex	de, hl
 ; DE is never destroyed by the macro's
@@ -293,7 +293,7 @@ vxQuaternionRotationAxis:
 	call	vxQuatMlt
 	ld	(iy+VX_QUATERNION_QZ), hl
 	pop	hl
-	call	vxCos
+	call	vxMath.cos
 	ld	(iy+VX_QUATERNION_QW), hl
 	ret
 vxQuaternionDot:
@@ -426,34 +426,5 @@ vxSqAbsSkp:
 	sbc	hl, hl
 	ld	h, a
 	ld	l, e
-	ret
-
-vxCos:
-	inc	h
-vxSin:
-	bit	0, h
-	ld	a, l
-	jr	z, vxSinSkp1
-	neg
-	jr	z, vxQuatIndexZero
-vxSinSkp1:
-	bit	1, h
-	ld	hl, VX_LUT_SIN shr 1
-	ld	l, a
-	add	hl, hl	; sure c flag will be reset!
-	ld	de, (hl)
-	ex.s	de, hl
-	ret	z
-	ex	de, hl
-	sbc	hl, hl
-	sbc	hl, de
-	ret
-vxQuatIndexZero:
-	bit	1, h
-	jr	nz, vxQuatNegResultCst
-	ld	hl, $004000
-	ret
-vxQuatNegResultCst:
-	ld	hl, $FFC000
 	ret
 
