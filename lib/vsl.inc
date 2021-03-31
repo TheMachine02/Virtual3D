@@ -151,10 +151,12 @@ define	VX_STREAM_HEADER_BBOX		8
 define	VX_STREAM_END			1
 
 define	VX_VOXEL_POSITION		0	; 2 bytes each, 8.8
-define	VX_VOXEL_PHI			4	; 0-255
-define	VX_VOXEL_HEIGHT			5	; 0-255
-define	VX_VOXEL_HORIZON		6	; 0-255
-define	VX_VOXEL_SCALE			7	; 0-255
+define	VX_VOXEL_VX			0
+define	VX_VOXEL_VY			3
+define	VX_VOXEL_PHI			6	; 0-255
+define	VX_VOXEL_HEIGHT			7	; 0-255
+define	VX_VOXEL_HORIZON		8	; 0-255
+define	VX_VOXEL_SCALE			9	; 0-255
 define	VX_VOXEL_DISTANCE		256	; fixed
 
 define	VX_VOXEL_X			0

@@ -205,9 +205,6 @@ vxVertexStream:
 	call	vxfTransform
 	ld	de, vxWorldEye
 	call	vxfPositionExtract
-	ld	ix, (vxPrimitiveMaterial)
-	ld	hl, (ix+VX_MATERIAL_VERTEX_UNIFORM)
-	call	.uniform
 	pop	hl
 ; modelworld=modelworld0
 ; tmodelworld=transpose(modelworld)
@@ -226,10 +223,12 @@ vxVertexStream:
 	ld	iy, vxLightUniform
 	call	vxMatrixLightning
 ; load up shader data
+	ld	ix, (vxPrimitiveMaterial)
+	ld	hl, (ix+VX_MATERIAL_VERTEX_UNIFORM)
+	call	.uniform
 	pop	iy
 ; iy = source, ix = matrix
 	ld	a, (iy+VX_STREAM_HEADER_OPTION)
-; 	ld	bc, (iy+VX_STREAM_HEADER_COUNT)
 	lea	iy, iy+VX_STREAM_HEADER_SIZE
 ; iy+0 are options, so check those. Here, only bounding box is interesting.
 	and	a, VX_STREAM_HEADER_BBOX

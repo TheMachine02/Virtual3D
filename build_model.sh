@@ -62,9 +62,9 @@ fasmg example/file/VieraSceneFFXII1.inc bin/VIERAF.8xv
 fasmg example/file/BomboFFXII0.inc bin/BOMBOV.8xv
 fasmg example/file/BomboFFXII1.inc bin/BOMBOF.8xv
 
-# ./tools/mdlconv  example/file/UltimaFFXII.obj -T -N -S -B -X -o=ULTIMA
-# fasmg example/file/UltimaFFXII0.inc bin/ULTIMAV.8xv 
-# fasmg example/file/UltimaFFXII1.inc bin/ULTIMAF.8xv 
+./tools/mdlconv  example/file/UltimaFFXII_LOD1.obj -C -N -S -B -X -F -o=ULTIMA
+fasmg example/file/UltimaFFXII_LOD10.inc bin/ULTIMAV.8xv 
+fasmg example/file/UltimaFFXII_LOD11.inc bin/ULTIMAF.8xv 
 
 echo "Converting FFX test models..."
 
