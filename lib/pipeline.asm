@@ -1,3 +1,27 @@
+; Virtual-3D library, version 1.0
+;
+; MIT License
+; 
+; Copyright (c) 2017 - 2021 TheMachine02
+; 
+; Permission is hereby granted, free of charge, to any person obtaining a copy
+; of this software and associated documentation files (the "Software"), to deal
+; in the Software without restriction, including without limitation the rights
+; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+; copies of the Software, and to permit persons to whom the Software is
+; furnished to do so, subject to the following conditions:
+; 
+; The above copyright notice and this permission notice shall be included in all
+; copies or substantial portions of the Software.
+; 
+; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+; SOFTWARE.
+
 include	"shader/vertex.asm"
 
 define	VX_GEOMETRY_QUEUE		$D10000	; 4*4096 (16K)
@@ -11,7 +35,7 @@ define	VX_MAX_VERTEX			2048
 ; Better vertex shader with decoupled projection
 ; Put all the code in fast ram, use sha256
 
-vxSubmissionQueue:
+vxPrimitiveQueue:
  dl	0
 vxGeometrySize:
  dl	0
@@ -46,7 +70,15 @@ vxPosition:
 vxWorldEye:
  dl	0,0,0
  db	0
-
+vxModelView:
+ db    0,0,0
+ db    0,0,0
+ db    0,0,0
+ dl    0,0,0
+vxLight:
+ db    0,0,0
+ db    0,0
+ dw    0,0,0
 vxModelViewReverse:
  db	0,0,0
  db	0,0,0
@@ -57,7 +89,7 @@ vxPrimitiveSubmit:
 .reset:
 ; various reset blahblah
 	ld	hl, (VX_LCD_BUFFER)
-	ld	(vxSubmissionQueue), hl
+	ld	(vxPrimitiveQueue), hl
 	ld	hl, NULL_RAM
 	ld	de, VX_DEPTH_BUCKET_L
 	ld	bc, 256 * 6
@@ -142,9 +174,9 @@ vxPrimitiveStream:
 	ccr	ge_pri_assembly
 ; need to update count & queue position
 ; simple : new-previous / 8
-	ld	de, (vxSubmissionQueue)
+	ld	de, (vxPrimitiveQueue)
 	lea	hl, ix+0
-	ld	(vxSubmissionQueue), hl
+	ld	(vxPrimitiveQueue), hl
 	or	a, a
 	sbc	hl, de
 	ex	de, hl
@@ -456,7 +488,7 @@ vxPrimitiveDepthSortHelper:
 	dec	h
 	ld	(hl), e
 ; sorting now, backward
-	ld	ix, (vxSubmissionQueue)
+	ld	ix, (vxPrimitiveQueue)
 	pop	bc
 .sort_bucket_l:
 	lea	ix, ix-VX_GEOMETRY_SIZE

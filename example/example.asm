@@ -59,8 +59,8 @@ Main:
 	ld	a, 0
 	ld	(vxLightUniform+4), a
 
-	ld	ix, alphaShader
-	call	vxShaderLoad
+; 	ld	ix, alphaShader
+; 	call	vxShaderLoad
 
 	ld	hl, material
 	ld	a, VX_MATERIAL0
@@ -339,15 +339,15 @@ Temp:
 	dl	0,0
 
 VertexName:
-	db	ti.AppVarObj, "POOLV",0
+	db	ti.AppVarObj, "KALIYAV",0
 Vertex:
 	dl	0
 TriangleName:
-	db	ti.AppVarObj, "POOLF", 0
+	db	ti.AppVarObj, "KALIYAF", 0
 Triangle:
 	dl	0
 TextName:
-	db	ti.AppVarObj, "POOLT",0
+	db	ti.AppVarObj, "KALIYAT",0
 Texture:
 	dl	0
 UnitVector:

@@ -175,11 +175,11 @@ include	"font/font.asm"
 include	"debug.asm"
 
 VertexName:
-	db	ti.AppVarObj, "ULTIMAV",0
+	db	ti.AppVarObj, "SUZANV",0
 Vertex:
 	dl	0
 TriangleName:
-	db	ti.AppVarObj, "ULTIMAF", 0
+	db	ti.AppVarObj, "SUZANF", 0
 Triangle:
 	dl	0
 

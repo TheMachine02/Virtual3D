@@ -1,13 +1,3 @@
-vxModelView:
- db    0,0,0
- db    0,0,0
- db    0,0,0
- dl    0,0,0
-vxLight:
- db    0,0,0
- db    0,0
- dw    0,0,0
-
 vxVertexShader:
 
 ; this is non-critical code, called only one time per vertex stream execution

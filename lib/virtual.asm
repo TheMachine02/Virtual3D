@@ -1,7 +1,9 @@
 ; Virtual-3D library, version 1.0
 ;
-; Copyright (c) 2020 TheMachine02
-
+; MIT License
+; 
+; Copyright (c) 2017 - 2021 TheMachine02
+; 
 ; Permission is hereby granted, free of charge, to any person obtaining a copy
 ; of this software and associated documentation files (the "Software"), to deal
 ; in the Software without restriction, including without limitation the rights
@@ -104,7 +106,7 @@ vxEngineInit:
 	ldir
 ; various other data
 	ld	hl, VX_FRAMEBUFFER_AUX1
-	ld	(vxSubmissionQueue), hl
+	ld	(vxPrimitiveQueue), hl
 	ld	(vxGeometrySize), bc
 	ld	hl, $D30000
 	ld	(vxTexturePage), hl
