@@ -5,19 +5,21 @@ define	VX_DEPTH_MAX		16777216
 define	VX_DEPTH_OFFSET		8388608
 define	VX_VIEW_MLT_OFFSET	132
 
-align	512
-VX_VIEW_MLTX:
-	rb	1024
-VX_VIEW_MLTY:
-	rb	1024
-VX_VIEW_MLTZ:
-	rb	1024
+align	256
 VX_DEPTH_BUCKET_L:
 	rb	512
 VX_DEPTH_BUCKET_H:
 	rb	512
 VX_DEPTH_BUCKET_U:
 	rb	512
+
+align	256
+VX_VIEW_MLTX:
+	rb	256
+VX_VIEW_MLTY:
+	rb	256
+VX_VIEW_MLTZ:
+	rb	256
 
 VX_PRIMITIVE_ASM_COPY:
 ; relocate the shader to fast VRAM ($E30800)
@@ -87,19 +89,16 @@ vxPrimitiveAssembly:
 ; write both the ID in the lower 8 bits and the depth in the upper 16 bits, we'll sort on the full 24 bit pair so similar material will be 'packed' together at best without breaking sorting
 	ld	(ix+VX_GEOMETRY_DEPTH), hl
 ; we have hl and bc to do the bfc
-	ld	hl, VX_VIEW_MLTX shr 1
+	ld	hl, VX_VIEW_MLTX
 	ld	l, (iy+VX_TRIANGLE_N0)		; between -32 and 32
-	add	hl, hl
 	ld	de, (hl)
-	ld	hl, VX_VIEW_MLTY shr 1
+	inc	h				; hl = VX_VIEW_MLTY
 	ld	l, (iy+VX_TRIANGLE_N1)
-	add	hl, hl
 	ld	hl, (hl)
 	add	hl, de
 	ex	de, hl
-	ld	hl, VX_VIEW_MLTZ shr 1
+	ld	hl, VX_VIEW_MLTZ
 	ld	l, (iy+VX_TRIANGLE_N2)
-	add	hl, hl
 	ld	hl, (hl)
 	add	hl, de
 	ld	de, (iy+VX_TRIANGLE_N3)
@@ -149,7 +148,7 @@ vxPrimitiveAssembly:
 .view_mlt:
 	ld	(.SP_RET1), sp
 	ld	sp, hl
-	ld	ix, 512 - VX_VIEW_MLT_OFFSET
+	ld	ix, 256 - VX_VIEW_MLT_OFFSET
 	add	ix, sp
 	sbc	hl, hl
 	sbc	hl, de

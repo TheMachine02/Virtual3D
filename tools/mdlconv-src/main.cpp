@@ -399,6 +399,7 @@ bool load_obj(const char * path, const char * name, unsigned short option)
 	out << "include \"include/fasmg/ez80.inc\"\n";
 	out << "include \"include/fasmg/tiformat.inc\"\n";
 	out << "define nan 0\n";
+	out << "define inf 0\n";
 	out << "format ti archived appvar \'";
 	
 	string o_name = name;
@@ -506,7 +507,7 @@ bool load_obj(const char * path, const char * name, unsigned short option)
             vec3 cst2(256.0,256.0,256.0);
             norm = norm * cst;
             vec3 vertex = vertexTable[face_index[i*10+1]] * cst2;
-            out << "db " << ((int)round(norm[0]))*2 << ',' << ((int)round(norm[1])*2) << ',' << ((int)round(norm[2]))*2 << '\n';
+            out << "db " << ((int)round(norm[0]))*4 << ',' << ((int)round(norm[1])*4) << ',' << ((int)round(norm[2]))*4 << '\n';
             out << "dl " << -round(dot(norm,vertex)) << '\n';
             // n*(p-v)  n (64) *p (256)
 //        }

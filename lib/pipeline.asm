@@ -375,7 +375,7 @@ vxPrimitiveDepthSortHelper:
 	push	bc
 ; actual sorting start here
 ; restore index position in array for all three bucket
-	ld	hl, VX_DEPTH_BUCKET_L or 511
+	ld	hl, VX_DEPTH_BUCKET_L + 511
 	ld	d, (hl)
 	dec	h
 	ld	e, (hl)
@@ -402,7 +402,7 @@ vxPrimitiveDepthSortHelper:
 	dec	h
 	ld	(hl), e
 ; high bucket
-	ld	hl, VX_DEPTH_BUCKET_H or 511
+	ld	hl, VX_DEPTH_BUCKET_H + 511
 	ld	d, (hl)
 	dec	h
 	ld	e, (hl)
@@ -429,7 +429,7 @@ vxPrimitiveDepthSortHelper:
 	dec	h
 	ld	(hl), e
 ; upper bucket
-	ld	hl, VX_DEPTH_BUCKET_U or 511
+	ld	hl, VX_DEPTH_BUCKET_U + 511
 	ld	d, (hl)
 	dec	h
 	ld	e, (hl)
