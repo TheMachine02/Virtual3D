@@ -178,16 +178,16 @@ vxPrimitiveTextureRaster:
 ; ~ 250cc
 .edge0Compute_offset:
 ; register_offset=320*y0+x0+framebuffer;
-	ld	de, (iy+VX_REGISTER_X0)
-	ld	l, (iy+VX_REGISTER_Y0)
-	ld	h, 160
-	mlt	hl
-	add	hl, hl
+	ld	d, (iy+VX_REGISTER_Y0)
+	ld	e, 160
+	mlt	de
+	ld	hl, (vxFramebuffer)
 	add	hl, de
+	add	hl, de
+	ld	de, (iy+VX_REGISTER_X0)
+	add	hl, de
+	ld	(iy+VX_REGISTER_OFFSET), hl
 	ex	de, hl
-	ld	ix, (vxFramebuffer)
-	add	ix, de
-	ld	(iy+VX_REGISTER_OFFSET), ix
 .edge0Compute_dx:
 ; compute the deltas for vxRegisterInterpolation
 ; dx = abs(x2-x0) [de]
@@ -240,13 +240,13 @@ VX_SMC_EDGE0_INC=$
 	jr	nz, .edge0loop
 .edge0magic:
 	ld	ix, VX_REGISTER_DATA
-	ld	de, (ix+VX_REGISTER_X2)
-	ld	l, (ix+VX_REGISTER_Y2)
-	ld	h, 160
-	mlt	hl
-	add	hl, hl
+	ld	d, (ix+VX_REGISTER_Y2)
+	ld	e, 160
+	mlt	de
+	ld	hl, (vxFramebuffer)
 	add	hl, de
-	ld	de, (vxFramebuffer)
+	add	hl, de
+	ld	de, (ix+VX_REGISTER_X2)
 	add	hl, de
 	ld	(iy+VX_REGISTER0), hl
 .edge1Setup:
@@ -316,19 +316,20 @@ VX_SMC_EDGE1_INC=$
 	ld	(ix+VX_REGISTER_MIDPOINT), iy
 .edge2Compute_dy:
 	ld	a, (ix+VX_REGISTER_Y1)
-	ld	l, a
+	ld	d, a
 	sub	a, (ix+VX_REGISTER_Y2)
 .edge2Compute_offset:
+	ld	e, 160
+	mlt	de
+	ld	hl, (vxFramebuffer)
+	add	hl, de
+	add	hl, de
 	ld	de, (ix+VX_REGISTER_X1)
 	ld	b, d
 	ld	c, e
-	ld	h, 160
-	mlt	hl
-	add	hl, hl
-	add	hl, de
-	ld	de, (vxFramebuffer)
 	add	hl, de
 	ld	(ix+VX_REGISTER_OFFSET), hl
+	
 	or	a, a
 	jr	z, .edge2Null
 	ex	de, hl
