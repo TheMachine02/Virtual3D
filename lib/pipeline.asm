@@ -41,6 +41,8 @@ vxGeometrySize:
  dl	0
 vxPrimitiveMaterial:
  dl	0
+vxPrimitiveDepth:
+ dl	0
 vxModelViewCache:
  db	0,0,0
  db	0,0,0
@@ -272,11 +274,7 @@ vxVertexStream:
 	cce	ge_vtx_transform
 	ld	(.SP_RET), sp
 ; ix = cache, iy = source, ix = matrix, bc = size
-	ld	a, (iy+VX_VERTEX_SM)
-	cp	a, VX_ANIMATION_BONE
-	jr	z, .stream_load_bone
-	cp	a, VX_STREAM_END
-	jr	z, .stream_load_bone
+	jr	.stream_return
 .stream_compute:
 ; 54 cycles can be saved here, (even a bit more in fact)
 	ld	sp, vxVertexShader.stack
@@ -355,6 +353,13 @@ vxVertexStream:
 	ret
 .uniform:
 	jp	(hl)
+
+; set the depth offset of the current primitive stream
+vxPrimitiveDepthOffset:
+	ld	de, VX_DEPTH_OFFSET
+	add	hl, de
+	ld	(vxPrimitiveDepth), hl
+	ret
 
 vxPrimitiveDepthSort:
 	cce	ge_z_sort

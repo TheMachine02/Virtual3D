@@ -74,6 +74,9 @@ vxPrimitiveAssembly:
 ; setup the various SMC
 ; geometry format STR
 ; geometry material MTR
+; also set the geomtetry depth offset here
+	ld	hl, (vxPrimitiveDepth)
+	ld	(.DEO), hl
 	ld	hl, (vxPrimitiveMaterial)
 	ld	ix, (vxPrimitiveQueue)
 	ld	a, (hl)
@@ -108,6 +111,7 @@ vxPrimitiveAssembly:
 	add	hl, de
 	add	hl, hl
 	add	hl, hl
+.DEO=$+1
 	ld	de, VX_DEPTH_OFFSET
 	add	hl, de
 ; write both the ID in the lower 8 bits and the depth in the upper 16 bits, we'll sort on the full 24 bit pair so similar material will be 'packed' together at best without breaking sorting
