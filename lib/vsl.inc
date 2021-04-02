@@ -148,10 +148,9 @@ define	VX_GEOMETRY_BUFFER		1
 
 ; format mask
 define	VX_FORMAT_STRIDE		31	; the triangle stride value
-define	VX_FORMAT_UNPACK_COLOR		32	; unpack color into uniform
+define	VX_FORMAT_UNIFORM_MIX		32	; mix the uniform value (GPR2)
 define	VX_FORMAT_UNPACK_UV		64	; unpack UV from the triangle data, if reset this phase will be skipped
 define	VX_FORMAT_INTERPOLATION		128	; use the interpolation routine
-; missing : UNIFORM_MIX, TODO : add it later ?
 
 ; bits
 define	VX_FORMAT_INTERPOLATION_BIT	7
@@ -160,7 +159,7 @@ define	VX_FORMAT_UNIFORM_MIX_BIT	5
 
 ; default
 define	VX_FORMAT_TEXTURE		21 or VX_FORMAT_INTERPOLATION or VX_FORMAT_UNPACK_UV
-define	VX_FORMAT_GOURAUD		16 or VX_FORMAT_INTERPOLATION or VX_FORMAT_UNPACK_COLOR
+define	VX_FORMAT_GOURAUD		16 or VX_FORMAT_INTERPOLATION
 define	VX_FORMAT_COLOR			16
 
 ; stream header ;

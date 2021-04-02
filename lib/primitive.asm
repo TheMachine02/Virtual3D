@@ -56,9 +56,7 @@ define	VX_REGISTER_INTERPOLATION_SIZE	1024
 VX_REGISTER_DATA:
  db	3072	dup	$D3
 
-vxPrimitive:
-
-.render_target_gouraud:
+vxPrimitiveRender.target_gouraud:
 ; interpolated, no u&v unpack, unpack color
 ; this target could also be used if you want no uv, the pixel shader uniform color (c) will be set randomly in this case
 ; take iy as input, bc as vertex
@@ -72,7 +70,7 @@ vxPrimitive:
 	lea	bc, ix+0
 	ld	a, (iy+VX_TRIANGLE_COLOR)
 	ld	(vxShaderUniform0), a
-	jp	vxPrimitiveRenderTriangle.render_target_interpolate
+	jp	vxPrimitiveRenderTriangle.target_interpolate
 
 VX_REGISTER_INTERPOLATION_COPY:
 relocate VX_REGISTER_INTERPOLATION_CODE
@@ -82,12 +80,12 @@ vxPrimitiveRenderTriangle:
 ; bc = vertex cache adress
 ;  a = encoding format of triangle data
 ; nicely optimized for 3 points
-; TODO : please optimise this with a truth jump table
+; TODO : please optimise this with a truth jump table ?
 	rla		; VX_FORMAT_INTERPOLATION_MASK
-	jp	nc, _inner_renderTriangleColor
+	jp	nc, vxPrimitiveRender.target_color
 	rla
-	jp	nc, vxPrimitive.render_target_gouraud
-.renderTriangleTexture:
+	jp	nc, vxPrimitiveRender.target_gouraud
+.target_texture:
 ; take iy as input, bc as vertex
 	lea	hl, iy+VX_TRIANGLE_UV0
 	ld	ix, (iy+VX_TRIANGLE_I0)
@@ -120,7 +118,7 @@ vxPrimitiveRenderTriangle:
 	lea	bc, iy+4
 	lea	de, ix+2
 	pop	hl
-.render_target_interpolate:
+.target_interpolate:
 	ld	a, (bc)
 	or	a, (hl)
 	ex	de, hl
@@ -171,7 +169,7 @@ _inner_cyclicLoop0:
 	djnz	_inner_cyclicLoop0
 	ret
 
-_inner_renderTriangleColor:
+vxPrimitiveRender.target_color:
 	ld	ix, (iy+VX_TRIANGLE_I0)
 	add	ix, bc
 	ld	a, (ix+VX_VERTEX_GPR2)
