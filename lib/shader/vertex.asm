@@ -214,15 +214,13 @@ relocate VX_VERTEX_SHADER_CODE
 	xor	a, a
 	jr	.light_ambient
 .light_scale:
+	add	a, a
 	ld	c, a
 ; LE have a 64 scaling
 .LE=$+1
 	ld	b, $CC
+	rl	b
 	mlt	bc
-	rl	c
-	rl	b
-	rl	c
-	rl	b
 	ld	a, b
 	rl	c
 .light_ambient:
