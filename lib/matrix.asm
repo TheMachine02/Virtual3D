@@ -334,30 +334,30 @@ vxMatrixTransform:
 	ret
 
 vxMatrixTranspose:
-; 160 TStates + translation
-	ld	a, (ix+VX_MATRIX_C1)
+; 160 TStates + translation		; registers de, hl & condition flags altered
 	ld	h, (ix+VX_MATRIX_C2)
 	ld	e, (ix+VX_MATRIX_C3)
-	ld	c, (ix+VX_MATRIX_C5)
 	ld	d, (ix+VX_MATRIX_C6)
 	ld	l, (ix+VX_MATRIX_C7)
 	ld	(ix+VX_MATRIX_C1), de
-	ld	(ix+VX_MATRIX_C3), a
 	ld	(ix+VX_MATRIX_C5), hl
-	ld	(ix+VX_MATRIX_C7), c
+	ld	d, (ix+VX_MATRIX_C1)
+	ld	e, (ix+VX_MATRIX_C5)
+	ld	(ix+VX_MATRIX_C3), d
+	ld	(ix+VX_MATRIX_C7), e
 	ld	de, (ix+VX_MATRIX_TX)
 	or	a, a
 	sbc	hl, hl
 	sbc	hl, de
 	ld	(ix+VX_MATRIX_TX), hl
+	add	hl, de
 	ld	de, (ix+VX_MATRIX_TY)
 	or	a, a
-	sbc	hl, hl
 	sbc	hl, de
 	ld	(ix+VX_MATRIX_TY), hl
+	add	hl, de
 	ld	de, (ix+VX_MATRIX_TZ)
 	or	a, a
-	sbc	hl, hl
 	sbc	hl, de
 	ld	(ix+VX_MATRIX_TZ), hl
 	ret
@@ -395,37 +395,31 @@ vxMatrixLightLoop:
 	call	vxfTransform
 ; now copy back to my light !
 ; I need to divide the position by 64
-	pop	de
+	
 	ld	hl, (vxPosition)
 	add	hl, hl
 	add	hl, hl
 	ld	(vxPosition), hl
-	ld	hl, (vxPosition+1)
-	ex	de, hl
-	ld	(hl), e
-	inc	hl
-	ld	(hl), d
-	inc	hl
-	ex	de, hl
-
 	ld	hl, (vxPosition+3)
 	add	hl, hl
 	add	hl, hl
 	ld	(vxPosition+3), hl
-	ld	hl, (vxPosition+4)
-	ex	de, hl
-	ld	(hl), e
-	inc	hl
-	ld	(hl), d
-	inc	hl
-	ex	de, hl
-
 	ld	hl, (vxPosition+6)
 	add	hl, hl
 	add	hl, hl
 	ld	(vxPosition+6), hl
-	ld	hl, (vxPosition+7)
-	ex	de, hl
+	pop	hl
+	ld	de, (vxPosition+1)
+	ld	(hl), e
+	inc	hl
+	ld	(hl), d
+	inc	hl
+	ld	de, (vxPosition+4)
+	ld	(hl), e
+	inc	hl
+	ld	(hl), d
+	inc	hl
+	ld	de, (vxPosition+7)
 	ld	(hl), e
 	inc	hl
 	ld	(hl), d
