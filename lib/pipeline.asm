@@ -42,7 +42,7 @@ vxGeometrySize:
 vxPrimitiveMaterial:
  dl	0
 vxPrimitiveDepth:
- dl	0
+ dl	VX_DEPTH_OFFSET
 vxModelViewCache:
  db	0,0,0
  db	0,0,0

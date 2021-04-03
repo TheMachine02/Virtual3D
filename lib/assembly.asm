@@ -50,10 +50,10 @@ VX_PRIMITIVE_ASM_COPY:
 relocate VX_PRIMITIVE_ASM_CODE
 
 vxPrimitiveAssembly:
-; 4079 cc setup
-; 546/554 cc bfc / accept
-; 476 cc bfc / reject
-; 212 cc clip reject
+; 4013 cc setup
+;  626 cc bfc accept
+;  461 cc bfc reject
+;  215 cc clip reject
 .setup:
 ; input : iy=data, bc=size
 	ld	(.SP_RET0), sp
@@ -74,7 +74,7 @@ vxPrimitiveAssembly:
 ; setup the various SMC
 ; geometry format STR
 ; geometry material MTR
-; also set the geomtetry depth offset here
+; also set the geometry depth offset here
 	ld	hl, (vxPrimitiveDepth)
 	ld	(.DEO), hl
 	ld	hl, (vxPrimitiveMaterial)
@@ -118,9 +118,11 @@ vxPrimitiveAssembly:
 	ld	(ix+VX_GEOMETRY_DEPTH), hl
 ; we have hl and bc to do the bfc
 	ld	hl, VX_VIEW_MLTX
-	ld	l, (iy+VX_TRIANGLE_N0)		; between -32 and 32
+; between -31 and 31 pre multiplied by 4
+	ld	l, (iy+VX_TRIANGLE_N0)
 	ld	de, (hl)
-	inc	h				; hl = VX_VIEW_MLTY
+; fetch VX_VIEW_MLTY
+	inc	h
 	ld	l, (iy+VX_TRIANGLE_N1)
 	ld	hl, (hl)
 	add	hl, de
