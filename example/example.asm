@@ -2,7 +2,7 @@ include	"include/fasmg/ez80.inc"
 include	"include/fasmg/tiformat.inc"
 include	"include/ti84pceg.inc"
 
-define	VX_DEBUG_CC_INSTRUCTION
+;define	VX_DEBUG_CC_INSTRUCTION
 
 format	ti executable archived 'V3DALPHA'
 
@@ -121,7 +121,7 @@ MainLoop:
 	
 	call	vxPrimitiveSubmit
 
-	call	debug.display_panel
+	call	debug.display_frame
 
 ; apply filter
 	ld	a, (posY+1)

@@ -23,6 +23,7 @@ Main:
 ; setup global variable for rendering, euler angle and the translation of WorldMatrix
 	ld	hl, 0
 	ld	(EulerAngle), hl
+	ld	hl, 512
 	ld	(LightAngle), hl
 	ld	ix, WorldMatrix
 	lea	hl, ix+0
@@ -46,11 +47,11 @@ Main:
 	ld	hl, (LightAngle)
 	call	vxMath.sin
 	ld	a, h
-	ld	(vxLightUniform+2), a
+	ld	(vxLightUniform), a
 	ld	hl, (LightAngle)
 	call	vxMath.cos
 	ld	a, h
-	ld	(vxLightUniform), a
+	ld	(vxLightUniform+2), a
 	ld	hl, (EulerAngle)
 	ld	iy, Quaternion
 	ld	ix, UnitVector

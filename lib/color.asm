@@ -123,8 +123,9 @@ assert VX_VERTEX_BUFFER < $D10000
 	sbc	hl, de
 	sra	h
 	rr	l
-	ld	ixh, h
-	ld	ixl, l
+	ex	de, hl
+	ld	ixh, d
+	ld	ixl, e
 	pop	de
 	ld	e, 160
 	mlt	de
