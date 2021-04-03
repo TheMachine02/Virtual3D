@@ -219,19 +219,18 @@ vxVertexStream:
 	ldir
 	ld	ix, vxModelViewReverse
 	call	vxMatrixTranspose
-	ld	de, 0
 	ld	hl, (ix+VX_MATRIX_TZ)
-	ld	(ix+VX_MATRIX_TZ), de
+	ld	(ix+VX_MATRIX_TZ), bc
 	add	hl, hl
 	add	hl, hl
 	ld	(vxWorldEye-1+4), hl
 	ld	hl, (ix+VX_MATRIX_TY)
-	ld	(ix+VX_MATRIX_TY), de
+	ld	(ix+VX_MATRIX_TY), bc
 	add	hl, hl
 	add	hl, hl
 	ld	(vxWorldEye-1+2), hl
 	ld	hl, (ix+VX_MATRIX_TX)
-	ld	(ix+VX_MATRIX_TX), de
+	ld	(ix+VX_MATRIX_TX), bc
 	add	hl, hl
 	add	hl, hl
 	ld	(vxWorldEye-1), hl
