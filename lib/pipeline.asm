@@ -27,7 +27,6 @@ include	"shader/vertex.asm"
 define	VX_GEOMETRY_QUEUE		$D10000	; 4*4096 (16K)
 define	VX_VERTEX_BUFFER		$D08000	; 16*2048 (32K)
 define	VX_PRIMITIVE_SORT_CODE		$E30800
-define	vxDepthSortTemp			$E30014
 define	VX_MAX_TRIANGLE			4096
 define	VX_MAX_VERTEX			2048
 
@@ -35,6 +34,8 @@ define	VX_MAX_VERTEX			2048
 ; Better vertex shader with decoupled projection
 ; Put all the code in fast ram, use sha256
 
+VX_VIRTUAL_PIPELINE_STATE:
+; pipeline state
 vxPrimitiveQueue:
  dl	0
 vxGeometrySize:
@@ -86,6 +87,7 @@ vxModelViewReverse:
  db	0,0,0
  db	0,0,0
  dl	0,0,0
+vxDepthSortTemp:=$E30014
 
 vxPrimitiveSubmit:
 .reset:
@@ -192,6 +194,7 @@ vxPrimitiveStream:
 vxVertexStream:
 ; hl - vertex source, bc - vertex cache, ix worldview0 matrix, iy modelworld0 matrix (should be an model matrix)
 ; de is the vertex shader program
+; NOTE : expect material to be set
 ; vertex source have size at the begining
 ; support animation
 .setup:

@@ -50,12 +50,12 @@ VX_PRIMITIVE_ASM_COPY:
 relocate VX_PRIMITIVE_ASM_CODE
 
 vxPrimitiveAssembly:
-; 4013 cc setup
+; 3884 cc setup
 ;  626 cc bfc accept
 ;  461 cc bfc reject
 ;  215 cc clip reject
 .setup:
-; input : iy=data, bc=size
+; input : iy=data, also expect so global variable to be correctly set
 	ld	(.SP_RET0), sp
 ; lut setup
 .mlt_generate:
@@ -116,7 +116,8 @@ vxPrimitiveAssembly:
 	add	hl, de
 ; write both the ID in the lower 8 bits and the depth in the upper 16 bits, we'll sort on the full 24 bit pair so similar material will be 'packed' together at best without breaking sorting
 	ld	(ix+VX_GEOMETRY_DEPTH), hl
-; we have hl and bc to do the bfc
+	exx
+; switch to shadow for the bfc
 	ld	hl, VX_VIEW_MLTX
 ; between -31 and 31 pre multiplied by 4
 	ld	l, (iy+VX_TRIANGLE_N0)
@@ -124,17 +125,20 @@ vxPrimitiveAssembly:
 ; fetch VX_VIEW_MLTY
 	inc	h
 	ld	l, (iy+VX_TRIANGLE_N1)
-	ld	hl, (hl)
-	add	hl, de
-	ex	de, hl
-	ld	hl, VX_VIEW_MLTZ
+	ld	bc, (hl)
+; fetch VX_VIEW_MLTZ
+	inc	h
 	ld	l, (iy+VX_TRIANGLE_N2)
 	ld	hl, (hl)
+	add	hl, bc
 	add	hl, de
 	ld	de, (iy+VX_TRIANGLE_N3)
 	add	hl, de
 	add	hl, hl
+	exx
 	jr	nc, .discard
+; we'll also set the depth into de
+	ex	de, hl
 .MTR:=$+1
 	ld	hl, VX_DEPTH_BUCKET_L or $CC
 	ld	(ix+VX_GEOMETRY_ID), l
@@ -146,7 +150,7 @@ vxPrimitiveAssembly:
 	inc	(hl)
 .overflow_l:
 	inc	h
-	ld	l, (ix+VX_GEOMETRY_DEPTH+1)
+	ld	l, d
 	ld	a, (hl)
 	add	a, VX_GEOMETRY_SIZE shr 1
 	ld	(hl), a
@@ -155,6 +159,7 @@ vxPrimitiveAssembly:
 	inc	(hl)
 .overflow_h:
 	inc	h
+; we can't acess deu quickly here, so do a slow read
 	ld	l, (ix+VX_GEOMETRY_DEPTH+2)
 	ld	a, (hl)
 	add	a, VX_GEOMETRY_KEY_SIZE
