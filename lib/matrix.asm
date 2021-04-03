@@ -49,33 +49,33 @@ vxProjectionVector:
 vxMatrixProjection:
 ; scale the matrix iy by the projection vector
 ; 0 = 256
-	ld	de, vxProjectionVector
+	ld	hl, vxProjectionVector
 	ld	c, 3
 .outer:
 	ld	b, 3
-	ld	a, (de)
-	or	a, a
+	xor	a, a
+.outer0:
+	or	a, (hl)
 	jr	nz, .inner
 	lea	iy, iy+3
-	inc	de
+	inc	hl
 	dec	c
-	jr	nz, .outer
+	jr	nz, .outer0
 	jr	.translate
 .inner:
-	ld	h, (iy+0)
-	ld	a, (de)
-	ld	l, a
+	ld	d, (iy+0)
+	ld	e, (hl)
 	xor	a, a
-	bit	7, h
+	bit	7, d
 	jr	z, $+3
-	sub	a, l
-	mlt	hl
-	rl	l
-	adc	a, h
+	sub	a, e
+	mlt	de
+	rl	e
+	adc	a, d
 	ld	(iy+0), a
 	inc	iy
 	djnz	.inner
-	inc	de
+	inc	hl
 	dec	c
 	jr	nz, .outer
 ; now the translation
