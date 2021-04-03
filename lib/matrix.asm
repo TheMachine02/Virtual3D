@@ -363,24 +363,22 @@ vxMatrixTranspose:
 	ret
 
 vxMatrixLightning:
-	ex	de, hl
 	ld	b, 3
 vxMatrixLightLoop:
 	push	bc
-	push	de
+	push	hl
 	call	vxDotProduct
-	pop	de
 	add	hl, hl
 	add	hl, hl
 	ld	a, h
-	ld	(de), a
-	inc	de
+	pop	hl
+	ld	(hl), a
+	inc	hl
 	lea	ix, ix+3
 	pop	bc
 	djnz	vxMatrixLightLoop
 	lea	ix, ix-9
 ; ix = matrix, light = de, initial light = iy
-	ex	de, hl
 	ld	de, (iy+VX_LIGHT_AMBIENT)
 	ld	(hl), de	; copy the three important bytes.
 	ld	a, (iy+VX_LIGHT_PARAM)
