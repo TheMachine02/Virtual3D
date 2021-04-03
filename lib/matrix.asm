@@ -49,33 +49,33 @@ vxProjectionVector:
 vxMatrixProjection:
 ; scale the matrix iy by the projection vector
 ; 0 = 256
-	ld	de, vxProjectionVector
+	ld	hl, vxProjectionVector
 	ld	c, 3
 .outer:
 	ld	b, 3
-	ld	a, (de)
-	or	a, a
+	xor	a, a
+.outer0:
+	or	a, (hl)
 	jr	nz, .inner
 	lea	iy, iy+3
-	inc	de
+	inc	hl
 	dec	c
-	jr	nz, .outer
+	jr	nz, .outer0
 	jr	.translate
 .inner:
-	ld	h, (iy+0)
-	ld	a, (de)
-	ld	l, a
+	ld	d, (iy+0)
+	ld	e, (hl)
 	xor	a, a
-	bit	7, h
+	bit	7, d
 	jr	z, $+3
-	sub	a, l
-	mlt	hl
-	rl	l
-	adc	a, h
+	sub	a, e
+	mlt	de
+	rl	e
+	adc	a, d
 	ld	(iy+0), a
 	inc	iy
 	djnz	.inner
-	inc	de
+	inc	hl
 	dec	c
 	jr	nz, .outer
 ; now the translation
@@ -334,53 +334,51 @@ vxMatrixTransform:
 	ret
 
 vxMatrixTranspose:
-; 160 TStates + translation
-	ld	a, (ix+VX_MATRIX_C1)
+; 160 TStates + translation		; registers de, hl & condition flags altered
 	ld	h, (ix+VX_MATRIX_C2)
 	ld	e, (ix+VX_MATRIX_C3)
-	ld	c, (ix+VX_MATRIX_C5)
 	ld	d, (ix+VX_MATRIX_C6)
 	ld	l, (ix+VX_MATRIX_C7)
 	ld	(ix+VX_MATRIX_C1), de
-	ld	(ix+VX_MATRIX_C3), a
 	ld	(ix+VX_MATRIX_C5), hl
-	ld	(ix+VX_MATRIX_C7), c
+	ld	d, (ix+VX_MATRIX_C1)
+	ld	e, (ix+VX_MATRIX_C5)
+	ld	(ix+VX_MATRIX_C3), d
+	ld	(ix+VX_MATRIX_C7), e
 	ld	de, (ix+VX_MATRIX_TX)
 	or	a, a
 	sbc	hl, hl
 	sbc	hl, de
 	ld	(ix+VX_MATRIX_TX), hl
+	add	hl, de
 	ld	de, (ix+VX_MATRIX_TY)
 	or	a, a
-	sbc	hl, hl
 	sbc	hl, de
 	ld	(ix+VX_MATRIX_TY), hl
+	add	hl, de
 	ld	de, (ix+VX_MATRIX_TZ)
 	or	a, a
-	sbc	hl, hl
 	sbc	hl, de
 	ld	(ix+VX_MATRIX_TZ), hl
 	ret
 
 vxMatrixLightning:
-	ex	de, hl
 	ld	b, 3
 vxMatrixLightLoop:
 	push	bc
-	push	de
+	push	hl
 	call	vxDotProduct
-	pop	de
 	add	hl, hl
 	add	hl, hl
 	ld	a, h
-	ld	(de), a
-	inc	de
+	pop	hl
+	ld	(hl), a
+	inc	hl
 	lea	ix, ix+3
 	pop	bc
 	djnz	vxMatrixLightLoop
 	lea	ix, ix-9
 ; ix = matrix, light = de, initial light = iy
-	ex	de, hl
 	ld	de, (iy+VX_LIGHT_AMBIENT)
 	ld	(hl), de	; copy the three important bytes.
 	ld	a, (iy+VX_LIGHT_PARAM)
@@ -395,37 +393,31 @@ vxMatrixLightLoop:
 	call	vxfTransform
 ; now copy back to my light !
 ; I need to divide the position by 64
-	pop	de
+	
 	ld	hl, (vxPosition)
 	add	hl, hl
 	add	hl, hl
 	ld	(vxPosition), hl
-	ld	hl, (vxPosition+1)
-	ex	de, hl
-	ld	(hl), e
-	inc	hl
-	ld	(hl), d
-	inc	hl
-	ex	de, hl
-
 	ld	hl, (vxPosition+3)
 	add	hl, hl
 	add	hl, hl
 	ld	(vxPosition+3), hl
-	ld	hl, (vxPosition+4)
-	ex	de, hl
-	ld	(hl), e
-	inc	hl
-	ld	(hl), d
-	inc	hl
-	ex	de, hl
-
 	ld	hl, (vxPosition+6)
 	add	hl, hl
 	add	hl, hl
 	ld	(vxPosition+6), hl
-	ld	hl, (vxPosition+7)
-	ex	de, hl
+	pop	hl
+	ld	de, (vxPosition+1)
+	ld	(hl), e
+	inc	hl
+	ld	(hl), d
+	inc	hl
+	ld	de, (vxPosition+4)
+	ld	(hl), e
+	inc	hl
+	ld	(hl), d
+	inc	hl
+	ld	de, (vxPosition+7)
 	ld	(hl), e
 	inc	hl
 	ld	(hl), d

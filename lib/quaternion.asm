@@ -42,7 +42,8 @@ vxQuaternionLoadIdentity:
 	ld	bc, VX_QUATERNION_SIZE
 	ldir
 	ex	de, hl
-	ld	bc, -VX_QUATERNION_SIZE
+	dec	bc
+	ld	c, -VX_QUATERNION_SIZE
 	add	hl, bc
 	ret
 vxQuaternionLoadRotation:

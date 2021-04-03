@@ -64,13 +64,13 @@ vxPrimitiveTextureRaster:
 	ld	c, 2
 	ldir	
 	pop	hl
-	ld	bc, 3
+	ld	c, 3
 	ldir
 	inc	de
 	ld	c, 2
 	ldir	
 	pop	hl
-	ld	bc, 3
+	ld	c, 3
 	ldir
 	inc	de
 	ld	c, 2

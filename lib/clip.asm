@@ -99,7 +99,7 @@ vxPrimitiveClipPlane:
 	ld	hl, (iy+VX_POLYGON_I1)
 	ld	de, (iy+VX_POLYGON_I0)
 	ld	a, (de)
-	and	(hl)
+	and	a, (hl)
 	and	a, c
 	jr	nz, .noEdge
 	ld	a, (de)
