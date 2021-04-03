@@ -27,7 +27,7 @@ define	VX_DEPTH_BITS		24
 define	VX_DEPTH_MIN		0
 define	VX_DEPTH_MAX		16777216
 define	VX_DEPTH_OFFSET		8388608
-define	VX_VIEW_MLT_OFFSET	132
+define	VX_VIEW_MLT_OFFSET	128
 
 align	256
 VX_DEPTH_BUCKET_L:
@@ -63,13 +63,13 @@ vxPrimitiveAssembly:
 ; we'll need to generate actual LUT table for bc * a (signed)
 ; bc is know is advance, but we have 3 table for -64 to 64
 	ld	de, (vxWorldEye)
-	ld	hl, VX_VIEW_MLTX + VX_VIEW_MLT_OFFSET
+	ld	hl, VX_VIEW_MLTX + VX_VIEW_MLT_OFFSET - 1
 	call	.view_mlt
 	ld	de, (vxWorldEye+3)
-	ld	hl, VX_VIEW_MLTY + VX_VIEW_MLT_OFFSET
+	ld	hl, VX_VIEW_MLTY + VX_VIEW_MLT_OFFSET - 1
 	call	.view_mlt
 	ld	de, (vxWorldEye+6)
-	ld	hl, VX_VIEW_MLTZ + VX_VIEW_MLT_OFFSET
+	ld	hl, VX_VIEW_MLTZ + VX_VIEW_MLT_OFFSET - 1
 	call	.view_mlt
 ; setup the various SMC
 ; geometry format STR
@@ -188,37 +188,49 @@ vxPrimitiveAssembly:
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
-	ld	b, 8
+	add	hl, de
+	ld	b, 6
 .view_mlt_pos:
-	dec	sp
 	push	hl
+	dec	sp
 	add	hl, de
-	dec	sp
 	push	hl
+	dec	sp
 	add	hl, de
-	dec	sp
 	push	hl
+	dec	sp
 	add	hl, de
-	dec	sp
 	push	hl
+	dec	sp
+	add	hl, de
+	push	hl
+	dec	sp
 	add	hl, de
 	djnz	.view_mlt_pos
+	push	hl
+; get to hl = 0 to start the negative span
+	add	hl, de
 	ld	sp, ix
-	ld	b, 8
+	ld	b, 6
 .view_mlt_neg:
 	add	hl, de
-	dec	sp
 	push	hl
+	dec	sp
 	add	hl, de
-	dec	sp
 	push	hl
+	dec	sp
 	add	hl, de
-	dec	sp
 	push	hl
+	dec	sp
 	add	hl, de
-	dec	sp
 	push	hl
+	dec	sp
+	add	hl, de
+	push	hl
+	dec	sp
 	djnz	.view_mlt_neg
+	add	hl, de
+	push	hl
 .SP_RET1:=$+1
 	ld	sp, $CCCCCC
 	ret
