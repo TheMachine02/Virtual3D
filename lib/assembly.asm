@@ -175,7 +175,7 @@ vxPrimitiveAssembly:
 	lea	iy, iy+$1C
 	ld	hl, (iy+VX_TRIANGLE_I0)
 	bit	0, l
-	jp	z, .pack
+	jr	z, .pack
 .SP_RET0:=$+1
 	ld	sp, $CCCCCC
 	ret
