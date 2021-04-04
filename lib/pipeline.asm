@@ -586,4 +586,4 @@ vxPrimitiveDepthSortHelper:
 	ret
 	
 VX_PRIMITIVE_SORT_SIZE:= $ - VX_PRIMITIVE_SORT_CODE
-endrelocate
+end relocate

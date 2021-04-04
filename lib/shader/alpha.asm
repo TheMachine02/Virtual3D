@@ -35,4 +35,4 @@ alphaCode:
 	exx
 	djnz	alphaCode
 alphaEnd:
-endrelocate
+end relocate

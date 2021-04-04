@@ -56,15 +56,17 @@ macro align bound
  rb bound-($ mod bound)
 end macro
 
-macro relocate addr
-	oorg = $
-	norg = addr
-	org	addr
+macro relocate? address*
+	rel.source? = $
+	rel.destination? = address
+	org rel.destination?
+	macro end?.relocate?
+		rel.length? = $ - rel.destination?
+		org rel.source? + rel.length?
+		purge end?.relocate?
+	end macro
 end macro
 
-macro endrelocate
-	org	$ - norg + oorg
-end macro
 
 define	nan	0
 

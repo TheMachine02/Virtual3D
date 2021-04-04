@@ -38,4 +38,4 @@ lightCode:
 	exx
 	djnz	lightCode
 lightEnd:
-endrelocate
+end relocate

@@ -98,7 +98,7 @@ port_privilege_lock:
 	jp	0
 .code := $-3
 
-	port_unlock:
+port_unlock:
 	push	de,bc,hl
 	call	0
 .code := $-3
@@ -220,4 +220,4 @@ port_os560:
 	ret
 
 port_helper_size:=$-port_ospre55
-endrelocate
+end relocate

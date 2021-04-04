@@ -241,4 +241,4 @@ vxPrimitiveAssembly:
 	ret
 
 VX_PRIMITIVE_ASM_SIZE:=$-VX_PRIMITIVE_ASM_CODE
-endrelocate
+end relocate

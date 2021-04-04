@@ -144,7 +144,7 @@ vxPrimitiveTextureTriangle:
 #include "texture.asm"
 
 assert $ < ($E30800+1024)
-endrelocate
+end relocate
 
 ; TODO : we miss space in this render scope, optimize it please
 ; fall through drawing polygon :

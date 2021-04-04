@@ -25,4 +25,4 @@ relocate	VX_PIXEL_SHADER_CODE
 	exx
 	djnz	.texture
 .texture_end:
-endrelocate
+end relocate

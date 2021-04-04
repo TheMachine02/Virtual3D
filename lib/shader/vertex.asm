@@ -120,7 +120,6 @@ relocate VX_VERTEX_SHADER_CODE
 .ftransform_trampoline:
 	ld	sp, .trampoline_stack
 ; compute the Z coordinate from matrix register with FMA engine ;
-;	ld	a, (iy+VX_VERTEX_SM)
 	ld	i, a
 .MS2:=$+1
 	ld	hl, .engine_000 shr 1 or $CC
@@ -139,7 +138,6 @@ relocate VX_VERTEX_SHADER_CODE
 	add	hl, de
 	ld	(ix+VX_VERTEX_RZ), hl
 ; X coordinate ;
-;	ld	a, (iy+VX_VERTEX_SM)
 	ld	a, i
 .MS0:=$+1
 	ld	hl, .engine_000 shr 1 or $CC
@@ -158,7 +156,6 @@ relocate VX_VERTEX_SHADER_CODE
 	add	hl, de
 	ld	(ix+VX_VERTEX_RX), hl
 ; Y coordinate ;
-;	ld	a, (iy+VX_VERTEX_SM)
 	ld	a, i
 .MS1:=$+1
 	ld	hl, .engine_000 shr 1 or $CC
@@ -176,7 +173,6 @@ relocate VX_VERTEX_SHADER_CODE
 	ld	de, $CCCCCC
 	add	hl, de
 	ld	(ix+VX_VERTEX_RY), hl
-
 ; lightning model is here, infinite directionnal light, no pow
 	xor	a, a
 	ld	c, (iy+VX_VERTEX_NX)
@@ -236,7 +232,6 @@ relocate VX_VERTEX_SHADER_CODE
 	ld	(ix+VX_VERTEX_GPR2), a
 ; use this target for gouraud shading, this is v register
 	ld	(ix+VX_VERTEX_GPR1), a
-
 .perspective_divide:
 ;	ld	hl, (ix+VX_VERTEX_RY)
 	ld	bc, (ix+VX_VERTEX_RZ)
@@ -437,7 +432,7 @@ relocate VX_VERTEX_SHADER_CODE
  dl	.trampoline_v0_ret
  dl	.trampoline_v1_ret
  dl	.trampoline_v2_ret
- dl	0
+ dl	0			; return adress of the routine
 .stack:
 
 ; free space between alignement
@@ -730,4 +725,4 @@ align 64
 	ret
 
 assert $ < $E30C00
-endrelocate
+end relocate

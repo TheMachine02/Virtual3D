@@ -26,4 +26,4 @@ gouraudCode:
 	exx
 	djnz	gouraudCode
 gouraudEnd:
-endrelocate
+end relocate
