@@ -190,20 +190,17 @@ vxPrimitiveRender.target_color:
 	ld	b, a
 	ld	a, (bc)
 	ld	(VX_PRIMITIVE_COLOR_RBG), a
-	lea	bc, ix+0
-	ld	a, (bc)
-	or	a, (hl)
-	ex	de, hl
+	ld	a, (de)
+	or	a, (ix+0)
 	or	a, (hl)
 	and	a, VX_CLIPPLANE_3D_MASK
-	jr	z, vxPrimitiveFillTriangle
+	jr	z, vxPrimitiveFillTriangle_pre_entry
 	
 _inner_clipdrawColorTriangle:
 	ld	iy, VX_PATCH_INPUT
-; I have actually switched hl and de previously
-	ld	(iy+VX_TRIANGLE_I0), de
-	ld	(iy+VX_TRIANGLE_I1), hl
-	ld	(iy+VX_TRIANGLE_I2), bc
+	ld	(iy+VX_TRIANGLE_I0), hl
+	ld	(iy+VX_TRIANGLE_I1), de
+	ld	(iy+VX_TRIANGLE_I2), ix
 	ld	(iy+VX_TRIANGLE_I2+3), de
 	ld	b, 3
 _inner_clipdrawColorPolygon:
@@ -235,7 +232,8 @@ _inner_cyclicLoop:
 	ret
 
 ; fall through filling a triangle
-
+vxPrimitiveFillTriangle_pre_entry:
+	lea	bc, ix+0
 vxPrimitiveFillTriangle:
 ; hl = p0 adress
 ; de = p1 adress
