@@ -167,7 +167,7 @@ vxMemoryCreateDevice:
 	ld	de, $3C0000
 	ld	bc, $40000
 	call	ti.WriteFlash
-; we leave the meory protection off BUT flash lock ON (for SHA256 acess)
+; we leave the memory protection off BUT flash lock ON (for SHA256 acess)
 	jp	port_privilege_lock
 	
 vxMemorySafeErase:
