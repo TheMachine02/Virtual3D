@@ -162,7 +162,6 @@ vxPrimitiveStream:
 	inc	hl
 	inc	hl
 	ld	hl, (hl)
-	ex	de, hl
 	call	vxVertexStream		; stream vertex data to cache
 	pop	iy			; polygon list
 	ret	nz			; quit the stream if nz set (bounding box test failed)
@@ -192,16 +191,15 @@ vxPrimitiveStream:
 	ret
 
 vxVertexStream:
-; hl - vertex source, bc - vertex cache, ix worldview0 matrix, iy modelworld0 matrix (should be an model matrix)
-; de is the vertex shader program
+; de - vertex source, bc - vertex cache, ix worldview0 matrix, iy modelworld0 matrix (should be an model matrix)
+; hl is the vertex shader program
 ; NOTE : expect material to be set
 ; vertex source have size at the begining
 ; support animation
 .setup:
 	push	bc
-	push	hl
+	push	de
 ; load shader first
-	ex	de, hl
 	ld	de, VX_VERTEX_SHADER_CODE
 	ld	bc, VX_VERTEX_SHADER_SIZE
 	ldir
