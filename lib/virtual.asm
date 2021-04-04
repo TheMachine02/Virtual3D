@@ -24,7 +24,7 @@
 
 include	"vsl.inc"
 
-define	OS__FLAGS	$D00080
+define	_OS_FLAGS	$D00080
 ; standard defines ;
 define	VX_VERSION	$10
 define	VX_TRUE		$01
@@ -133,7 +133,7 @@ vxEngineQuit:
 	ld	(hl), 8	; Number of rows to scan
 	inc	l		; 0F50005h
 	ld	(hl), 8	; Number of columns to scan
-	ld	iy, OS__FLAGS
+	ld	iy, _OS_FLAGS
 	call	vxFramebufferRestore
 	call	vxMemoryDestroyDevice
 	ld	hl, $E00005
@@ -148,7 +148,13 @@ vxEngineQuit:
 ; memory backing function
 	
 vxMemoryCreateDevice:
-	call	vxMemoryUnlock
+	ld	hl, $D00000
+	ld	(hl), $5A
+	inc	hl
+	ld	(hl), $A5
+	dec	hl
+	call	port_setup
+	call	port_unlock
 	ld	a, $3F
 	call	vxMemorySafeErase
 	ld	a, $3E
@@ -158,14 +164,12 @@ vxMemoryCreateDevice:
 	ld	a, $3C
 	call	vxMemorySafeErase
 	ld	hl, $D00000
-	ld	(hl), $5A
-	inc	hl
-	ld	(hl), $A5
-	dec	hl
 	ld	de, $3C0000
 	ld	bc, $40000
-	jp	ti.WriteFlash
-; 	jp	vxMemoryLock
+	call	ti.WriteFlash
+; we leave the meory protection off BUT flash lock ON (for SHA256 acess)
+	jp	port_privilege_lock
+	
 vxMemorySafeErase:
 	ld	bc,$0000F8
 	push	bc
@@ -182,48 +186,12 @@ vxMemoryDestroyDevice:
 	ld	de, $D1A881
 	ld	bc, $02577F
 	ldir
-	ret
+; unlock and re-lock the port
+	call	port_setup
+	call	port_unlock
+	jp	port_lock
 
-vxMemoryUnlock:
-	ld	bc, $24
-	ld	a, $8c
-	call	_inner_write
-	ld	bc, $06
-	call	_inner_read
-	or	a, 4
-	call	_inner_write
-	ld	bc, $28
-	ld	a, $4
-	jr	_inner_write
-vxMemoryLock:
-	ld	bc, $28
-	xor	a, a
-	call	_inner_write
-	ld	bc, $06
-	call	_inner_read
-	res	2, a
-	call	_inner_write
-	ld	bc, $24
-	ld	a, $88
-	jr	_inner_write	
-vxMemoryUnlockPrivilege:
-	ld	bc, $28
-	ld	a, $4
-	jr	_inner_write
-vxMemoryLockPrivilege:
-	ld	bc, $28
-	xor	a, a
-_inner_write:
-	ld	de, $C979ED
-	ld	hl, $D1887C - 3
-	ld	(hl), de
-	jp	(hl)
-_inner_read:
-	ld	de, $C978ED
-	ld	hl, $0D1887C - 3
-	ld	(hl), de
-	jp	(hl)
-	
+include	"ports.asm"
 ; include texture, clipping, color
 include	"primitive.asm"
 include	"pipeline.asm"
