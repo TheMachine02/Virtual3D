@@ -485,9 +485,8 @@ vxfTransform:
 ; X coordinate
 ; you know, I am really madd ! *coder stare at you*
 	ld	bc, (iy+0)
-	ld	hl, (ix+9)
+	ld	de, (ix+9)
 	ld	a, (ix+0)
-	ex	de, hl
 	ld	h, b
 	ld	l, a
 	mlt	hl
@@ -567,9 +566,8 @@ vxfTransform:
 	add	hl, de
 	ld	(vxPosition), hl
 ; Y coordinate
-	ld	hl, (ix+12)
+	ld	de, (ix+12)
 	ld	a, (ix+5)
-	ex	de, hl
 	ld	h, b
 	ld	l, a
 	mlt	hl
@@ -649,9 +647,8 @@ vxfTransform:
 	add	hl, de
 	ld	(vxPosition+3), hl
 ; Z coordinate
-	ld	hl, (ix+15)
+	ld	de, (ix+15)
 	ld	a, (ix+6)
-	ex	de, hl
 	ld	h, b
 	ld	l, a
 	mlt	hl
