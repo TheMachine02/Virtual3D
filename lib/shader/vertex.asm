@@ -121,6 +121,7 @@ relocate VX_VERTEX_SHADER_CODE
 	ld	sp, .trampoline_stack
 ; compute the Z coordinate from matrix register with FMA engine ;
 ;	ld	a, (iy+VX_VERTEX_SM)
+	ld	i, a
 .MS2:=$+1
 	ld	hl, .engine_000 shr 1 or $CC
 	xor	a, l
@@ -138,7 +139,8 @@ relocate VX_VERTEX_SHADER_CODE
 	add	hl, de
 	ld	(ix+VX_VERTEX_RZ), hl
 ; X coordinate ;
-	ld	a, (iy+VX_VERTEX_SM)
+;	ld	a, (iy+VX_VERTEX_SM)
+	ld	a, i
 .MS0:=$+1
 	ld	hl, .engine_000 shr 1 or $CC
 	xor	a, l
@@ -156,7 +158,8 @@ relocate VX_VERTEX_SHADER_CODE
 	add	hl, de
 	ld	(ix+VX_VERTEX_RX), hl
 ; Y coordinate ;
-	ld	a, (iy+VX_VERTEX_SM)
+;	ld	a, (iy+VX_VERTEX_SM)
+	ld	a, i
 .MS1:=$+1
 	ld	hl, .engine_000 shr 1 or $CC
 	xor	a, l
