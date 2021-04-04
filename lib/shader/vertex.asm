@@ -442,6 +442,7 @@ relocate VX_VERTEX_SHADER_CODE
 
 ; free space between alignement
 
+; NOTE : some of these engine have a +-1 or +-2 off error, but that's okay since the output is actually a 18.6 fixed value
 align 512
 .engine_000:
 ; 232 cycles
@@ -479,7 +480,7 @@ align 512
 
 align 64
 .engine_001:
-; 241 cycles
+; 238 cycles
 	ld	h, (iy+VX_VERTEX_VX+1)
 	ld	l, e
 	mlt	hl
@@ -509,13 +510,12 @@ align 64
 	ld	b, (iy+VX_VERTEX_VZ)
 	ld	c, a
 	mlt	bc
-	or	a, a
 	sbc	hl, bc
 	ret
  
 align 64
 .engine_010:
-; 241 cycles
+; 238 cycles
 	ld	h, (iy+VX_VERTEX_VX+1)
 	ld	l, e
 	mlt	hl
@@ -541,7 +541,6 @@ align 64
 	add	hl, bc
 	ld	e, (iy+VX_VERTEX_VY)
 	mlt	de
-	or	a, a
 	sbc	hl, de
 	ld	b, (iy+VX_VERTEX_VZ)
 	ld	c, a
@@ -551,7 +550,7 @@ align 64
 
 align 64
 .engine_011:
-; 253 cycles
+; 247 cycles
 	ld	h, (iy+VX_VERTEX_VX+1)
 	ld	l, e
 	mlt	hl
@@ -578,18 +577,16 @@ align 64
 	add	hl, bc
 	ld	e, (iy+VX_VERTEX_VY)
 	mlt	de
-	or	a, a
 	sbc	hl, de
 	ld	b, (iy+VX_VERTEX_VZ)
 	ld	c, a
 	mlt	bc
-	or	a, a
 	sbc	hl, bc
 	ret
 
 align 64
 .engine_100:
-; 241 cycles
+; 238 cycles
 	ld	h, (iy+VX_VERTEX_VZ+1)
 	ld	l, a
 	mlt	hl
@@ -612,7 +609,6 @@ align 64
 	ld	b, (iy+VX_VERTEX_VX)
 	ld	c, e
 	mlt	bc
-	or	a, a
 	sbc	hl, bc
 	ld	e, (iy+VX_VERTEX_VY)
 	mlt	de
@@ -625,7 +621,7 @@ align 64
 
 align 64
 .engine_101:
-; 253 cycles
+; 247 cycles
 	ld	h, (iy+VX_VERTEX_VY+1)
 	ld	l, d
 	mlt	hl
@@ -649,7 +645,6 @@ align 64
 	ld	b, (iy+VX_VERTEX_VX)
 	ld	c, e
 	mlt	bc
-	or	a, a
 	sbc	hl, bc
 	ld	e, (iy+VX_VERTEX_VY)
 	mlt	de
@@ -657,13 +652,12 @@ align 64
 	ld	b, (iy+VX_VERTEX_VZ)
 	ld	c, a
 	mlt	bc
-	or	a, a
 	sbc	hl, bc
 	ret
 
 align 64
 .engine_110:
-; 253 cycles
+; 247 cycles
 	ld	h, (iy+VX_VERTEX_VZ+1)
 	ld	l, a
 	mlt	hl
@@ -687,11 +681,9 @@ align 64
 	ld	b, (iy+VX_VERTEX_VX)
 	ld	c, e
 	mlt	bc
-	or	a, a
 	sbc	hl, bc
 	ld	e, (iy+VX_VERTEX_VY)
 	mlt	de
-	or	a, a
 	sbc	hl, de
 	ld	b, (iy+VX_VERTEX_VZ)
 	ld	c, a
