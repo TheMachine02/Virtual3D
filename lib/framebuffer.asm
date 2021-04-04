@@ -173,7 +173,6 @@ vxFramebufferClearColor:
 	add	hl, hl
 	ld	h, c
 	ld	l, c
-	or	a, a
 	jr	vxFramebufferClear.entry
 
 vxFramebufferClear:
@@ -182,11 +181,11 @@ vxFramebufferClear:
 	sbc     hl, hl
 .entry:
 	ex	de, hl
-	sbc	hl, hl
-	add     hl, sp           ; saves SP in HL
 	ld	ix, (vxFramebuffer)
 	ld	bc, 76800
-	add	ix, bc
+	add	ix, bc	
+	sbc	hl, hl
+	add     hl, sp           ; saves SP in HL
 	ld	sp, ix
 	ld      b, 213
 	di
