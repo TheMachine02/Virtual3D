@@ -193,8 +193,16 @@ vxMemoryDestroyDevice:
 	call	port_unlock
 	jp	port_lock
 
+vxMemoryImage:
+	ld	de, $D00000
+	ld	hl, .arch_image
+	jp	lz4.decompress
+
+.arch_image:
+file	'image'
+	
 include	"ports.asm"
-; include texture, clipping, color
+include	"lz4.asm"
 include	"primitive.asm"
 include	"pipeline.asm"
 include	"image.asm"
@@ -208,7 +216,7 @@ include	"material.asm"
 include	"assembly.asm"
 include	"math.asm"
 include	"mipmap.asm"
-; various LUT
+; TODO : remove data.inc
 include	"data.inc"
 
 vxEngineEnd:
