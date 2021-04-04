@@ -176,28 +176,28 @@ relocate VX_VERTEX_SHADER_CODE
 
 ; lightning model is here, infinite directionnal light, no pow
 	xor	a, a
-	ld	c, (iy+VX_VERTEX_NX)
+	ld	de, (iy+VX_VERTEX_NX)
 .LV0=$+1
 	ld	b, $CC
-	bit	7, c
+	bit	7, e
 	jr	z, $+3
 	sub	a, b
 	bit	7, b
 	jr	z, $+3
-	sub	a, c
+	sub	a, e
+	ld	c, e
 	mlt	bc
 	add	a, b
-	ld	c, (iy+VX_VERTEX_NY)
 .LV1=$+1
-	ld	b, $CC
-	bit	7, c
+	ld	e, $CC
+	bit	7, d
 	jr	z, $+3
-	sub	a, b
-	bit	7, b
+	sub	a, e
+	bit	7, e
 	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
+	sub	a, d
+	mlt	de
+	add	a, d
 	ld	c, (iy+VX_VERTEX_NZ)
 .LV2=$+1
 	ld	b, $CC
