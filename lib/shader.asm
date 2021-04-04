@@ -67,9 +67,8 @@ vxShaderCreate0:
 	push	hl
 	
 	ld	a, (ix+VX_SHADER_DATA1)
-	inc	a
 	add	a, a
-	add	a, VX_PIXEL_SHADER_CODE mod 256
+	add	a, (VX_PIXEL_SHADER_CODE mod 256) +2
 	ld	l, a
 	ld	(iy-3), hl
 	ld	(vxShaderJump), hl
