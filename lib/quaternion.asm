@@ -103,19 +103,19 @@ vxQuaternionMlt:
 	ld	hl, (ix+VX_QUATERNION_QW)
 	ld	de, (iy+VX_QUATERNION_QY)
 	call	vxQuatMlt
-	push	hl
+	push	de
 	ld	hl, (ix+VX_QUATERNION_QX)
 	ld	de, (iy+VX_QUATERNION_QZ)
 	call	vxQuatMlt
-	push	hl
+	push	de
 	ld	hl, (ix+VX_QUATERNION_QY)
 	ld	de, (iy+VX_QUATERNION_QW)
 	call	vxQuatMlt
-	push	hl
+	push	de
 	ld	hl, (ix+VX_QUATERNION_QZ)
 	ld	de, (iy+VX_QUATERNION_QX)
 	call	vxQuatMlt
-	pop	de
+	pop	hl
 	add	hl, de
 	pop	de
 	or	a, a
@@ -127,25 +127,24 @@ vxQuaternionMlt:
 	ld	hl, (ix+VX_QUATERNION_QW)
 	ld	de, (iy+VX_QUATERNION_QZ)
 	call	vxQuatMlt
-	push	hl
+	push	de
 	ld	hl, (ix+VX_QUATERNION_QX)
 	ld	de, (iy+VX_QUATERNION_QY)
 	call	vxQuatMlt
-	push	hl
+	push	de
 	ld	hl, (ix+VX_QUATERNION_QY)
 	ld	de, (iy+VX_QUATERNION_QX)
 	call	vxQuatMlt
-	push	hl
+	push	de
 	ld	hl, (ix+VX_QUATERNION_QZ)
 	ld	de, (iy+VX_QUATERNION_QW)
 	call	vxQuatMlt
-	pop	de
-	or	a, a
-	sbc	hl, de
-	pop	de
+	pop	bc
+	pop	hl
 	add	hl, de
 	pop	de
 	add	hl, de
+	sbc	hl, bc
 ; got VX_QUATERNION_QZ
 	ld	(ix+VX_QUATERNION_QZ), hl
 	pop	hl
@@ -159,16 +158,16 @@ vxQuaternionMlt:
 vxQuaternionMagnitude:
 	ld	hl, (ix+VX_QUATERNION_QW)
 	call	vxQuatSquare
-	push	hl
+	push	de
 	ld	hl, (ix+VX_QUATERNION_QX)
 	call	vxQuatSquare
-	push	hl
+	push	de
 	ld	hl, (ix+VX_QUATERNION_QY)
 	call	vxQuatSquare
-	push	hl
+	push	de
 	ld	hl, (ix+VX_QUATERNION_QZ)
 	call	vxQuatSquare
-	pop	de
+	pop	hl
 	add	hl, de
 	pop	de
 	add	hl, de
@@ -262,11 +261,10 @@ vxQuaternionGetMatrix:
 ; 1-2*qy²-2qz²
 	ld	hl, (iy+VX_QUATERNION_QY)
 	call	vxQuatSquare
-	push	hl
-	push	hl
+	push	de
+	push	de
 	ld	hl, (iy+VX_QUATERNION_QZ)
 	call	vxQuatSquare
-	ex	de, hl
 	pop	bc
 	ld	hl, $004000
 	or	a, a
@@ -278,7 +276,6 @@ vxQuaternionGetMatrix:
 	push	de
 	ld	hl, (iy+VX_QUATERNION_QX)
 	call	vxQuatSquare
-	ex	de, hl
 	pop	bc
 	ld	hl, $004000
 	or	a, a
@@ -447,9 +444,6 @@ vxSqAbsSkp:
 	pop	af
 ; 	ld	a, hlu
 	ld	e, h
-	or	a, a
-	sbc	hl, hl
-	ld	h, a
-	ld	l, e
+	ld	d, a
 	ret
 
