@@ -15,7 +15,6 @@
 #define BOUNDING_BOX  8
 #define SEPARATE    16
 #define FACE_NORMAL 32
-#define FMA			64
 
 using namespace std;
 using namespace glm;
@@ -94,8 +93,6 @@ int main(int argc, char* argv[])
             case 'X':
                 option=option|FACE_NORMAL;
                 break;
-	    case 'F':
-		    option=option|FMA;
 	    case 'O':
 		    name = argv[arg];
 		    break;
@@ -423,49 +420,35 @@ bool load_obj(const char * path, const char * name, unsigned short option)
 //             out << round(boundbox[i][2]*256.0) << '\n';
 
 		
-        out << "dw ";
 	sm = sgn(round(boundbox[i][0]*256.0)) << 7 | ( sgn(round(boundbox[i][1]*256.0)) << 6) | (sgn(round(boundbox[i][2]*256.0)) << 5);
+	out << "db "<< sm << "\n";
+        out << "dw ";
         out << abs(round(boundbox[i][0]*256.0)) << ",";
         out << abs(round(boundbox[i][1]*256.0)) << ",";
         out << abs(round(boundbox[i][2]*256.0)) << '\n';
         if(option & NORMAL){
 		out << "db 0,0,0\n";
 	}
-	out << "db "<< sm << "\n";
 	}
-    out << "; end marker\ndw 0,0,0\ndb 0,0,0\ndb 1\n";    
+    out << "; end marker\ndb 1\n";    //dw 0,0,0\ndb 0,0,0\n
     }
 
     for(i=0; i<vertexTable.size(); i++)
     {
-		if(option&FMA)
-		{
+        sm = sgn(round(vertexTable[i][0]*256.0)) << 7 | ( sgn(round(vertexTable[i][1]*256.0)) << 6) | (sgn(round(vertexTable[i][2]*256.0)) << 5);
+        out << "db "<< sm << "\n";
         out << "dw ";
-		sm = sgn(round(vertexTable[i][0]*256.0)) << 7 | ( sgn(round(vertexTable[i][1]*256.0)) << 6) | (sgn(round(vertexTable[i][2]*256.0)) << 5);
         out << abs(round(vertexTable[i][0]*256.0)) << ",";
         out << abs(round(vertexTable[i][1]*256.0)) << ",";
         out << abs(round(vertexTable[i][2]*256.0)) << '\n';
-        out << "db ";
-        out << round(vertexNormalTable[i][0]*64.0) << ",";
-        out << round(vertexNormalTable[i][1]*64.0) << ",";
-        out << round(vertexNormalTable[i][2]*64.0) << '\n';
-		out << "db "<< sm << "\n";
-			
-		}else{
-        out << "dw ";
-        out << round(vertexTable[i][0]*256.0) << ",";
-        out << round(vertexTable[i][1]*256.0) << ",";
-        out << round(vertexTable[i][2]*256.0) << '\n';
-        if(option&NORMAL)
-        {
+        if(option & NORMAL){
             out << "db ";
             out << round(vertexNormalTable[i][0]*64.0) << ",";
             out << round(vertexNormalTable[i][1]*64.0) << ",";
             out << round(vertexNormalTable[i][2]*64.0) << '\n';
         }
-		}
     }
-    out << "; end marker\ndw 0,0,0\ndb 0,0,0\ndb 1";    
+    out << "; end marker\ndb 1\n";    
 
     if(option&SEPARATE)
     {

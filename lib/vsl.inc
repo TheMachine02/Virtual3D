@@ -73,16 +73,16 @@ define	VX_VERTEX_RZ			13
 
 ; vertex input register (iy) ;
 
-define	VX_VERTEX_DATA_SIZE		10 ; 9
-define	VX_VERTEX_POSITION		0
-define	VX_VERTEX_VX			0
-define	VX_VERTEX_VY			2
-define	VX_VERTEX_VZ			4
-define	VX_VERTEX_NORMAL		6
-define	VX_VERTEX_NX			6
-define	VX_VERTEX_NY			7
-define	VX_VERTEX_NZ			8
-define	VX_VERTEX_SM			9
+define	VX_VERTEX_DATA_SIZE		10
+define	VX_VERTEX_SIGN			0
+define	VX_VERTEX_POSITION		1
+define	VX_VERTEX_VX			1
+define	VX_VERTEX_VY			3
+define	VX_VERTEX_VZ			5
+define	VX_VERTEX_NORMAL		7
+define	VX_VERTEX_NX			7
+define	VX_VERTEX_NY			8
+define	VX_VERTEX_NZ			9
 
 ; global data input register (ix) ;
 

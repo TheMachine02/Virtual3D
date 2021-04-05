@@ -281,7 +281,7 @@ vxVertexStream:
 	lea	ix, ix+VX_VERTEX_SIZE
 	lea	iy, iy+VX_VERTEX_DATA_SIZE
 .stream_return:
-	ld	a, (iy+VX_VERTEX_SM)
+	ld	a, (iy+VX_VERTEX_SIGN)
 	cp	a, VX_ANIMATION_BONE
 	jr	z, .stream_load_bone
 	cp	a, VX_STREAM_END
@@ -332,7 +332,8 @@ vxVertexStream:
 	ld	ix, VX_PATCH_VERTEX_POOL
 	call	.stream
 ; account for end marker
-	lea	iy, iy+VX_VERTEX_DATA_SIZE
+; 	lea	iy, iy+VX_VERTEX_DATA_SIZE
+	inc	iy
 	ld	a, (ix-16)
 	and	a, (ix-32)
 	ret	z
