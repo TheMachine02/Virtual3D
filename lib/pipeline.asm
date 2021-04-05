@@ -375,37 +375,39 @@ relocate VX_PRIMITIVE_SORT_CODE
 
 vxPrimitiveDepthSortHelper:
 ; sort the current submission queue
-	ld	hl, (vxGeometrySize)
-	ld	a, h
-	or	a, l
+	ld	bc, (vxGeometrySize)
+	ld	a, b
+	or	a, c
 	ret	z
 .setup:
-	add	hl, hl
-	ex	de, hl
 	ld	hl, (vxDepthSortTemp)
 	ld	(.WRITE_B0), hl
-	add	hl, de
-	add	hl, de
-	add	hl, de
-	ld	(.READ_B0), hl
-	ld	bc, VX_MAX_TRIANGLE*8   ;VX_GEOMETRY_SIZE
 	add	hl, bc
+	add	hl, bc
+	add	hl, bc
+	add	hl, bc
+	add	hl, bc
+	add	hl, bc
+	ld	(.READ_B0), hl
+	ld	de, VX_MAX_TRIANGLE*VX_GEOMETRY_SIZE
+	add	hl, de
 	ld	(.WRITE_B1), hl
-	add	hl, de
-	add	hl, de
-	add	hl, de
+	add	hl, bc
+	add	hl, bc
+	add	hl, bc
+	add	hl, bc
+	add	hl, bc
+	add	hl, bc
 	ld	(.READ_B1), hl
 ; size computation
-	srl	d
-	rr	e
-	ld	a, e
-	dec	de
-	inc	d
-	ld	e, d
-	ld	d, a
-	push	de
-	push	de
-	push	de
+	ld	a, c
+	dec	bc
+	inc	b
+	ld	c, b
+	ld	b, a
+	push	bc
+	push	bc
+	push	bc
 ; actual sorting start here
 ; restore index position in array for all three bucket
 	ld	hl, VX_DEPTH_BUCKET_L + 511
