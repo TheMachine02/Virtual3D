@@ -156,15 +156,16 @@ vxPrimitiveTexturePolygon:
 	ret	m
 	ret	z
 	ld	hl, (iy+VX_POLYGON_I0)
+	ld	(_inner_cyclicLoop0+1), hl
+	jr	_inner_inner_cyclicLoop0:
 _inner_cyclicLoop0:
+	ld	hl, $CCCCCC	; smc of "ld hl, (iy+VX_POLYGON_I0)"
+_inner_inner_cyclicLoop0:
 	push	bc
 	ld	de, (iy+VX_POLYGON_I1)
 	ld	bc, (iy+VX_POLYGON_I2)
-	push	hl
-	pea	iy+3
 	call	vxPrimitiveTextureTriangle
-	pop	iy
-	pop	hl
+	lea	iy, iy+3
 	pop	bc
 	djnz	_inner_cyclicLoop0
 	ret
