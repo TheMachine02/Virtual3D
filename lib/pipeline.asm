@@ -114,19 +114,18 @@ vxPrimitiveSubmit:
 	ld	(vxShaderAdress2Write), hl
 .setup:
 ; check primitive count and reset it
-	ld	de, (vxGeometrySize)
-	ld	a, d
-	or	a, e
+	ld	hl, (vxGeometrySize)
+	ld	a, h
+	or	a, l
 	ret	z
-	sbc	hl, hl
-	ld	(vxGeometrySize), hl
 	ld	iy, VX_GEOMETRY_QUEUE
-	ex	de, hl
 	lea	de, iy+VX_GEOMETRY_ID
 	add	hl, hl
 	add	hl, hl
 	add	hl, de
 	ld	(hl), VX_STREAM_END
+	sbc	hl, hl
+	ld	(vxGeometrySize), hl
 	jr	.index
 ; TODO : reallocate .deferred into fast RAM, use jr .index as long jump
 ; TODO : remove the call vxPrimitiveRenderTriangle
@@ -377,39 +376,35 @@ relocate VX_PRIMITIVE_SORT_CODE
 
 vxPrimitiveDepthSortHelper:
 ; sort the current submission queue
-	ld	bc, (vxGeometrySize)
-	ld	a, b
-	or	a, c
+	ld	hl, (vxGeometrySize)
+	ld	a, h
+	or	a, l
 	ret	z
 .setup:
+	add	hl, hl
+	ex	de, hl
 	ld	hl, (vxDepthSortTemp)
 	ld	(.WRITE_B0), hl
-	add	hl, bc
-	add	hl, bc
-	add	hl, bc
-	add	hl, bc
-	add	hl, bc
-	add	hl, bc
-	ld	(.READ_B0), hl
-	ld	de, VX_MAX_TRIANGLE*8   ;VX_GEOMETRY_SIZE
 	add	hl, de
+	add	hl, de
+	add	hl, de
+	ld	(.READ_B0), hl
+	ld	bc, VX_MAX_TRIANGLE*8   ;VX_GEOMETRY_SIZE
+	add	hl, bc
 	ld	(.WRITE_B1), hl
-	add	hl, bc
-	add	hl, bc
-	add	hl, bc
-	add	hl, bc
-	add	hl, bc
-	add	hl, bc
+	add	hl, de
+	add	hl, de
+	add	hl, de
 	ld	(.READ_B1), hl
 ; size computation
-	ld	a, c
-	dec	bc
-	inc	b
-	ld	c, b
-	ld	b, a
-	push	bc
-	push	bc
-	push	bc
+	ld	a, e
+	dec	de
+	inc	d
+	ld	e, d
+	ld	d, a
+	push	de
+	push	de
+	push	de
 ; actual sorting start here
 ; restore index position in array for all three bucket
 	ld	hl, VX_DEPTH_BUCKET_L + 511
