@@ -294,10 +294,10 @@ vxReflect:
 
 vxNClip:
 ; we'll compute (y1-y0)*(x2-x1)+(y2-y1)*(x0-x1)
+	push	hl
 	inc	hl
 	inc	bc
 	inc	de
-	push	hl
 	push	bc
 	ld	a, (bc)
 	inc	hl
@@ -355,6 +355,5 @@ vxNClip:
 ; do de + temp_value
 	pop	hl
 	add	hl, de
-	dec	hl
 	rl	h
 	ret
