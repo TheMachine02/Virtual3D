@@ -159,7 +159,7 @@ vxPrimitiveTexturePolygon:
 	ld	(_inner_cyclicLoop0+1), hl
 	jr	_inner_inner_cyclicLoop0:
 _inner_cyclicLoop0:
-	ld	hl, $CCCCCC	; smc of "ld hl, (iy+VX_POLYGON_I0)"
+	ld	hl, $CCCCCC	; smc of ld hl, (iy+VX_POLYGON_I0)
 _inner_inner_cyclicLoop0:
 	push	bc
 	ld	de, (iy+VX_POLYGON_I1)
