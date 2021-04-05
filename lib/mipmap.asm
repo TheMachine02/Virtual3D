@@ -60,6 +60,39 @@ vxMipmap:
 ; we'll do this, only take 8 bits of the derivative
 ; 0,5*log2(max( (dFdxU*dFdxU) + (dFdxV*dFdxV) , (dFdyU*dFdyU)+(dFdyV*dFdyV)))	
 	
+	ld	bc, (iy+VX_FDUDX)
+; d*d*256 + e*d*2 + e*e/256
+	bit	7, b
+	jr	z, .gradient_abs_dudx
+	xor	a, a
+	sub	a, c
+	ld	c, a
+	sbc	a, a
+	sub	a, b
+	ld	b, a
+.gradient_abs_dudx:
+	ld	h, b
+	ld	l, b
+	mlt	hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	ld	e, c
+	ld	d, b
+	mlt	de
+	add	hl, de
+	add	hl, de
+	ld	e, c
+	ld	d, c
+	mlt	de
+	ld	e, d
+	ld	d, 0
+	add	hl, de
 	
 	
 	

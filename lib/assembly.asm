@@ -29,7 +29,8 @@ define	VX_DEPTH_MAX		16777216
 define	VX_DEPTH_OFFSET		8388608
 define	VX_VIEW_MLT_OFFSET	128
 
-align	256
+; NOTE : the 1536 bytes need to be aligned and we need inc h to be valid for all the table
+align	2048
 VX_DEPTH_BUCKET_L:
 	rb	512
 VX_DEPTH_BUCKET_H:
@@ -51,9 +52,9 @@ relocate VX_PRIMITIVE_ASM_CODE
 
 vxPrimitiveAssembly:
 ; 3884 cc setup
-;  626 cc bfc accept
-;  461 cc bfc reject
-;  215 cc clip reject
+;  623 cc bfc accept
+;  458 cc bfc reject
+;  212 cc clip reject
 .setup:
 ; input : iy=data, also expect so global variable to be correctly set
 	ld	(.SP_RET0), sp
