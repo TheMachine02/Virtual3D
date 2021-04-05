@@ -49,15 +49,9 @@ vxEngineInit:
 ; memory initialisation
 	call	vxMemoryCreateDevice
 ; data initialisation
-; 	ld	hl, VX_LUT_CONVOLVE_DATA
-; 	ld	de, VX_LUT_CONVOLVE
-; 	ld	bc, VX_LUT_CONVOLVE_SIZE
-; 	ldir
-; 	ld	hl, VX_LUT_SIN_DATA
-; 	ld	de, VX_LUT_SIN
-; 	ld	b, 2	; bc=VX_LUT_SIN_SIZE
-; 	ldir
-	call	vxMemoryImage
+	ld	de, VIRTUAL_BASE_RAM
+	ld	hl, .arch_image
+	call	lz4.decompress
 	ld	hl, VIRTUAL_NULL_RAM
 	ld	de, VX_DEPTH_BUCKET_L
 	ld	bc, 512*3
@@ -80,6 +74,10 @@ vxEngineInit:
 	ld	hl, vxEngineQuit
 	ex	(sp), hl
 	jp	(hl)
+
+.arch_image:
+file	'image'
+
 vxEngineQuit:
 	ld	hl, $F50000
 	ld	(hl), h	; Mode 0
@@ -106,7 +104,6 @@ vxEngineQuit:
 	jp	ti.DrawBatteryIndicator
 
 ; memory backing function
-	
 vxMemoryCreateDevice:
 	ld	hl, $D00000
 	ld	(hl), $5A
@@ -150,14 +147,6 @@ vxMemoryDestroyDevice:
 	call	port_setup
 	call	port_unlock
 	jp	port_lock
-
-vxMemoryImage:
-	ld	de, VIRTUAL_BASE_RAM
-	ld	hl, .arch_image
-	jp	lz4.decompress
-
-.arch_image:
-file	'image'
 	
 include	"ports.asm"
 include	"lz4.asm"
@@ -174,8 +163,6 @@ include	"material.asm"
 include	"assembly.asm"
 include	"math.asm"
 include	"mipmap.asm"
-; TODO : remove data.inc
-;include	"data.inc"
 
 align 512
 VX_LUT_INVERSE:
