@@ -161,8 +161,9 @@ _inner_cyclicLoop0:
 	push	hl
 	ld	de, (iy+VX_POLYGON_I1)
 	ld	bc, (iy+VX_POLYGON_I2)
+	pea	iy+3
 	call	vxPrimitiveTextureTriangle
-	lea	iy, iy+3
+	pop	iy
 	pop	hl
 	pop	bc
 	djnz	_inner_cyclicLoop0
