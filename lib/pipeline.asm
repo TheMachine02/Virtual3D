@@ -298,14 +298,13 @@ vxVertexStream:
 	push	ix
 	lea	iy, iy+VX_ANIMATION_HEADER_SIZE
 	push	iy
-	ld	a, (vxAnimationKey)
-	ld	e, a
+	ld	ix, vxModelViewCache
+	ld	e, (ix+66)	; 'cause vxModelViewCache + 66 = vxAnimationKey
 	ld	d, VX_ANIMATION_MATRIX_SIZE
 	mlt	de
 	add	iy, de	; correct animation matrix
 ; modelview = bonemodel*modelview
 	ld	hl, vxModelView
-	ld	ix, vxModelViewCache
 	call	vxMatrixTransform	; (hl)=(iy)*(ix)
 ; I have the correct modelview matrix in shader cache area
 ; next one is reduced matrix without translation, since it will only be a direction vector mlt. However, the light vector position also need to be transformed by the transposed matrix
