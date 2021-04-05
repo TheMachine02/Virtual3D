@@ -299,7 +299,7 @@ vxVertexStream:
 	lea	iy, iy+VX_ANIMATION_HEADER_SIZE
 	push	iy
 	ld	ix, vxModelViewCache
-	ld	e, (ix+66)	; 'cause vxModelViewCache + 66 = vxAnimationKey
+	ld	e, (ix+vxAnimationKey-vxModelViewCache)
 	ld	d, VX_ANIMATION_MATRIX_SIZE
 	mlt	de
 	add	iy, de	; correct animation matrix
@@ -396,6 +396,8 @@ vxPrimitiveDepthSortHelper:
 	add	hl, de
 	ld	(.READ_B1), hl
 ; size computation
+	srl	d
+	rr	e
 	ld	a, e
 	dec	de
 	inc	d
