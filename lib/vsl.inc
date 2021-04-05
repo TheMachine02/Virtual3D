@@ -263,3 +263,29 @@ define	VX_ANIMATION_MATRIX_TZ		13
 define	VX_BYTE_STRIDE			1
 define	VX_WORD_STRIDE			2
 define	VX_LONG_STRIDE			3
+
+define	_OS_FLAGS			$D00080
+; standard defines ;
+define	VX_TRUE				1
+define	VX_FALSE			0
+
+define	VIRTUAL_BASE_RAM		$D00000
+define	VIRTUAL_VERSION			$10
+define	VIRTUAL_NULL_RAM		$E40000
+
+macro align bound
+ rb bound-($ mod bound)
+end macro
+
+macro relocate? address*
+	rel.source? = $
+	rel.destination? = address
+	org rel.destination?
+	macro end?.relocate?
+		rel.length? = $ - rel.destination?
+		org rel.source? + rel.length?
+		purge end?.relocate?
+	end macro
+end macro
+define	nan	0
+define	inf	0

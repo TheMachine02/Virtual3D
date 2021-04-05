@@ -34,7 +34,7 @@ define	VX_MAX_VERTEX			2048
 ; Better vertex shader with decoupled projection
 ; Put all the code in fast ram, use sha256
 
-VX_VIRTUAL_PIPELINE_STATE:
+VIRTUAL_PIPELINE_STATE:
 ; pipeline state
 vxPrimitiveQueue:
  dl	0
@@ -94,7 +94,7 @@ vxPrimitiveSubmit:
 ; various reset blahblah
 	ld	hl, (VX_LCD_BUFFER)
 	ld	(vxPrimitiveQueue), hl
-	ld	hl, NULL_RAM
+	ld	hl, VIRTUAL_NULL_RAM
 	ld	de, VX_DEPTH_BUCKET_L
 	ld	bc, 256 * 6
 	ldir

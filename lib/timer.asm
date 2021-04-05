@@ -96,7 +96,7 @@ vxTimer:
 	res	0, (hl)
 	ld	l, VX_TIMER_COUNTER_GP and $FF
 	ex	de, hl
-	ld	hl, NULL_RAM
+	ld	hl, VIRTUAL_NULL_RAM
 	ld	bc, 4
 	ldir
 	ld	e, VX_TIMER_COUNTER_FR and $FF
