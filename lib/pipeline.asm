@@ -99,9 +99,9 @@ vxPrimitiveSubmit:
 	ld	bc, 256 * 6
 	ldir
 .setup_pixel:
-	ld	hl, VX_REGISTER_INTERPOLATION_COPY
-	ld	de, VX_REGISTER_INTERPOLATION_CODE
-	ld	bc, VX_REGISTER_INTERPOLATION_SIZE
+	ld	hl, VX_PRIMITIVE_INTERPOLATION_COPY
+	ld	de, VX_PRIMITIVE_INTERPOLATION_CODE
+	ld	bc, VX_PRIMITIVE_INTERPOLATION_SIZE
 	ldir
 ; this is ugly at best
 	ld	hl, (vxShaderJump)
@@ -135,7 +135,7 @@ vxPrimitiveSubmit:
 	ld	bc, (hl)			; subcache
 	pea	iy+VX_GEOMETRY_KEY_SIZE
 	ld	iy, (iy+VX_GEOMETRY_INDEX)	; read triangle data
-	call	vxPrimitiveRenderTriangle
+	call	vxPrimitiveRender.triangle
 	pop	iy
 .index:
 	ld	hl, VX_MATERIAL_DATA

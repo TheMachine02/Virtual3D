@@ -43,7 +43,16 @@ vxPatchVertexCache:
 VX_PATCH_VERTEX:
  dl	0,0,0,0,0,0
 
+if defined VX_DEBUG_CC_INSTRUCTION
 vxPrimitiveClipFrustrum:
+	cce	ge_pri_clip
+	call	.inner
+	ccr	ge_pri_clip 
+	ret
+.inner:
+else
+vxPrimitiveClipFrustrum:
+end if
 ; input ;
 ; iy : patch_input (VX_PATCH_INPUT), point to a list of address of vertex
 ;  b : number of point
