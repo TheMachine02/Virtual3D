@@ -162,32 +162,29 @@ vxFramebufferVsync:
 	
 vxFramebufferClearColor:
 	cce	fb_ops
-	ld	h, c
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	ld	h, c
-	ld	l, c
+	ld	ix, (vxFramebuffer)
+	ld	de, 76800
+	add	ix, de
+	sbc	hl, hl
+	add     hl, sp           ; saves SP in HL
+	ld	b, c		; c=color
+	push	bc
+	dec	sp
+	pop	de
+	ld	e,d
 	jr	vxFramebufferClear.entry
 
 vxFramebufferClear:
 	cce	fb_ops
-	or      a, a
-	sbc     hl, hl
-.entry:
-	ex	de, hl
 	ld	ix, (vxFramebuffer)
-	ld	bc, 76800
-	add	ix, bc	
+	ld	de, 76800
+	add	ix, de	
 	sbc	hl, hl
 	add     hl, sp           ; saves SP in HL
+	mlt	de		; then de=0
+.entry:	
+	ld	b, 123
 	ld	sp, ix
-	ld      b, 213
 	di
 .loop:
 	db	120 dup $D5
