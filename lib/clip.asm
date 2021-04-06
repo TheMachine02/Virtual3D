@@ -495,7 +495,7 @@ vxParametricExtendMlt:
 	or	a, h	; replaces "ld a,h" & avoid "or a,a" later
 	ld	h, b
 	push	hl
-; grab hlu in h (also b->l)
+; grab hlu in h
 	push	hl
 	inc	sp
 	pop	hl	; also h=b -> l
