@@ -489,24 +489,22 @@ vxPrimitiveClipPlane:
 vxParametricExtendMlt:
 ; (p1-p0)*f/65536+p0
 ; p1 = hl (24bits), p0 = de (24bits), f = bc (16bits)
-	or	a, a
-	sbc	hl, de	; hl = p1-p0
 	push	de
-	ld	a, l
-	push	af
-; grab hlu in a
+	xor	a, a
+	sbc	hl, de	; hl = p1-p0
+	or	a, h	; replaces "ld a,h" & avoid "or a,a" later
+	ld	h, b
+	push	hl
+; grab hlu in h
 	push	hl
 	inc	sp
-	pop	af
+	pop	hl	; also h=b -> l
 	dec	sp
-	ld	d, h
 ; hlu x b x 256
-	ld	l, a
-	bit	7, a
-	ld	h, b
+	ld	e, h	; hlu saved in e for later...
+	bit	7, h
 	mlt	hl
 	jr	z, .signAdjust
-	or	a, a
 	sbc	hl, bc
 .signAdjust:
 	add	hl, hl
@@ -518,8 +516,6 @@ vxParametricExtendMlt:
 	add	hl, hl
 	add	hl, hl
 ; hlu x c
-	ld	e, a
-	ld	a, d
 	ld	d, c
 	mlt	de
 	add	hl, de
@@ -533,14 +529,14 @@ vxParametricExtendMlt:
 	ld	d, c
 	mlt	de
 	ld	e, d
-	ld	d, 0
+	xor	a, a
+	ld	d, a
 	add	hl, de
 	pop	de
 ; l x b /256
-	ld	e, b
 	mlt	de
 	ld	e, d
-	ld	d, 0
+	ld	d, a
 	add	hl, de
 	pop	de
 	add	hl, de	; add	up p0
