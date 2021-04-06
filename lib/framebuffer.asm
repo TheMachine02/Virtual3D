@@ -183,7 +183,7 @@ vxFramebufferClear:
 	add     hl, sp           ; saves SP in HL
 	mlt	de		; then de=0
 .entry:	
-	ld	b, 123
+	ld	b, 213
 	ld	sp, ix
 	di
 .loop:
