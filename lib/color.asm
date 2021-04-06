@@ -144,8 +144,7 @@ assert VX_VERTEX_BUFFER < $D10000
 	sub	a, c
 	ret	z
 	cce	ge_pxl_raster
-	push	af
-	ld	iyl, a
+	ld	iyl, a	;  saves a in iyl
 	neg
 	ld	(vxDeltaY1), a
 	push	hl
@@ -166,6 +165,7 @@ vxValueX1:=$+1
 	ld	(vxDeltaX1), hl
 	ld	(vxSMC_Code1), a
 	lea	de, iy+0
+	ld	a, e	; iyl back in register a
 	ld	d, $00 ;compensate due to previous looping
 	add	hl, de
 	ex	de, hl
@@ -187,7 +187,6 @@ vxValueY1:=$+1
 	add	hl, bc
 	ex	de, hl
 	pop	hl
-	pop	af
 .rasterTriangleInner:
 vxDeltaX0:=$+1
 	ld	bc, $000000
