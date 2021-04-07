@@ -500,8 +500,10 @@ vxParametricExtendMlt:
 	or	a, h	; replaces "ld a,h" & avoid "or a,a" later
 	ld	h, b
 	push	hl
+; l x b /256 -> d
+	mlt	hl
+	ld	d, h
 ; grab hlu in h
-	push	hl
 	inc	sp
 	pop	hl	; also h=b -> l
 	dec	sp
@@ -520,6 +522,7 @@ vxParametricExtendMlt:
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
+	ld	l, d
 ; hlu x c
 	ld	d, c
 	mlt	de
@@ -534,14 +537,7 @@ vxParametricExtendMlt:
 	ld	d, c
 	mlt	de
 	ld	e, d
-	xor	a, a
-	ld	d, a
-	add	hl, de
-	pop	de
-; l x b /256
-	mlt	de
-	ld	e, d
-	ld	d, a
+	ld	d, 0
 	add	hl, de
 	pop	de
 	add	hl, de	; add	up p0
