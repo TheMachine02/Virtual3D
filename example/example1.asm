@@ -65,7 +65,7 @@ Main:
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
 	ld	hl, (Vertex)
-	ld	bc, (Triangle)
+	ld	de, (Triangle)
 	ld	a, VX_MATERIAL0
 	call	vxPrimitiveStream
 ; debug for triangle count

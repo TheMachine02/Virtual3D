@@ -59,8 +59,8 @@ Main:
 	ld	a, 0
 	ld	(vxLightUniform+4), a
 
-	ld	ix, alphaShader
-	call	vxShaderLoad
+; 	ld	ix, alphaShader
+; 	call	vxShaderLoad
 
 	ld	hl, material
 	ld	a, VX_MATERIAL0
@@ -72,19 +72,19 @@ MainLoop:
 	call	Camera
 	ret	nz
 	
-	ld	hl, 0*256+128
-	ld	de, 0*256+160
-	ld	bc, 32*256+32
-	call	vxImageSubSwap
-	ld	hl, 128*256+128
-	ld	de, 128*256+160
-	ld	bc, 32*256+32
-	call	vxImageSubSwap
+; 	ld	hl, 0*256+128
+; 	ld	de, 0*256+160
+; 	ld	bc, 32*256+32
+; 	call	vxImageSubSwap
+; 	ld	hl, 128*256+128
+; 	ld	de, 128*256+160
+; 	ld	bc, 32*256+32
+; 	call	vxImageSubSwap
 
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
 	ld	hl, (Vertex)
-	ld	bc, (Triangle)
+	ld	de, (Triangle)
 	ld	a, VX_MATERIAL0
 	call	vxPrimitiveStream
 
@@ -339,15 +339,15 @@ Temp:
 	dl	0,0
 
 VertexName:
-	db	ti.AppVarObj, "POOLV",0
+	db	ti.AppVarObj, "KALIYAV",0
 Vertex:
 	dl	0
 TriangleName:
-	db	ti.AppVarObj, "POOLF", 0
+	db	ti.AppVarObj, "KALIYAF", 0
 Triangle:
 	dl	0
 TextName:
-	db	ti.AppVarObj, "POOLT",0
+	db	ti.AppVarObj, "KALIYAT",0
 Texture:
 	dl	0
 UnitVector:

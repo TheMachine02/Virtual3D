@@ -79,7 +79,7 @@ Main:
 	ld	ix, World.matrix
 	ld	iy, Model.matrix
 	ld	hl, (Model.vertex_source)
-	ld	bc, (Model.triangle_source)
+	ld	de, (Model.triangle_source)
 	ld	a, VX_MATERIAL0
 	call	vxPrimitiveStream
 

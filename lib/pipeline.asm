@@ -145,12 +145,14 @@ vxPrimitiveSubmit:
 	ret
 	
 vxPrimitiveStream:
+; send a primitive stream for submission
+; handle calling the vertex shader & 
 ; hl : vertex source
 ;  a : material ID
-; bc : triangle source
+; de : triangle source
 ; ix : worldview matrix
 ; iy : modelworld matrix
-	push	bc
+	push	de
 	ex	de, hl
 	ld	hl, VX_MATERIAL_DATA
 	ld	l, a
@@ -282,8 +284,8 @@ vxVertexStream:
 	lea	iy, iy+VX_VERTEX_DATA_SIZE
 .stream_return:
 	ld	a, (iy+VX_VERTEX_SIGN)
-	cp	a, VX_ANIMATION_BONE
-	jr	z, .stream_load_bone
+; 	cp	a, VX_ANIMATION_BONE
+; 	jr	z, .stream_load_bone
 	cp	a, VX_STREAM_END
 	jr	nz, .stream_compute
 .stream_end:	
@@ -370,7 +372,7 @@ vxPrimitiveDepthSort:
 	ccr	ge_z_sort
 	ret
 
-VX_PRIMITIVE_SORT_COPY:
+VX_PRIMITIVE_SORT_COPY:=$
 ; relocate to fast RAM
 relocate VX_PRIMITIVE_SORT_CODE
 
