@@ -32,19 +32,18 @@ vxCrossProduct:
 ; v1.x*v2.y-v1.y*v2.x
 	ex	de, hl
 ; v1.y
-	ld	b, (ix+1)
+	ld	h, (ix+1)
 ; v2.z
-	ld	c, (iy+2)
+	ld	l, (iy+2)
 	xor	a, a
-	sbc	hl, hl
-	bit	7, b
+	bit	7, h
 	jr	z, $+3
-	add	a, c
-	bit	7, c
+	add	a, l
+	bit	7, l
 	jr	z, $+3
-	add	a, b
-	mlt	bc
-	add	hl, bc
+	add	a, h
+	mlt	hl
+	inc.s	bc
 	ld	b, a
 	xor	a, a
 	ld	c, a
@@ -53,7 +52,6 @@ vxCrossProduct:
 	ld	b, (ix+2)
 ; v2.y
 	ld	c, (iy+1)
-	xor	a, a
 	bit	7, b
 	jr	z, $+3
 	add	a, c
@@ -92,7 +90,6 @@ vxCrossProduct:
 	ld	b, (ix+0)
 ; v2.z
 	ld	c, (iy+2)
-	xor	a, a
 	bit	7, b
 	jr	z, $+3
 	add	a, c
@@ -131,7 +128,6 @@ vxCrossProduct:
 	ld	b, (ix+1)
 ; v2.x
 	ld	c, (iy+0)
-	xor	a, a
 	bit	7, b
 	jr	z, $+3
 	add	a, c

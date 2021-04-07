@@ -51,11 +51,12 @@ vxShaderLoad:
 	add	hl, de
 	ld	(vxShaderAdress2), hl
 
-	ld	c, (ix+VX_SHADER_DATA1)
-	ld	hl, VX_PIXEL_SHADER_CODE
-	add	hl, bc
+	inc.s	hl
+	ld	h, c
+	ld	l, (ix+VX_SHADER_DATA1)
 ; VX_CALL0_NEG
 	ld	de, VX_PIXEL_SHADER_CODE
+	add	hl, de
 	ld	b, 160
 	ld	iy, VX_LUT_PIXEL_LENGTH-(319*4)
 vxShaderCreate0:
