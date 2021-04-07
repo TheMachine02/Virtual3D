@@ -65,27 +65,36 @@ end if
 	rla
 	jr	nc, .nextPlane0
 	ex	af, af'
-	ld	a, VX_PLANE_BIT0
-	call	vxPrimitiveClipPlane
+	xor 	a, a
+	cp	a, b
+	ld	c, VX_PLANE_BIT0
+	call	nz, vxPrimitiveClipPlane
 	ex	af, af'
 .nextPlane0:
 	rla
 	jr	nc, .nextPlane1
 	ex	af, af'
-	ld	a, VX_PLANE_BIT1
-	call	vxPrimitiveClipPlane
+	xor 	a, a
+	cp	a, b
+	ld	c, VX_PLANE_BIT1
+	call	nz, vxPrimitiveClipPlane
 	ex	af, af'
 .nextPlane1:
 	rla
 	jr	nc, .nextPlane2
 	ex	af, af'
-	ld	a, VX_PLANE_BIT2
-	call	vxPrimitiveClipPlane
+	xor 	a, a
+	cp	a, b
+	ld	c, VX_PLANE_BIT2
+	call	nz, vxPrimitiveClipPlane
 	ex	af, af'
 .nextPlane2:
 	rla
 	ret	nc
-	ld	a, VX_PLANE_BIT3
+	xor 	a, a
+	cp	a, b
+	ret	z
+	ld	c, VX_PLANE_BIT3
 ; fall trough ;
 
 vxPrimitiveClipPlane:
@@ -96,10 +105,6 @@ vxPrimitiveClipPlane:
 ; output ;
 ; iy : clipped patch (VX_PATCH_OUPUT)
 ;  b : number of point
-	ld	c, a
-	xor 	a, a
-	cp	a, b
-	ret	z
 	ld	(vxPatchSize), a
 	push	iy
 	push	ix
