@@ -89,8 +89,16 @@ vxShaderCreate1:
 	ld	(iy+5), de
 	lea	iy, iy+8
 	djnz vxShaderCreate1
+	
+	ld	hl, VX_PIXEL_SHADER_CODE
+	ld	de, vxPixelShader.code
+	ld	bc, 64
+	ldir	
 	ret
-
+	
+vxPixelShader.code:
+	rb	64
+	
 vxShaderGeneralInterpolation0:
 	exx
 	ld	hl, (iy+VX_REGISTER1) ; lut adress

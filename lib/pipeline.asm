@@ -103,6 +103,9 @@ vxPrimitiveSubmit:
 	ld	de, VX_PRIMITIVE_INTERPOLATION_CODE
 	ld	bc, VX_PRIMITIVE_INTERPOLATION_SIZE
 	ldir
+	ld	hl, vxPixelShader.code
+	ld	de, VX_PIXEL_SHADER_CODE
+	ld	bc, 64	
 ; this is ugly at best
 	ld	hl, (vxShaderJump)
 	ld	(vxShaderJumpWrite), hl
