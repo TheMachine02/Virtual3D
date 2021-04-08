@@ -119,11 +119,14 @@ vxVertexShader:
 
 relocate VX_VERTEX_SHADER_CODE
 .ftransform_stream:
+	ld	a, (iy+VX_VERTEX_SIGN)
+	dec	a
+	ret	z
 	ld	(.SP_RET), sp
-	jp	.ftransform_entry
 .ftransform_trampoline:
 	ld	sp, .trampoline_stack
-; compute the Z coordinate from matrix register with FMA engine ;
+; compute the Z coordinate from matrix register with FMA engine
+	inc	a
 	ld	i, a
 .MS2:=$+1
 	ld	hl, .engine_000 shr 1 or $CC
@@ -433,9 +436,9 @@ relocate VX_VERTEX_SHADER_CODE
 .ftransform_ret:
 	lea	ix, ix+VX_VERTEX_SIZE
 	lea	iy, iy+VX_VERTEX_DATA_SIZE
-.ftransform_entry:
 	ld	a, (iy+VX_VERTEX_SIGN)
-	cp	a, VX_STREAM_END
+; check for a = VX_STREAM_END (1)
+	dec	a
 	jp	nz, .ftransform_trampoline
 .SP_RET=$+1
 	ld	sp, $CCCCCC
