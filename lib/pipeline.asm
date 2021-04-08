@@ -105,7 +105,8 @@ vxPrimitiveSubmit:
 	ldir
 	ld	hl, vxPixelShader.code
 	ld	de, VX_PIXEL_SHADER_CODE
-	ld	bc, 64	
+	ld	bc, 64
+	ldir
 ; this is ugly at best
 	ld	hl, (vxShaderJump)
 	ld	(vxShaderJumpWrite), hl
@@ -207,6 +208,10 @@ vxVertexStream:
 	ld	de, VX_VERTEX_SHADER_CODE
 	ld	bc, VX_VERTEX_SHADER_SIZE
 	ldir
+	ld	hl, vxVertexShader.perspective_iterate
+	ld	de, VX_PIXEL_SHADER_CODE
+	ld	bc, 64
+	ldir	
 ; transform the worldview with the modelworld matrix to have the global modelview matrix
 ; modelviewcache = modelworld0 * worldview0
 	ld	hl, vxModelViewCache

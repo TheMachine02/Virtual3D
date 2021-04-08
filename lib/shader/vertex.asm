@@ -86,17 +86,17 @@ vxVertexShader:
 	ld	bc, (hl)
 	ld	(.MTZ), bc
 ; lightning write
-	add	hl, de
-	ld	de, .LV0
-	ldi
-	ld	de, .LV1
-	ldi
-	ld	de, .LV2
-	ldi
-	ld	de, .LA
-	ldi
-	ld	de, .LE
-	ldi
+; 	add	hl, de
+; 	ld	de, .LV0
+; 	ldi
+; 	ld	de, .LV1
+; 	ldi
+; 	ld	de, .LV2
+; 	ldi
+; 	ld	de, .LA
+; 	ldi
+; 	ld	de, .LE
+; 	ldi
 ; scissor set
 ; NOTE : this should be + 1
 	ld	a, VX_SCREEN_HEIGHT+1
@@ -181,64 +181,64 @@ relocate VX_VERTEX_SHADER_CODE
 	add	hl, de
 	ld	(ix+VX_VERTEX_RY), hl
 ; lightning model is here, infinite directionnal light, no pow
-	xor	a, a
-	ld	c, (iy+VX_VERTEX_NX)
-.LV0=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-	ld	c, (iy+VX_VERTEX_NY)
-.LV1=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-	ld	c, (iy+VX_VERTEX_NZ)
-.LV2=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-; max(a,0)
-	jp	p, .light_scale
-	xor	a, a
-	jr	.light_ambient
-.light_scale:
-	add	a, a
-	add	a, a
-	ld	c, a
-; LE have a 64 scaling
-.LE=$+1
-	ld	b, $CC
-	mlt	bc
-	ld	a, b
-	rl	c
-.light_ambient:
-.LA=$+1
-	adc	a, $CC
-; min(a,15)
-	cp	a, 32
-	jr	c, $+4
-	ld	a, 31
-	ld	(ix+VX_VERTEX_GPR2), a
-; use this target for gouraud shading, this is v register
-	ld	(ix+VX_VERTEX_GPR1), a
+; 	xor	a, a
+; 	ld	c, (iy+VX_VERTEX_NX)
+; .LV0=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; 	ld	c, (iy+VX_VERTEX_NY)
+; .LV1=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; 	ld	c, (iy+VX_VERTEX_NZ)
+; .LV2=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; ; max(a,0)
+; 	jp	p, .light_scale
+; 	xor	a, a
+; 	jr	.light_ambient
+; .light_scale:
+; 	add	a, a
+; 	add	a, a
+; 	ld	c, a
+; ; LE have a 64 scaling
+; .LE=$+1
+; 	ld	b, $CC
+; 	mlt	bc
+; 	ld	a, b
+; 	rl	c
+; .light_ambient:
+; .LA=$+1
+; 	adc	a, $CC
+; ; min(a,15)
+; 	cp	a, 32
+; 	jr	c, $+4
+; 	ld	a, 31
+; 	ld	(ix+VX_VERTEX_GPR2), a
+; ; use this target for gouraud shading, this is v register
+; 	ld	(ix+VX_VERTEX_GPR1), a
 .perspective_divide:
 ;	ld	hl, (ix+VX_VERTEX_RY)
 	ld	bc, (ix+VX_VERTEX_RZ)
@@ -256,10 +256,10 @@ relocate VX_VERTEX_SHADER_CODE
 	or	a, a
 .perspective_absolute_ry:
 	sbc	hl, bc
-	jr	c, .perspective_iterate_ry
+	jp	c, .perspective_iterate_ry
 	sbc	hl, bc
 	ccf
-	jr	nc, .perspective_iterate_ry
+	jp	nc, .perspective_iterate_ry
 ; clip code compute for ry
 	rra
 	ld	a, 00100010b
@@ -267,6 +267,13 @@ relocate VX_VERTEX_SHADER_CODE
 	jr	nc, $+3
 	rrca
 	ld	(ix+VX_VERTEX_CODE), a
+	jr	.perspective_divide_rx
+; scissor code
+.perspective_high_y:
+	set	0, (ix+VX_VERTEX_CODE)
+	jr	.perspective_divide_rx
+.perspective_low_y:
+	set	1, (ix+VX_VERTEX_CODE)
 	jr	.perspective_divide_rx
 ; we got a gap here, were we can put zclip
 .perspective_zclip:
@@ -293,35 +300,14 @@ relocate VX_VERTEX_SHADER_CODE
 	or	a, 01000100b
 .perspective_clip_rx_1:
 	ld	(ix+VX_VERTEX_CODE), a
-	jp	.ftransform_ret
-.perspective_iterate_ry:
-	adc	a, a
-	add	hl, bc
-	add	hl, hl
-	sbc	hl, bc
-	jr	nc, $+3
-	add	hl, bc
-	adc	a, a
-	add	hl, hl
-	sbc	hl, bc
-	jr	nc, $+3
-	add	hl, bc
-	adc	a, a
-	add	hl, hl
-	sbc	hl, bc
-	jr	nc, $+3
-	add	hl, bc
-	adc	a, a
-	add	hl, hl
-	sbc	hl, bc
-	jr	nc, $+3
-	add	hl, bc
-	adc	a, a
-	add	hl, hl
-	sbc	hl, bc
-	jr	nc, $+3
-	add	hl, bc
-	adc	a, a
+	jr	.ftransform_ret
+.perspective_high_x:
+	set	2, (ix+VX_VERTEX_CODE)
+	jr	.ftransform_ret
+.perspective_low_x:
+	set	3, (ix+VX_VERTEX_CODE)
+	jr	.ftransform_ret
+.trampoline_py_ret:
 	add	hl, hl
 	sbc	hl, bc
 	adc	a, a
@@ -339,13 +325,10 @@ relocate VX_VERTEX_SHADER_CODE
 ; high y guardband if equivalent to negative Y due to inversed Y screen coordinate, 0001b if negative
 .SHY=$+1
 	cp	a, $CC + 1
-	jr	c, .perspective_high_y
-	set	0, (ix+VX_VERTEX_CODE)
-.perspective_high_y:
+	jr	nc, .perspective_high_y
 .SLY=$+1
 	cp	a, $CC
-	jr	nc, .perspective_divide_rx
-	set	1, (ix+VX_VERTEX_CODE)
+	jr	c, .perspective_low_y
 .perspective_divide_rx:
 	ld	hl, (ix+VX_VERTEX_RX)
 	xor	a, a
@@ -358,11 +341,11 @@ relocate VX_VERTEX_SHADER_CODE
 	or	a, a
 .perspective_absolute_rx:
 	sbc	hl, bc
-	jr	c, .perspective_iterate_rx
+	jp	c, .perspective_iterate_rx
 ; potential clipping issue
 	sbc	hl, bc
 	ccf
-	jr	nc, .perspective_iterate_rx
+	jp	nc, .perspective_iterate_rx
 	rra
 	ld	a, 10001000b
 ; 01000100b if negative
@@ -371,39 +354,7 @@ relocate VX_VERTEX_SHADER_CODE
 	or	a, (ix+VX_VERTEX_CODE)
 	ld	(ix+VX_VERTEX_CODE), a
 	jr	.ftransform_ret
-.perspective_iterate_rx:
-	adc	a, a
-	add	hl, bc
-	add	hl, hl
-	sbc	hl, bc
-	jr	nc, $+3
-	add	hl, bc
-	adc	a, a
-	add	hl, hl
-	sbc	hl, bc
-	jr	nc, $+3
-	add	hl, bc
-	adc	a, a
-	add	hl, hl
-	sbc	hl, bc
-	jr	nc, $+3
-	add	hl, bc
-	adc	a, a
-	add	hl, hl
-	sbc	hl, bc
-	jr	nc, $+3
-	add	hl, bc
-	adc	a, a
-	add	hl, hl
-	sbc	hl, bc
-	jr	nc, $+3
-	add	hl, bc
-	adc	a, a
-	add	hl, hl
-	sbc	hl, bc
-	jr	nc, $+3
-	add	hl, bc
-	adc	a, a
+.trampoline_px_ret:
 	add	hl, hl
 	sbc	hl, bc
 	adc	a, a
@@ -424,15 +375,11 @@ relocate VX_VERTEX_SHADER_CODE
 	or	a, a
 	sbc	hl, de
 	add	hl, de
-	jr	nc, .perspective_high_x
-	set	2, (ix+VX_VERTEX_CODE)
-	jr	.ftransform_ret
-.perspective_high_x:
+	jr	c, .perspective_high_x
 .SHX=$+1
 	ld	de, $CCCCCC
 	sbc	hl, de
-	jr	c, .ftransform_ret
-	set	3, (ix+VX_VERTEX_CODE)
+	jr	nc, .perspective_low_x
 .ftransform_ret:
 	lea	ix, ix+VX_VERTEX_SIZE
 	lea	iy, iy+VX_VERTEX_DATA_SIZE
@@ -481,11 +428,6 @@ align 512
 	mlt	bc
 	add	hl, bc
 	ret
-
-.trampoline_stack:
- dl	.trampoline_v0_ret
- dl	.trampoline_v1_ret
- dl	.trampoline_v2_ret
 
 align 64
 .engine_001:
@@ -739,4 +681,56 @@ align 64
 	ret
 
 assert $ < $E30C01
+end relocate
+
+.perspective_iterate:
+relocate VX_PIXEL_SHADER_CODE
+; 64 bytes for the perspective iterate routines
+.perspective_iterate_ry:
+	adc	a, a
+	add	hl, bc
+	jr	.perspective_iterate_trampoline
+.perspective_iterate_rx:
+	adc	a, a
+	add	hl, bc
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+.perspective_iterate_trampoline:
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	ret
+.trampoline_stack:
+ dl	.trampoline_v0_ret
+ dl	.trampoline_v1_ret
+ dl	.trampoline_v2_ret
+ dl	.trampoline_py_ret
+ dl	.trampoline_px_ret
+
+assert $ < $E20C01
 end relocate
