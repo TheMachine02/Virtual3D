@@ -86,17 +86,17 @@ vxVertexShader:
 	ld	bc, (hl)
 	ld	(.MTZ), bc
 ; lightning write
-	add	hl, de
-	ld	de, .LV0
-	ldi
-	ld	de, .LV1
-	ldi
-	ld	de, .LV2
-	ldi
-	ld	de, .LA
-	ldi
-	ld	de, .LE
-	ldi
+; 	add	hl, de
+; 	ld	de, .LV0
+; 	ldi
+; 	ld	de, .LV1
+; 	ldi
+; 	ld	de, .LV2
+; 	ldi
+; 	ld	de, .LA
+; 	ldi
+; 	ld	de, .LE
+; 	ldi
 ; scissor set
 ; NOTE : this should be + 1
 	ld	a, VX_SCREEN_HEIGHT+1
@@ -116,7 +116,11 @@ vxVertexShader:
 ; ix = output data register [RC,SY,SX,RI[0-1],RX,RY,RZ]
 ; SMC registers are set with uniform routine
 .ftransform:
+
 relocate VX_VERTEX_SHADER_CODE
+.ftransform_stream:
+	ld	(.SP_RET), sp
+	jp	.ftransform_entry
 .ftransform_trampoline:
 	ld	sp, .trampoline_stack
 ; compute the Z coordinate from matrix register with FMA engine ;
@@ -173,65 +177,65 @@ relocate VX_VERTEX_SHADER_CODE
 	ld	de, $CCCCCC
 	add	hl, de
 	ld	(ix+VX_VERTEX_RY), hl
-; lightning model is here, infinite directionnal light, no pow
-	xor	a, a
-	ld	c, (iy+VX_VERTEX_NX)
-.LV0=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-	ld	c, (iy+VX_VERTEX_NY)
-.LV1=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-	ld	c, (iy+VX_VERTEX_NZ)
-.LV2=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-; max(a,0)
-	jp	p, .light_scale
-	xor	a, a
-	jr	.light_ambient
-.light_scale:
-	add	a, a
-	add	a, a
-	ld	c, a
-; LE have a 64 scaling
-.LE=$+1
-	ld	b, $CC
-	mlt	bc
-	ld	a, b
-	rl	c
-.light_ambient:
-.LA=$+1
-	adc	a, $CC
-; min(a,15)
-	cp	a, 32
-	jr	c, $+4
-	ld	a, 31
-	ld	(ix+VX_VERTEX_GPR2), a
-; use this target for gouraud shading, this is v register
-	ld	(ix+VX_VERTEX_GPR1), a
+; ; lightning model is here, infinite directionnal light, no pow
+; 	xor	a, a
+; 	ld	c, (iy+VX_VERTEX_NX)
+; .LV0=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; 	ld	c, (iy+VX_VERTEX_NY)
+; .LV1=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; 	ld	c, (iy+VX_VERTEX_NZ)
+; .LV2=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; ; max(a,0)
+; 	jp	p, .light_scale
+; 	xor	a, a
+; 	jr	.light_ambient
+; .light_scale:
+; 	add	a, a
+; 	add	a, a
+; 	ld	c, a
+; ; LE have a 64 scaling
+; .LE=$+1
+; 	ld	b, $CC
+; 	mlt	bc
+; 	ld	a, b
+; 	rl	c
+; .light_ambient:
+; .LA=$+1
+; 	adc	a, $CC
+; ; min(a,15)
+; 	cp	a, 32
+; 	jr	c, $+4
+; 	ld	a, 31
+; 	ld	(ix+VX_VERTEX_GPR2), a
+; ; use this target for gouraud shading, this is v register
+; 	ld	(ix+VX_VERTEX_GPR1), a
 .perspective_divide:
 ;	ld	hl, (ix+VX_VERTEX_RY)
 	ld	bc, (ix+VX_VERTEX_RZ)
@@ -286,7 +290,7 @@ relocate VX_VERTEX_SHADER_CODE
 	or	a, 01000100b
 .perspective_clip_rx_1:
 	ld	(ix+VX_VERTEX_CODE), a
-	ret
+	jp	.ftransform_ret
 .perspective_iterate_ry:
 	adc	a, a
 	add	hl, bc
@@ -363,7 +367,7 @@ relocate VX_VERTEX_SHADER_CODE
 	rrca
 	or	a, (ix+VX_VERTEX_CODE)
 	ld	(ix+VX_VERTEX_CODE), a
-	ret
+	jr	.ftransform_ret
 .perspective_iterate_rx:
 	adc	a, a
 	add	hl, bc
@@ -419,22 +423,24 @@ relocate VX_VERTEX_SHADER_CODE
 	add	hl, de
 	jr	nc, .perspective_high_x
 	set	2, (ix+VX_VERTEX_CODE)
-	ret
+	jr	.ftransform_ret
 .perspective_high_x:
 .SHX=$+1
 	ld	de, $CCCCCC
 	sbc	hl, de
-	ret	c
+	jr	c, .ftransform_ret
 	set	3, (ix+VX_VERTEX_CODE)
+.ftransform_ret:
+	lea	ix, ix+VX_VERTEX_SIZE
+	lea	iy, iy+VX_VERTEX_DATA_SIZE
+.ftransform_entry:
+	ld	a, (iy+VX_VERTEX_SIGN)
+	cp	a, VX_STREAM_END
+	jp	nz, .ftransform_trampoline
+.SP_RET=$+1
+	ld	sp, $CCCCCC
 	ret
-
-.trampoline_stack:
- dl	.trampoline_v0_ret
- dl	.trampoline_v1_ret
- dl	.trampoline_v2_ret
- dl	0			; return adress of the routine
-.stack:
-
+	
 ; free space between alignement
 
 ; NOTE : some of these engine have a +-1 or +-2 off error, but that's okay since the output is actually a 18.6 fixed value
@@ -472,6 +478,11 @@ align 512
 	mlt	bc
 	add	hl, bc
 	ret
+
+.trampoline_stack:
+ dl	.trampoline_v0_ret
+ dl	.trampoline_v1_ret
+ dl	.trampoline_v2_ret
 
 align 64
 .engine_001:
@@ -724,5 +735,5 @@ align 64
 	sbc	hl, de
 	ret
 
-assert $ < $E30C00
+assert $ < $E30C01
 end relocate

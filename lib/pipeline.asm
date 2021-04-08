@@ -271,70 +271,76 @@ vxVertexStream:
 	pop	ix
 	ret	nz
 ; actual stream start
-.stream:
 	cce	ge_vtx_transform
-	ld	(.SP_RET), sp
-; ix = cache, iy = source, ix = matrix, bc = size
-	jr	.stream_return
-.stream_compute:
-; 54 cycles can be saved here, (even a bit more in fact)
-	ld	sp, vxVertexShader.stack
-	call	vxVertexShader.ftransform_trampoline
-	lea	ix, ix+VX_VERTEX_SIZE
-	lea	iy, iy+VX_VERTEX_DATA_SIZE
-.stream_return:
-	ld	a, (iy+VX_VERTEX_SIGN)
-; 	cp	a, VX_ANIMATION_BONE
-; 	jr	z, .stream_load_bone
-	cp	a, VX_STREAM_END
-	jr	nz, .stream_compute
-.stream_end:	
+	call	vxVertexShader.ftransform_stream
 	ccr	ge_vtx_transform
-.SP_RET=$+1
-	ld	sp, $CCCCCC
 	xor	a, a
 	ret
-.stream_load_bone:
-; more complex stuff here. Need to restore initial matrix & do a multiplication with the correct bone key matrix
-; once done, only advance in the source, not the cache
-	push	ix
-	lea	iy, iy+VX_ANIMATION_HEADER_SIZE
-	push	iy
-	ld	ix, vxModelViewCache
-	ld	e, (ix+vxAnimationKey-vxModelViewCache)
-	ld	d, VX_ANIMATION_MATRIX_SIZE
-	mlt	de
-	add	iy, de	; correct animation matrix
-; modelview = bonemodel*modelview
-	ld	hl, vxModelView
-	call	vxMatrixTransform	; (hl)=(iy)*(ix)
-; I have the correct modelview matrix in shader cache area
-; next one is reduced matrix without translation, since it will only be a direction vector mlt. However, the light vector position also need to be transformed by the transposed matrix
-	call	vxVertexShader.uniform
-; light = lightuniform*transpose(bonemodel*modelworld)
-	ld	ix, vxModelWorld
-	lea	hl, ix+VX_MATRIX_SIZE
-	call	vxMatrixMlt
-	lea	ix, ix+VX_MATRIX_SIZE
-	call	vxMatrixTranspose
-	ld	hl, vxLight
-	ld	iy, vxLightUniform
-	call	vxMatrixLightning
-	pop	iy
-	ld	e, (iy-1)
-	ld	d, VX_ANIMATION_MATRIX_SIZE
-	mlt	de
-	add	iy, de
-	pop	ix
-	pop	bc
-	jp	.stream_return
+; .stream:
+; 	cce	ge_vtx_transform
+; 	ld	(.SP_RET), sp
+; ; ix = cache, iy = source, ix = matrix, bc = size
+; 	jr	.stream_return
+; .stream_compute:
+; ; 54 cycles can be saved here, (even a bit more in fact)
+; 	ld	sp, vxVertexShader.stack
+; 	call	vxVertexShader.ftransform_trampoline
+; 	lea	ix, ix+VX_VERTEX_SIZE
+; 	lea	iy, iy+VX_VERTEX_DATA_SIZE
+; .stream_return:
+; 	ld	a, (iy+VX_VERTEX_SIGN)
+; ; 	cp	a, VX_ANIMATION_BONE
+; ; 	jr	z, .stream_load_bone
+; 	cp	a, VX_STREAM_END
+; 	jr	nz, .stream_compute
+; .stream_end:
+; 	ccr	ge_vtx_transform
+; .SP_RET=$+1
+; 	ld	sp, $CCCCCC
+; 	xor	a, a
+; 	ret
+; .stream_load_bone:
+; ; more complex stuff here. Need to restore initial matrix & do a multiplication with the correct bone key matrix
+; ; once done, only advance in the source, not the cache
+; 	push	ix
+; 	lea	iy, iy+VX_ANIMATION_HEADER_SIZE
+; 	push	iy
+; 	ld	ix, vxModelViewCache
+; 	ld	e, (ix+vxAnimationKey-vxModelViewCache)
+; 	ld	d, VX_ANIMATION_MATRIX_SIZE
+; 	mlt	de
+; 	add	iy, de	; correct animation matrix
+; ; modelview = bonemodel*modelview
+; 	ld	hl, vxModelView
+; 	call	vxMatrixTransform	; (hl)=(iy)*(ix)
+; ; I have the correct modelview matrix in shader cache area
+; ; next one is reduced matrix without translation, since it will only be a direction vector mlt. However, the light vector position also need to be transformed by the transposed matrix
+; 	call	vxVertexShader.uniform
+; ; light = lightuniform*transpose(bonemodel*modelworld)
+; 	ld	ix, vxModelWorld
+; 	lea	hl, ix+VX_MATRIX_SIZE
+; 	call	vxMatrixMlt
+; 	lea	ix, ix+VX_MATRIX_SIZE
+; 	call	vxMatrixTranspose
+; 	ld	hl, vxLight
+; 	ld	iy, vxLightUniform
+; 	call	vxMatrixLightning
+; 	pop	iy
+; 	ld	e, (iy-1)
+; 	ld	d, VX_ANIMATION_MATRIX_SIZE
+; 	mlt	de
+; 	add	iy, de
+; 	pop	ix
+; 	pop	bc
+; 	jp	.stream_return
 .bounding_box:
 ; check the bounding box
 ; stream the bounding box as standard vertex stream into the stream routine
 	ld	ix, VX_PATCH_VERTEX_POOL
-	call	.stream
+	cce	ge_vtx_transform
+	call	vxVertexShader.ftransform_stream
+	ccr	ge_vtx_transform
 ; account for end marker
-; 	lea	iy, iy+VX_VERTEX_DATA_SIZE
 	inc	iy
 	ld	a, (ix-16)
 	and	a, (ix-32)
