@@ -208,7 +208,7 @@ vxVertexStream:
 	ld	de, VX_VERTEX_SHADER_CODE
 	ld	bc, VX_VERTEX_SHADER_SIZE
 	ldir
-	ld	hl, vxVertexShader.perspective_iterate
+	ld	hl, vxVertexShader.iterate
 	ld	de, VX_PIXEL_SHADER_CODE
 	ld	bc, 64
 	ldir	

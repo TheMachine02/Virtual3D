@@ -256,10 +256,10 @@ relocate VX_VERTEX_SHADER_CODE
 	or	a, a
 .perspective_absolute_ry:
 	sbc	hl, bc
-	jp	c, .perspective_iterate_ry
+	jp	c, .perspective_iterate
 	sbc	hl, bc
 	ccf
-	jp	nc, .perspective_iterate_ry
+	jp	nc, .perspective_iterate
 ; clip code compute for ry
 	rra
 	ld	a, 00100010b
@@ -307,19 +307,15 @@ relocate VX_VERTEX_SHADER_CODE
 .perspective_low_x:
 	set	3, (ix+VX_VERTEX_CODE)
 	jr	.ftransform_ret
-.trampoline_py_ret:
-	add	hl, hl
-	sbc	hl, bc
-	adc	a, a
+.perspective_screen_ry:
 	cpl
-	add	a, a
 	ld	l, a
 	ld	h, VX_SCREEN_HEIGHT shr 1
 	mlt	hl
 	ld	a, h
-	jr	nc, $+3
-	cpl
-	adc	a, VX_SCREEN_HEIGHT_CENTER
+	jr	c, $+4
+	neg
+	add	a, VX_SCREEN_HEIGHT_CENTER
 	ld	(ix+VX_VERTEX_SY), a
 .perspective_scissor_ry:
 ; high y guardband if equivalent to negative Y due to inversed Y screen coordinate, 0001b if negative
@@ -341,11 +337,11 @@ relocate VX_VERTEX_SHADER_CODE
 	or	a, a
 .perspective_absolute_rx:
 	sbc	hl, bc
-	jp	c, .perspective_iterate_rx
+	jp	c, .perspective_iterate
 ; potential clipping issue
 	sbc	hl, bc
 	ccf
-	jp	nc, .perspective_iterate_rx
+	jp	nc, .perspective_iterate
 	rra
 	ld	a, 10001000b
 ; 01000100b if negative
@@ -354,10 +350,7 @@ relocate VX_VERTEX_SHADER_CODE
 	or	a, (ix+VX_VERTEX_CODE)
 	ld	(ix+VX_VERTEX_CODE), a
 	jr	.ftransform_ret
-.trampoline_px_ret:
-	add	hl, hl
-	sbc	hl, bc
-	adc	a, a
+.perspective_screen_rx:
 	cpl
 	ld	l, a
 	ld	h, VX_SCREEN_WIDTH shr 1
@@ -683,22 +676,12 @@ align 64
 assert $ < $E30C01
 end relocate
 
-.perspective_iterate:
+.iterate:
 relocate VX_PIXEL_SHADER_CODE
 ; 64 bytes for the perspective iterate routines
-.perspective_iterate_ry:
+.perspective_iterate:
 	adc	a, a
 	add	hl, bc
-	jr	.perspective_iterate_trampoline
-.perspective_iterate_rx:
-	adc	a, a
-	add	hl, bc
-	add	hl, hl
-	sbc	hl, bc
-	jr	nc, $+3
-	add	hl, bc
-	adc	a, a
-.perspective_iterate_trampoline:
 	add	hl, hl
 	sbc	hl, bc
 	jr	nc, $+3
@@ -723,14 +706,22 @@ relocate VX_PIXEL_SHADER_CODE
 	sbc	hl, bc
 	jr	nc, $+3
 	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
+	jr	nc, $+3
+	add	hl, bc
+	adc	a, a
+	add	hl, hl
+	sbc	hl, bc
 	adc	a, a
 	ret
 .trampoline_stack:
  dl	.trampoline_v0_ret
  dl	.trampoline_v1_ret
  dl	.trampoline_v2_ret
- dl	.trampoline_py_ret
- dl	.trampoline_px_ret
+ dl	.perspective_screen_ry
+ dl	.perspective_screen_rx
 
 assert $ < $E20C01
 end relocate
