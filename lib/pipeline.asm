@@ -461,6 +461,7 @@ relocate VX_PRIMITIVE_SORT_CODE
 	add	a, $CC
 	ld	e, a
 	ld	(hl), a
+.restore_bucket_l:
 	call	.restore_bucket
 ; high bucket
 	ld	hl, VX_DEPTH_BUCKET_H + 511
@@ -475,12 +476,14 @@ relocate VX_PRIMITIVE_SORT_CODE
 	add	a, $CC
 	ld	e, a
 	ld	(hl), a
+.restore_bucket_h:
 	call	.restore_bucket
 ; upper bucket
 	ld	hl, VX_DEPTH_BUCKET_U + 511
 	ld	d, (hl)
 	dec	h
 	ld	e, (hl)
+.restore_bucket_u:
 	call	.restore_bucket
 ; sorting now, backward
 	pop	bc
@@ -488,36 +491,12 @@ relocate VX_PRIMITIVE_SORT_CODE
 	ld	de, $CCCCCC
 	ld	ix, (vxPrimitiveQueue)
 	ld	hl, VX_DEPTH_BUCKET_L
-; 36 bytes routine - last one is 33 bytes
 .sort_bucket_l:
-	lea	ix, ix-VX_GEOMETRY_SIZE
-	ld	l, (ix+VX_GEOMETRY_DEPTH)
-	ld	e, (hl)
-	inc	h
-	ld	d, (hl)
-	dec	de
-	dec	de
-	dec	de
-	dec	de
-	dec	de
-	dec	de
-	ld	(hl), d
-	dec	h
-	ld	(hl), e
-	ex	de, hl
-	ld	iy, (ix+VX_GEOMETRY_INDEX)
-	ld	(hl), iy
-	inc	hl
-	inc	hl
-	inc	hl
-	ld	iy, (ix+VX_GEOMETRY_DEPTH)
-	ld	(hl), iy
-	ex	de, hl
-	djnz	.sort_bucket_l
-	dec	c
-	jr	nz, .sort_bucket_l
+	call	.sort_bucket
 	pop	bc
 ; we have sort on the low key, now sort on the high key
+	ld	a, VX_GEOMETRY_DEPTH + 1
+	ld	(.DOF), a
 .WBH=$+1
 	ld	de, $CCCCCC
 .RBL=$+2
@@ -526,32 +505,7 @@ relocate VX_PRIMITIVE_SORT_CODE
 	inc	h
 	inc	h
 .sort_bucket_h:
-	lea	ix, ix-VX_GEOMETRY_SIZE
-	ld	l, (ix+VX_GEOMETRY_DEPTH+1)
-	ld	e, (hl)
-	inc	h
-	ld	d, (hl)
-	dec	de
-	dec	de
-	dec	de
-	dec	de
-	dec	de
-	dec	de
-	ld	(hl), d
-	dec	h
-	ld	(hl), e
-	ex	de, hl
-	ld	iy, (ix+VX_GEOMETRY_INDEX)
-	ld	(hl), iy
-	inc	hl
-	inc	hl
-	inc	hl
-	ld	iy, (ix+VX_GEOMETRY_DEPTH)
-	ld	(hl), iy
-	ex	de, hl
-	djnz	.sort_bucket_h
-	dec	c
-	jr	nz, .sort_bucket_h
+	call	.sort_bucket
 ; finish by the sorting the upper key, and storing partial result within the geometry queue
 	pop	bc
 	ld	de, VX_GEOMETRY_QUEUE
@@ -593,7 +547,7 @@ end relocate
 relocate VX_VRAM_CACHE
 .restore_bucket:
 	dec	l
-.restore_bucket_l:
+.restore_256:
 	ld	c, (hl)
 	inc	h
 	ld	b, (hl)
@@ -604,7 +558,7 @@ relocate VX_VRAM_CACHE
 	dec	h
 	ld	(hl), e
 	dec	l
-	jr	nz, .restore_bucket_l
+	jr	nz, .restore_256
 	ld	c, (hl)
 	inc	h
 	ld	b, (hl)
@@ -615,5 +569,36 @@ relocate VX_VRAM_CACHE
 	dec	h
 	ld	(hl), e
 	ret
+.sort_bucket:
+	lea	ix, ix-VX_GEOMETRY_SIZE
+.DOF=$+2
+	ld	l, (ix+VX_GEOMETRY_DEPTH)
+	ld	e, (hl)
+	inc	h
+	ld	d, (hl)
+	dec	de
+	dec	de
+	dec	de
+	dec	de
+	dec	de
+	dec	de
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
+	ex	de, hl
+	ld	iy, (ix+VX_GEOMETRY_INDEX)
+	ld	(hl), iy
+	inc	hl
+	inc	hl
+	inc	hl
+	ld	iy, (ix+VX_GEOMETRY_DEPTH)
+	ld	(hl), iy
+	ex	de, hl
+	djnz	.sort_bucket
+	dec	c
+	jr	nz, .sort_bucket
+	ret
+
 .restore_rel_size:= $ - VX_VRAM_CACHE
+assert $ < $E10051
 end relocate
