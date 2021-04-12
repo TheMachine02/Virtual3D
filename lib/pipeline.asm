@@ -410,20 +410,13 @@ relocate VX_PRIMITIVE_SORT_CODE
 ; sort the current submission queue
 .setup:
 ; fetch the high byte of the current framebuffer and build up the VRAM temporary area
+	
 	ld	hl, (vxFramebuffer)
 	ld	(.WBL), hl
 	ld	a, h
 	ld	(.WBLH), a
 	ld	a, l
 	ld	(.WBLL), a
-	add	hl, bc
-	add	hl, bc
-	add	hl, bc
-	add	hl, bc
-	add	hl, bc
-	add	hl, bc
-	ld	(.RBL), hl
-	ld	hl, (vxFramebuffer)
 	ld	de, VX_MAX_TRIANGLE*VX_GEOMETRY_SIZE
 	add	hl, de
 	ld	(.WBH), hl
@@ -438,6 +431,8 @@ relocate VX_PRIMITIVE_SORT_CODE
 	add	hl, bc
 	add	hl, bc
 	ld	(.RBH), hl
+	sbc	hl, de
+	ld	(.RBL), hl
 ; size computation
 	ld	a, c
 	dec	bc
