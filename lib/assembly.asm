@@ -57,7 +57,6 @@ vxPrimitiveAssembly:
 ;  212 cc clip reject
 .setup:
 ; input : iy=data, also expect so global variable to be correctly set
-	ld	(.SP_RET0), sp
 ; lut setup
 .mlt_generate:
 ; now the view vector
@@ -90,6 +89,9 @@ vxPrimitiveAssembly:
 	ld	bc, (hl)
 ; preload the first value, it is used as stream end mark
 	ld	hl, (iy+VX_TRIANGLE_I0)
+	bit	0, l
+	ret	nz
+	ld	(.SP_RET0), sp
 	ld	sp, VX_VERTEX_RZ
 .pack:
 	add	hl, bc
@@ -144,7 +146,7 @@ vxPrimitiveAssembly:
 	ld	hl, VX_DEPTH_BUCKET_L or $CC
 	ld	(ix+VX_GEOMETRY_ID), l
 	ld	a, (hl)
-	add	a, VX_GEOMETRY_SIZE shr 1
+	add	a, VX_GEOMETRY_SIZE
 	ld	(hl), a
 	inc	h
 	jr	nc, .overflow_l
@@ -153,7 +155,7 @@ vxPrimitiveAssembly:
 	inc	h
 	ld	l, d
 	ld	a, (hl)
-	add	a, VX_GEOMETRY_SIZE shr 1
+	add	a, VX_GEOMETRY_SIZE
 	ld	(hl), a
 	inc	h
 	jr	nc, .overflow_h

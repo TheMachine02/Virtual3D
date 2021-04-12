@@ -209,8 +209,8 @@ vxVertexStream:
 	ld	bc, VX_VERTEX_SHADER_SIZE
 	ldir
 	ld	hl, vxVertexShader.iterate
-	ld	de, VX_PIXEL_SHADER_CODE
-	ld	bc, 64
+	ld	de, VX_VRAM_CACHE
+	ld	bc, VX_VRAM_CACHE_SIZE
 	ldir	
 ; transform the worldview with the modelworld matrix to have the global modelview matrix
 ; modelviewcache = modelworld0 * worldview0
@@ -382,40 +382,62 @@ vxPrimitiveDepthSort:
 	ld	de, VX_PRIMITIVE_SORT_CODE
 	ld	bc, VX_PRIMITIVE_SORT_SIZE
 	ldir
-	call	vxPrimitiveDepthSortHelper
+	ld	hl, .restore_rel
+	ld	de, VX_VRAM_CACHE
+	ld	bc, .restore_rel_size
+	ldir
+	ld	bc, (vxGeometrySize)
+	ld	a, b
+	or	a, c
+	call	nz, .helper
 	ccr	ge_z_sort
 	ret
 
+; sort table, target temporary buffer based on current framebuffer
+; we need two 6*4096 bytes buffer aligned within 64K. Both buffer need to be aligned and not cross boundary
+; framebuffer : $D40000
+;	- tmp 0 : $D40000
+;	- tmp 1 : $D46000
+; framebuffer : $D52C00
+; 	- tmp 0 : $D52C00
+;	- tmp 1 : $D58C00
+	
 VX_PRIMITIVE_SORT_COPY:=$
 ; relocate to fast RAM
 relocate VX_PRIMITIVE_SORT_CODE
 
-vxPrimitiveDepthSortHelper:
+.helper:
 ; sort the current submission queue
-	ld	bc, (vxGeometrySize)
-	ld	a, b
-	or	a, c
-	ret	z
 .setup:
-	ld	hl, (vxDepthSortTemp)
-	ld	(.WRITE_B0), hl
+; fetch the high byte of the current framebuffer and build up the VRAM temporary area
+	ld	hl, (vxFramebuffer)
+	ld	(.WBL), hl
+	ld	a, h
+	ld	(.WBLH), a
+	ld	a, l
+	ld	(.WBLL), a
 	add	hl, bc
 	add	hl, bc
 	add	hl, bc
 	add	hl, bc
 	add	hl, bc
 	add	hl, bc
-	ld	(.READ_B0), hl
+	ld	(.RBL), hl
+	ld	hl, (vxFramebuffer)
 	ld	de, VX_MAX_TRIANGLE*VX_GEOMETRY_SIZE
 	add	hl, de
-	ld	(.WRITE_B1), hl
+	ld	(.WBH), hl
+	ld	a, h
+	ld	(.WBHH), a
+	ld	a, l
+	ld	(.WBHL), a
 	add	hl, bc
 	add	hl, bc
 	add	hl, bc
 	add	hl, bc
 	add	hl, bc
 	add	hl, bc
-	ld	(.READ_B1), hl
+	ld	(.RBH), hl
 ; size computation
 	ld	a, c
 	dec	bc
@@ -428,91 +450,47 @@ vxPrimitiveDepthSortHelper:
 ; actual sorting start here
 ; restore index position in array for all three bucket
 	ld	hl, VX_DEPTH_BUCKET_L + 511
-	ld	d, (hl)
+	ld	a, (hl)
+.WBLH=$+1
+	add	a, $CC
+	ld	d, a
+	ld	(hl), a
 	dec	h
-	ld	e, (hl)
-	dec	l
-.restore_bucket_l:
-	ld	c, (hl)
-	inc	h
-	ld	b, (hl)
-	ex	de, hl
-	add	hl, bc
-	ex	de, hl
-	ld	(hl), d
-	dec	h
-	ld	(hl), e
-	dec	l
-	jr	nz, .restore_bucket_l
-	ld	c, (hl)
-	inc	h
-	ld	b, (hl)
-	ex	de, hl
-	add	hl, bc
-	ex	de, hl
-	ld	(hl), d
-	dec	h
-	ld	(hl), e
+	ld	a, (hl)
+.WBLL=$+1
+	add	a, $CC
+	ld	e, a
+	ld	(hl), a
+	call	.restore_bucket
 ; high bucket
 	ld	hl, VX_DEPTH_BUCKET_H + 511
-	ld	d, (hl)
+	ld	a, (hl)
+.WBHH=$+1
+	add	a, $CC
+	ld	d, a
+	ld	(hl), a
 	dec	h
-	ld	e, (hl)
-	dec	l
-.restore_bucket_h:
-	ld	c, (hl)
-	inc	h
-	ld	b, (hl)
-	ex	de, hl
-	add	hl, bc
-	ex	de, hl
-	ld	(hl), d
-	dec	h
-	ld	(hl), e
-	dec	l
-	jr	nz, .restore_bucket_h
-	ld	c, (hl)
-	inc	h
-	ld	b, (hl)
-	ex	de, hl
-	add	hl, bc
-	ex	de, hl
-	ld	(hl), d
-	dec	h
-	ld	(hl), e
+	ld	a, (hl)
+.WBHL=$+1
+	add	a, $CC
+	ld	e, a
+	ld	(hl), a
+	call	.restore_bucket
 ; upper bucket
 	ld	hl, VX_DEPTH_BUCKET_U + 511
 	ld	d, (hl)
 	dec	h
 	ld	e, (hl)
-	dec	l
-.restore_bucket_u:
-	ld	c, (hl)
-	inc	h
-	ld	b, (hl)
-	ex	de, hl
-	add	hl, bc
-	ex	de, hl
-	ld	(hl), d
-	dec	h
-	ld	(hl), e
-	dec	l
-	jr	nz, .restore_bucket_u
-	ld	c, (hl)
-	inc	h
-	ld	b, (hl)
-	ex	de, hl
-	add	hl, bc
-	ex	de, hl
-	ld	(hl), d
-	dec	h
-	ld	(hl), e
+	call	.restore_bucket
 ; sorting now, backward
-	ld	ix, (vxPrimitiveQueue)
 	pop	bc
+.WBL=$+1
+	ld	de, $CCCCCC
+	ld	ix, (vxPrimitiveQueue)
+	ld	hl, VX_DEPTH_BUCKET_L
+; 36 bytes routine - last one is 33 bytes
 .sort_bucket_l:
 	lea	ix, ix-VX_GEOMETRY_SIZE
-	ld	hl, VX_DEPTH_BUCKET_L
 	ld	l, (ix+VX_GEOMETRY_DEPTH)
 	ld	e, (hl)
 	inc	h
@@ -520,13 +498,13 @@ vxPrimitiveDepthSortHelper:
 	dec	de
 	dec	de
 	dec	de
+	dec	de
+	dec	de
+	dec	de
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
-.WRITE_B1=$+1
-	ld	hl, $CCCCCC
-	add	hl, de
-	add	hl, de
+	ex	de, hl
 	ld	iy, (ix+VX_GEOMETRY_INDEX)
 	ld	(hl), iy
 	inc	hl
@@ -534,16 +512,21 @@ vxPrimitiveDepthSortHelper:
 	inc	hl
 	ld	iy, (ix+VX_GEOMETRY_DEPTH)
 	ld	(hl), iy
+	ex	de, hl
 	djnz	.sort_bucket_l
 	dec	c
 	jr	nz, .sort_bucket_l
-
-.READ_B1=$+2
-	ld	ix, $CCCCCC
 	pop	bc
+; we have sort on the low key, now sort on the high key
+.WBH=$+1
+	ld	de, $CCCCCC
+.RBL=$+2
+	ld	ix, $CCCCCC
+; load up VX_DEPTH_BUCKET_H
+	inc	h
+	inc	h
 .sort_bucket_h:
 	lea	ix, ix-VX_GEOMETRY_SIZE
-	ld	hl, VX_DEPTH_BUCKET_H
 	ld	l, (ix+VX_GEOMETRY_DEPTH+1)
 	ld	e, (hl)
 	inc	h
@@ -551,13 +534,13 @@ vxPrimitiveDepthSortHelper:
 	dec	de
 	dec	de
 	dec	de
+	dec	de
+	dec	de
+	dec	de
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
-.WRITE_B0=$+1
-	ld	hl, $CCCCCC
-	add	hl, de
-	add	hl, de
+	ex	de, hl
 	ld	iy, (ix+VX_GEOMETRY_INDEX)
 	ld	(hl), iy
 	inc	hl
@@ -565,15 +548,18 @@ vxPrimitiveDepthSortHelper:
 	inc	hl
 	ld	iy, (ix+VX_GEOMETRY_DEPTH)
 	ld	(hl), iy
+	ex	de, hl
 	djnz	.sort_bucket_h
 	dec	c
 	jr	nz, .sort_bucket_h
-
-.READ_B0=$+2
-	ld	ix, $CCCCCC
+; finish by the sorting the upper key, and storing partial result within the geometry queue
 	pop	bc
 	ld	de, VX_GEOMETRY_QUEUE
-	ld	hl, VX_DEPTH_BUCKET_U
+.RBH=$+2
+	ld	ix, $CCCCCC
+; load up VX_DEPTH_BUCKET_U
+	inc	h
+	inc	h
 .sort_bucket_u:
 	lea	ix, ix-VX_GEOMETRY_SIZE
 	ld	l, (ix+VX_GEOMETRY_DEPTH+2)
@@ -601,4 +587,33 @@ vxPrimitiveDepthSortHelper:
 	ret
 	
 VX_PRIMITIVE_SORT_SIZE:= $ - VX_PRIMITIVE_SORT_CODE
+end relocate
+
+.restore_rel:
+relocate VX_VRAM_CACHE
+.restore_bucket:
+	dec	l
+.restore_bucket_l:
+	ld	c, (hl)
+	inc	h
+	ld	b, (hl)
+	ex	de, hl
+	add	hl, bc
+	ex	de, hl
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
+	dec	l
+	jr	nz, .restore_bucket_l
+	ld	c, (hl)
+	inc	h
+	ld	b, (hl)
+	ex	de, hl
+	add	hl, bc
+	ex	de, hl
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
+	ret
+.restore_rel_size:= $ - VX_VRAM_CACHE
 end relocate
