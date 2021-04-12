@@ -48,7 +48,7 @@ os_table:
 port_setup:
 	di
 	ld	hl, port_helper
-	ld	de, $D09466
+	ld	de, $D08000
 	ld	bc, port_helper_size
 	ldir
 	call    $21ED4
@@ -113,7 +113,7 @@ port_lock:
 	jq	port_unlock.pop
 
 port_helper:
-relocate	$D09466
+relocate	$D08000
 port_ospre55:
 .unlock:
 	ld	bc,$24
