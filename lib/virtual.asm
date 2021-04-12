@@ -42,7 +42,8 @@ vxEngineInit:
 	ld	a, $D0
 	ld	MB, a
 	ld	hl, $E00005
-	ld	(hl), 2	; Set flash wait states to 5 + 2 = 7 (total access time = 8)
+; Set flash wait states to 5 + 3 = 8 (total access time = 9)
+	ld	(hl), 3
 	call	ti.boot.ClearVRAM
 ; LCD init
 	call	vxFramebufferSetup
