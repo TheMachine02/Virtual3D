@@ -105,7 +105,7 @@ vxPrimitiveSubmit:
 	ldir
 	ld	hl, vxPixelShader.code
 	ld	de, VX_PIXEL_SHADER_CODE
-	ld	bc, 64
+	ld	c, 64
 	ldir
 ; this is ugly at best
 	ld	hl, (vxShaderJump)
@@ -225,7 +225,7 @@ vxVertexStream:
 	push	iy
 	ld	hl, vxModelView
 	ld	de, vxModelViewReverse
-	ld	bc, VX_MATRIX_SIZE
+	ld	c, VX_MATRIX_SIZE
 	ldir
 	ld	ix, vxModelViewReverse
 	call	vxMatrixTranspose
