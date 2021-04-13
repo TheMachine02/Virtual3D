@@ -228,21 +228,21 @@ vxVertexStream:
 	ld	c, VX_MATRIX_SIZE
 	ldir
 	call	vxMatrixTranspose
+	ld	iy, vxWorldEye
 	ld	hl, (ix+VX_MATRIX_TZ)
 	ld	(ix+VX_MATRIX_TZ), bc
 	add	hl, hl
 	add	hl, hl
-	ld	(vxWorldEye-1+4), hl
+	ld	(iy-1+4), hl
 	ld	hl, (ix+VX_MATRIX_TY)
 	ld	(ix+VX_MATRIX_TY), bc
 	add	hl, hl
 	add	hl, hl
-	ld	(vxWorldEye-1+2), hl
+	ld	(iy-1+2), hl
 	ld	hl, (ix+VX_MATRIX_TX)
 	ld	(ix+VX_MATRIX_TX), bc
 	add	hl, hl
 	add	hl, hl
-	ld	iy, vxWorldEye
 	ld	(iy-1), hl
 	call	vxfTransform
 	lea	de, iy+0
@@ -250,7 +250,7 @@ vxVertexStream:
 	pop	hl
 ; modelworld=modelworld0
 ; tmodelworld=transpose(modelworld)
-	ld	ix, vxTModelWorld
+	lea	ix, iy-44	; =vxTModelWorld
 	lea	de, ix-21	; =vxModelWorld
 	ld	bc, VX_MATRIX_SIZE
 	ldir
