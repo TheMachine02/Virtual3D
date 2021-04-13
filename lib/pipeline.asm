@@ -453,8 +453,12 @@ relocate VX_PRIMITIVE_SORT_CODE
 	add	a, $CC
 	ld	e, a
 	ld	(hl), a
+	dec	l
 .restore_bucket_l:
 	call	.restore_bucket
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
 ; high bucket
 	ld	hl, VX_DEPTH_BUCKET_H + 511
 	ld	a, (hl)
@@ -468,15 +472,23 @@ relocate VX_PRIMITIVE_SORT_CODE
 	add	a, $CC
 	ld	e, a
 	ld	(hl), a
+	dec	l
 .restore_bucket_h:
 	call	.restore_bucket
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
 ; upper bucket
 	ld	hl, VX_DEPTH_BUCKET_U + 511
 	ld	d, (hl)
 	dec	h
 	ld	e, (hl)
+	dec	l
 .restore_bucket_u:
 	call	.restore_bucket
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
 ; sorting now, backward
 	pop	bc
 .WBL=$+1
@@ -508,6 +520,8 @@ relocate VX_PRIMITIVE_SORT_CODE
 ; load up VX_DEPTH_BUCKET_U
 	inc	h
 	inc	h
+	ld	(.SP_RET0), sp
+	ld	sp, -3
 .sort_bucket_u:
 	lea	ix, ix-VX_GEOMETRY_SIZE
 	ld	l, (ix+VX_GEOMETRY_DEPTH+2)
@@ -515,23 +529,22 @@ relocate VX_PRIMITIVE_SORT_CODE
 	inc	h
 	ld	d, (hl)
 	dec	de
-	dec	de
-	dec	de
-	dec	de
+	ex	de, hl
+; copy 4 (VX_GEOMETRY_KEY_SIZE) bytes
+	ld	a, (ix+VX_GEOMETRY_ID)
+	ld	(hl), a
+	add	hl, sp
+	ld	iy, (ix+VX_GEOMETRY_INDEX)
+	ld	(hl), iy
+	ex	de, hl
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
-	ex	de, hl
-; copy 4 (VX_GEOMETRY_KEY_SIZE) bytes
-	ld	a, (ix+VX_GEOMETRY_INDEX)
-	ld	(hl), a
-	inc	hl
-	ld	iy, (ix+VX_GEOMETRY_INDEX + 1)
-	ld	(hl), iy
-	ex	de, hl
 	djnz	.sort_bucket_u
 	dec	c
 	jr	nz, .sort_bucket_u
+.SP_RET0=$+1
+	ld	sp, $CCCCCC
 	ret
 	
 VX_PRIMITIVE_SORT_SIZE:= $ - VX_PRIMITIVE_SORT_CODE
@@ -540,8 +553,6 @@ end relocate
 .restore_rel:
 relocate VX_VRAM_CACHE
 .restore_bucket:
-	dec	l
-.restore_dec:
 	ld	c, (hl)
 	inc	h
 	ld	b, (hl)
@@ -552,43 +563,41 @@ relocate VX_VRAM_CACHE
 	dec	h
 	ld	(hl), e
 	dec	l
-	jr	nz, .restore_dec
+	jr	nz, .restore_bucket
 	ld	c, (hl)
 	inc	h
 	ld	b, (hl)
 	ex	de, hl
 	add	hl, bc
 	ex	de, hl
-	ld	(hl), d
-	dec	h
-	ld	(hl), e
 	ret
 .sort_bucket:
+	ld	(.SP_RET1), sp
+	ld	sp, -3
+.sort_bucket_read_copy:
 	lea	ix, ix-VX_GEOMETRY_SIZE
 	ld	iy, (ix+VX_GEOMETRY_DEPTH)
-.DOF=$+1
+.DOF:=$+1
 	ld	a, iyl
 	ld	l, a
 	ld	e, (hl)
 	inc	h
 	ld	d, (hl)
-	dec	de
-	dec	de
-	dec	de
 	ex	de, hl
+	add	hl, sp
 	ld	(hl), iy
-	dec	hl
-	dec	hl
-	dec	hl
+	add	hl, sp
 	ld	iy, (ix+VX_GEOMETRY_INDEX)
 	ld	(hl), iy
 	ex	de, hl
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
-	djnz	.sort_bucket
+	djnz	.sort_bucket_read_copy
 	dec	c
-	jr	nz, .sort_bucket
+	jr	nz, .sort_bucket_read_copy
+.SP_RET1:=$+1
+	ld	sp, $CCCCCC
 	ret
 .restore_rel_size:= $ - VX_VRAM_CACHE
 assert $ < $E10051
