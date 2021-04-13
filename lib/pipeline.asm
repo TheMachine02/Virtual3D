@@ -408,6 +408,7 @@ relocate VX_PRIMITIVE_SORT_CODE
 
 .helper:
 ; sort the current submission queue
+	ld	(.SP_RET), sp
 .setup:
 ; fetch the high byte of the current framebuffer and build up the VRAM temporary area
 	ld	ix, .sort
@@ -435,94 +436,93 @@ relocate VX_PRIMITIVE_SORT_CODE
 	inc	b
 	ld	c, b
 	ld	b, a
-	push	bc
-	push	bc
-	push	bc
+	ld	(ix+.SZ0 -.sort), bc
+	ld	(ix+.SZ1 -.sort), bc
+	ld	(ix+.SZ2 -.sort), bc
 ; actual sorting start here
 ; restore index position in array for all three bucket
-.sort:
+.restore_bucket_l:
 	ld	hl, VX_DEPTH_BUCKET_L + 511
 	ld	a, (hl)
-.WBLH=$+1
+.WBLH:=$+1
 	add	a, $CC
 	ld	d, a
 	ld	(hl), a
 	dec	h
 	ld	a, (hl)
-.WBLL=$+1
+.WBLL:=$+1
 	add	a, $CC
 	ld	e, a
 	ld	(hl), a
-	dec	l
-.restore_bucket_l:
 	call	.restore_bucket
-	ld	(hl), d
-	dec	h
-	ld	(hl), e
 ; high bucket
+.restore_bucket_h:
 	ld	hl, VX_DEPTH_BUCKET_H + 511
 	ld	a, (hl)
-.WBHH=$+1
+.WBHH:=$+1
 	add	a, $CC
 	ld	d, a
 	ld	(hl), a
 	dec	h
 	ld	a, (hl)
-.WBHL=$+1
+.WBHL:=$+1
 	add	a, $CC
 	ld	e, a
 	ld	(hl), a
-	dec	l
-.restore_bucket_h:
 	call	.restore_bucket
-	ld	(hl), d
-	dec	h
-	ld	(hl), e
 ; upper bucket
+.restore_bucket_u:
 	ld	hl, VX_DEPTH_BUCKET_U + 511
 	ld	d, (hl)
 	dec	h
 	ld	e, (hl)
-	dec	l
-.restore_bucket_u:
 	call	.restore_bucket
-	ld	(hl), d
-	dec	h
-	ld	(hl), e
+.sort:
 ; sorting now, backward
-	pop	bc
-.WBL=$+1
+; set sp as stride, we'll use hl' as return adress within the jump
+	ld	sp, -3
+.sort_bucket_l:
+.SZ0:=$+1
+	ld	bc, $CCCCCC
+.WBL:=$+1
 	ld	de, $CCCCCC
 	ld	ix, (vxPrimitiveQueue)
 	ld	hl, VX_DEPTH_BUCKET_L
-.sort_bucket_l:
-	call	.sort_bucket
-	pop	bc
+	exx
+	ld	hl, .sort_bucket_h
+	exx
+	jp	.sort_bucket
+.sort_bucket_h:
+	ld	hl, .sort_bucket_u
+	exx
+.SZ1:=$+1
+	ld	bc, $CCCCCC
 ; we have sort on the low key, now sort on the high key
 ;	ld	a, VX_GEOMETRY_DEPTH + 1
 ; load iyh instead of iyl
 	ld	a, $7C
 	ld	(.DOF), a
-.WBH=$+1
+.WBH:=$+1
 	ld	de, $CCCCCC
-.RBL=$+2
+.RBL:=$+2
 	ld	ix, $CCCCCC
 ; load up VX_DEPTH_BUCKET_H
 	inc	h
 	inc	h
-.sort_bucket_h:
-	call	.sort_bucket
+	jp	.sort_bucket
+.sort_bucket_u:
+	exx
 ; finish by the sorting the upper key, and storing partial result within the geometry queue
-	pop	bc
+.SZ2:=$+1
+	ld	bc, $CCCCCC
 	ld	de, VX_GEOMETRY_QUEUE
-.RBH=$+2
+.RBH:=$+2
 	ld	ix, $CCCCCC
 ; load up VX_DEPTH_BUCKET_U
 	inc	h
 	inc	h
-	ld	(.SP_RET0), sp
 	ld	sp, -3
-.sort_bucket_u:
+.sort_bucket_u_read_copy:
 	lea	ix, ix-VX_GEOMETRY_SIZE
 	ld	l, (ix+VX_GEOMETRY_DEPTH+2)
 	ld	e, (hl)
@@ -540,10 +540,10 @@ relocate VX_PRIMITIVE_SORT_CODE
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
-	djnz	.sort_bucket_u
+	djnz	.sort_bucket_u_read_copy
 	dec	c
-	jr	nz, .sort_bucket_u
-.SP_RET0=$+1
+	jr	nz, .sort_bucket_u_read_copy
+.SP_RET:=$+1
 	ld	sp, $CCCCCC
 	ret
 	
@@ -553,6 +553,8 @@ end relocate
 .restore_rel:
 relocate VX_VRAM_CACHE
 .restore_bucket:
+	dec	l
+.restore_add:
 	ld	c, (hl)
 	inc	h
 	ld	b, (hl)
@@ -563,18 +565,18 @@ relocate VX_VRAM_CACHE
 	dec	h
 	ld	(hl), e
 	dec	l
-	jr	nz, .restore_bucket
+	jr	nz, .restore_add
 	ld	c, (hl)
 	inc	h
 	ld	b, (hl)
 	ex	de, hl
 	add	hl, bc
 	ex	de, hl
+	ld	(hl), d
+	dec	h
+	ld	(hl), e
 	ret
 .sort_bucket:
-	ld	(.SP_RET1), sp
-	ld	sp, -3
-.sort_bucket_read_copy:
 	lea	ix, ix-VX_GEOMETRY_SIZE
 	ld	iy, (ix+VX_GEOMETRY_DEPTH)
 .DOF:=$+1
@@ -593,12 +595,11 @@ relocate VX_VRAM_CACHE
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
-	djnz	.sort_bucket_read_copy
+	djnz	.sort_bucket
 	dec	c
-	jr	nz, .sort_bucket_read_copy
-.SP_RET1:=$+1
-	ld	sp, $CCCCCC
-	ret
+	jr	nz, .sort_bucket
+	exx
+	jp	(hl)
 .restore_rel_size:= $ - VX_VRAM_CACHE
 assert $ < $E10051
 end relocate
