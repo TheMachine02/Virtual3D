@@ -521,7 +521,6 @@ relocate VX_PRIMITIVE_SORT_CODE
 ; load up VX_DEPTH_BUCKET_U
 	inc	h
 	inc	h
-	ld	sp, -3
 .sort_bucket_u_read_copy:
 	lea	ix, ix-VX_GEOMETRY_SIZE
 	ld	l, (ix+VX_GEOMETRY_DEPTH+2)
