@@ -249,10 +249,7 @@ vxMatrixRowLoop:
 	lea	iy, iy-3
 	pop	bc
 	djnz	vxMatrixColLoop
-	ld	bc, -9
-	add	ix, bc
-	ex	de, hl
-	add	hl, bc
+	lea	ix, ix-9
 	ret
 
 vxMatrixScale:
@@ -322,10 +319,8 @@ vxMatrixTransform:
 	pop	hl
 	call	vxMatrixMlt
 ; copy translation data to result (hl)
-	ld	bc, 9
-	add	hl, bc
-	ld	de, vxPosition
-	ex	de, hl
+	ld	c, 9
+	ld	hl, vxPosition
 	ldir
 	dec	bc
 	ld	c, -VX_MATRIX_SIZE
