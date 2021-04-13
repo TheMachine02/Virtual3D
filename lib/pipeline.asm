@@ -105,7 +105,7 @@ vxPrimitiveSubmit:
 	ldir
 	ld	hl, vxPixelShader.code
 	ld	de, VX_PIXEL_SHADER_CODE
-	ld	bc, 64
+	ld	c, 64
 	ldir
 ; this is ugly at best
 	ld	hl, (vxShaderJump)
@@ -128,8 +128,8 @@ vxPrimitiveSubmit:
 	add	hl, hl
 	add	hl, de
 	ld	(hl), VX_STREAM_END
-	sbc	hl, hl
-	ld	(vxGeometrySize), hl
+; note, bc should be zero here
+	ld	(vxGeometrySize), bc
 	jr	.index
 ; TODO : reallocate .deferred into fast RAM, use jr .index as long jump
 ; TODO : remove the call vxPrimitiveRenderTriangle
@@ -210,7 +210,7 @@ vxVertexStream:
 	ldir
 	ld	hl, vxVertexShader.iterate
 	ld	de, VX_VRAM_CACHE
-	ld	bc, VX_VRAM_CACHE_SIZE
+	ld	c, VX_VRAM_CACHE_SIZE
 	ldir	
 ; transform the worldview with the modelworld matrix to have the global modelview matrix
 ; modelviewcache = modelworld0 * worldview0
@@ -229,22 +229,22 @@ vxVertexStream:
 	ldir
 	ld	ix, vxModelViewReverse
 	call	vxMatrixTranspose
+	ld	iy, vxWorldEye
 	ld	hl, (ix+VX_MATRIX_TZ)
 	ld	(ix+VX_MATRIX_TZ), bc
 	add	hl, hl
 	add	hl, hl
-	ld	(vxWorldEye-1+4), hl
+	ld	(iy-1+4), hl
 	ld	hl, (ix+VX_MATRIX_TY)
 	ld	(ix+VX_MATRIX_TY), bc
 	add	hl, hl
 	add	hl, hl
-	ld	(vxWorldEye-1+2), hl
+	ld	(iy-1+2), hl
 	ld	hl, (ix+VX_MATRIX_TX)
 	ld	(ix+VX_MATRIX_TX), bc
 	add	hl, hl
 	add	hl, hl
-	ld	(vxWorldEye-1), hl
-	ld	iy, vxWorldEye
+	ld	(iy-1), hl
 	call	vxfTransform
 	ld	de, vxWorldEye
 	call	vxfPositionExtract
