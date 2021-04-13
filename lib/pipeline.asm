@@ -410,29 +410,25 @@ relocate VX_PRIMITIVE_SORT_CODE
 ; sort the current submission queue
 .setup:
 ; fetch the high byte of the current framebuffer and build up the VRAM temporary area
-	
+	ld	ix, .sort
 	ld	hl, (vxFramebuffer)
-	ld	(.WBL), hl
-	ld	a, h
-	ld	(.WBLH), a
-	ld	a, l
-	ld	(.WBLL), a
+	ld	(ix+.WBL -.sort), hl
+	ld	(ix+.WBLH-.sort), h
+	ld	(ix+.WBLL-.sort), l
 	ld	de, VX_MAX_TRIANGLE*VX_GEOMETRY_SIZE
 	add	hl, de
-	ld	(.WBH), hl
-	ld	a, h
-	ld	(.WBHH), a
-	ld	a, l
-	ld	(.WBHL), a
+	ld	(ix+.WBH -.sort), hl
+	ld	(ix+.WBHH-.sort), h
+	ld	(ix+.WBHL-.sort), l
 	add	hl, bc
 	add	hl, bc
 	add	hl, bc
 	add	hl, bc
 	add	hl, bc
 	add	hl, bc
-	ld	(.RBH), hl
+	ld	(ix+.RBH -.sort), hl
 	sbc	hl, de
-	ld	(.RBL), hl
+	ld	(ix+.RBL -.sort), hl
 ; size computation
 	ld	a, c
 	dec	bc
@@ -444,6 +440,7 @@ relocate VX_PRIMITIVE_SORT_CODE
 	push	bc
 ; actual sorting start here
 ; restore index position in array for all three bucket
+.sort:
 	ld	hl, VX_DEPTH_BUCKET_L + 511
 	ld	a, (hl)
 .WBLH=$+1
