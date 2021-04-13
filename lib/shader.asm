@@ -51,49 +51,48 @@ vxShaderLoad:
 	add	hl, de
 	ld	(vxShaderAdress2), hl
 
-	inc.s	hl
-	ld	h, c
-	ld	l, (ix+VX_SHADER_DATA1)
-; VX_CALL0_NEG
-	ld	de, VX_PIXEL_SHADER_CODE
-	add	hl, de
-	ld	b, 160
-	ld	iy, VX_LUT_PIXEL_LENGTH-(319*4)
-vxShaderCreate0:
-	ld	(iy-3), de
-	ld	(iy+1), hl
-	lea	iy, iy+8
-	djnz vxShaderCreate0
-
-	push	hl
-	
-	ld	a, (ix+VX_SHADER_DATA1)
-	add	a, a
-	add	a, (VX_PIXEL_SHADER_CODE mod 256) +2
-	ld	l, a
-	ld	(iy-3), hl
-	ld	(vxShaderJump), hl
-	
 	ld	c, (ix+VX_SHADER_DATA1)
+; VX_CALL0_NEG
+	ld	ix, VX_PIXEL_SHADER_CODE
+	lea	iy, ix
+	add	iy, bc
+	ld	hl, VX_LUT_PIXEL_LENGTH-(319*4)-3
+	ld	de, 4
+	ld	b, 160
+vxShaderCreate0:
+	ld	(hl), ix
+	add	hl, de
+	ld	(hl), iy
+	add	hl, de
+	djnz	vxShaderCreate0
+	
+	ld	b, iyl
+	ld	a, (VX_PIXEL_SHADER_CODE mod 256) +2
+	add	a, c
+	add	a, c
+	ld	iyl, a
+	ld	(hl), iy
+	ld	(vxShaderJump), iy
+	ld	iyl, b
+	
+	ld	b, 160
+vxShaderCreate1:
+	add	hl, de
+	ld	(hl), iy
+	add	hl, de
+	ld	(hl), ix
+	djnz vxShaderCreate1
+	
 	ld	hl, VX_PIXEL_SHADER_CODE-2
 	add	hl, bc
 	ld	(vxShaderAdress0), hl
 	add	hl, bc
-	ld	(vxShaderAdress1), hl	
-	
-	pop	hl
-	ld	b, 160
-
-vxShaderCreate1:
-	ld	(iy+1), hl
-	ld	(iy+5), de
-	lea	iy, iy+8
-	djnz vxShaderCreate1
+	ld	(vxShaderAdress1), hl
 	
 	ld	hl, VX_PIXEL_SHADER_CODE
 	ld	de, vxPixelShader.code
-	ld	bc, 64
-	ldir	
+	ld	c, 64
+	ldir
 	ret
 	
 vxPixelShader.code:
