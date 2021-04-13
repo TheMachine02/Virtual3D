@@ -564,28 +564,26 @@ relocate VX_VRAM_CACHE
 .sort_bucket:
 	lea	ix, ix-VX_GEOMETRY_SIZE
 .DOF=$+2
-	ld	l, (ix+VX_GEOMETRY_DEPTH)
+	ld	iy, (ix+VX_GEOMETRY_DEPTH)
+	ld	a, iyl
+	ld	l, a
 	ld	e, (hl)
 	inc	h
 	ld	d, (hl)
 	dec	de
 	dec	de
 	dec	de
-	dec	de
-	dec	de
-	dec	de
+	ex	de, hl
+	ld	(hl), iy
+	dec	hl
+	dec	hl
+	dec	hl
+	ld	iy, (ix+VX_GEOMETRY_INDEX)
+	ld	(hl), iy
+	ex	de, hl
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
-	ex	de, hl
-	ld	iy, (ix+VX_GEOMETRY_INDEX)
-	ld	(hl), iy
-	inc	hl
-	inc	hl
-	inc	hl
-	ld	iy, (ix+VX_GEOMETRY_DEPTH)
-	ld	(hl), iy
-	ex	de, hl
 	djnz	.sort_bucket
 	dec	c
 	jr	nz, .sort_bucket
