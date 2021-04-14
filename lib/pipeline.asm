@@ -377,6 +377,8 @@ vxPrimitiveDepthOffset:
 	ret
 
 vxPrimitiveDepthSort:
+; 311 cycles per triangle with an added constant ~34000 cycles
+; sorting a full queue take less than 30ms
 	cce	ge_z_sort
 	ld	hl, VX_PRIMITIVE_SORT_COPY
 	ld	de, VX_PRIMITIVE_SORT_CODE
@@ -511,6 +513,11 @@ relocate VX_PRIMITIVE_SORT_CODE
 	inc	h
 	jp	.sort_bucket
 .sort_bucket_u:
+; copying take ~250 cycles, so we need to sort >10 triangles to be better than not copying. In practise, this is always true.
+	ld	hl, .sort_bucket_rw_overwrite
+	ld	de, .sort_bucket_overwrite
+	ld	bc, VX_VRAM_CACHE_SIZE shr 1
+	ldir
 	exx
 ; finish by the sorting the upper key, and storing partial result within the geometry queue
 .SZ2:=$+1
@@ -521,8 +528,10 @@ relocate VX_PRIMITIVE_SORT_CODE
 ; load up VX_DEPTH_BUCKET_U
 	inc	h
 	inc	h
-.sort_bucket_u_read_copy:
+	jp	.sort_bucket
+.sort_bucket_rw:
 	lea	ix, ix-VX_GEOMETRY_SIZE
+.sort_bucket_rw_overwrite:
 	ld	l, (ix+VX_GEOMETRY_DEPTH+2)
 	ld	e, (hl)
 	inc	h
@@ -539,13 +548,13 @@ relocate VX_PRIMITIVE_SORT_CODE
 	ld	(hl), d
 	dec	h
 	ld	(hl), e
-	djnz	.sort_bucket_u_read_copy
+	djnz	.sort_bucket_rw
 	dec	c
-	jr	nz, .sort_bucket_u_read_copy
+	jr	nz, .sort_bucket_rw
 .SP_RET:=$+1
 	ld	sp, $CCCCCC
 	ret
-	
+
 VX_PRIMITIVE_SORT_SIZE:= $ - VX_PRIMITIVE_SORT_CODE
 end relocate
 
@@ -577,6 +586,7 @@ relocate VX_VRAM_CACHE
 	ret
 .sort_bucket:
 	lea	ix, ix-VX_GEOMETRY_SIZE
+.sort_bucket_overwrite:
 	ld	iy, (ix+VX_GEOMETRY_DEPTH)
 .DOF:=$+1
 	ld	a, iyl
