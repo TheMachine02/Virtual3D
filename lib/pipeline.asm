@@ -144,8 +144,8 @@ vxPrimitiveSubmit:
 .index:
 	ld	hl, VX_MATERIAL_DATA
 	ld	l, (iy+VX_GEOMETRY_ID)
-	bit	0, l
-	jr	z, .deferred
+	ld	b, l
+	djnz	.deferred
 	ret
 	
 vxPrimitiveStream:

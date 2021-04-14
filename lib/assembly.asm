@@ -103,14 +103,6 @@ vxPrimitiveAssembly:
 	add	hl, bc
 	and	a, (hl)
 	jr	nz, .discard
-	add	hl, sp
-	ld	hl, (hl)
-	add	hl, de
-	add	hl, hl
-	add	hl, hl
-.DEO=$+1
-	ld	de, VX_DEPTH_OFFSET
-	add	hl, de
 	exx
 ; switch to shadow for the bfc
 	ld	hl, i
@@ -132,13 +124,21 @@ vxPrimitiveAssembly:
 	add	hl, hl
 	exx
 	jr	nc, .discard
-; write both the ID in the lower 8 bits and the depth in the upper 16 bits, we'll sort on the full 24 bit pair so similar material will be 'packed' together at best without breaking sorting
-	ld	(ix+VX_GEOMETRY_DEPTH), hl	
+	add	hl, sp
+	ld	hl, (hl)
+	add	hl, de
+	add	hl, hl
+	add	hl, hl
+.DEO=$+1
+	ld	de, VX_DEPTH_OFFSET
+	add	hl, de
 ; we'll also set the depth into de
 	ex	de, hl
 .MTR:=$+1
 	ld	hl, VX_DEPTH_BUCKET_L or $CC
-	ld	(ix+VX_GEOMETRY_ID), l
+	ld	e, l
+; write both the ID in the lower 8 bits and the depth in the upper 16 bits, we'll sort on the full 24 bit pair so similar material will be 'packed' together at best without breaking sorting
+	ld	(ix+VX_GEOMETRY_DEPTH), de
 	ld	a, (hl)
 	add	a, VX_GEOMETRY_SIZE
 	ld	(hl), a
