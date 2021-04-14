@@ -35,7 +35,7 @@ Main:
 	ld	hl, (Texture)
 	ld	a, VX_IMAGE_ZX7_COMPRESSED
 	ld	de, $D30000
-	call	vxImageCopy
+	call	vxImage.copy
 
 	call	Filter.generate
 	

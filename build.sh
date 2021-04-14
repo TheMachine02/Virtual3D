@@ -3,7 +3,7 @@ mkdir bin
 
 echo "building library ram image..."
 fasmg lib/bss.asm lib/bss
-lz4 -f -l --best lib/bss lib/image
+lz4 -f -l --best lib/bss lib/ram
 rm lib/bss
 
 echo "building example..."

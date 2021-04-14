@@ -77,7 +77,7 @@ vxEngineInit:
 	jp	(hl)
 
 .arch_image:
-file	'image'
+file	'ram'
 
 vxEngineQuit:
 	ld	hl, $F50000

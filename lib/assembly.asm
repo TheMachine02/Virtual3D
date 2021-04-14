@@ -38,14 +38,6 @@ VX_DEPTH_BUCKET_H:
 VX_DEPTH_BUCKET_U:
 	rb	512
 
-align	1024
-VX_VIEW_MLTX:
-	rb	256
-VX_VIEW_MLTY:
-	rb	256
-VX_VIEW_MLTZ:
-	rb	256
-
 VX_PRIMITIVE_ASM_COPY:
 ; relocate the shader to fast VRAM ($E30800)
 relocate VX_PRIMITIVE_ASM_CODE
@@ -71,6 +63,8 @@ vxPrimitiveAssembly:
 	ld	de, (vxWorldEye+6)
 	ld	hl, VX_VIEW_MLTZ + VX_VIEW_MLT_OFFSET - 1
 	call	.view_mlt
+	ld	hl, VX_VIEW_MLTX
+	ld	i, hl
 ; setup the various SMC
 ; geometry format STR
 ; geometry material MTR
@@ -117,11 +111,9 @@ vxPrimitiveAssembly:
 .DEO=$+1
 	ld	de, VX_DEPTH_OFFSET
 	add	hl, de
-; write both the ID in the lower 8 bits and the depth in the upper 16 bits, we'll sort on the full 24 bit pair so similar material will be 'packed' together at best without breaking sorting
-	ld	(ix+VX_GEOMETRY_DEPTH), hl
 	exx
 ; switch to shadow for the bfc
-	ld	hl, VX_VIEW_MLTX
+	ld	hl, i
 ; between -31 and 31 pre multiplied by 4
 	ld	l, (iy+VX_TRIANGLE_N0)
 	ld	de, (hl)
@@ -140,6 +132,8 @@ vxPrimitiveAssembly:
 	add	hl, hl
 	exx
 	jr	nc, .discard
+; write both the ID in the lower 8 bits and the depth in the upper 16 bits, we'll sort on the full 24 bit pair so similar material will be 'packed' together at best without breaking sorting
+	ld	(ix+VX_GEOMETRY_DEPTH), hl	
 ; we'll also set the depth into de
 	ex	de, hl
 .MTR:=$+1

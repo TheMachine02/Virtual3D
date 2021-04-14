@@ -24,7 +24,7 @@
 
 vxImage:
 
-vxImageSubCopy:
+.sub_copy:
 ; hl : org, bc : rect size, de : copy
 	push	bc
 	ld	bc, VX_IMAGE_PAGE
@@ -36,7 +36,7 @@ vxImageSubCopy:
 	ld	a, b
 	ld	b, 0
 ; ready to copy
-.copyLoop:
+.sub_copy_loop:
 	push	bc
 	ldir
 	pop	bc
@@ -52,10 +52,10 @@ vxImageSubCopy:
 	inc	h
 	inc	d
 	dec	a
-	jr	nz, .copyLoop
+	jr	nz, .sub_copy_loop
 	ret
 	
-vxImageSubSwap:
+.sub_swap:
 ; hl : org, bc : rect size, de : copy
 	push	bc
 	ld	bc, VX_IMAGE_PAGE
@@ -92,7 +92,7 @@ vxImageSubSwap:
 	jr	nz, .swap_loop
 	ret	
 
-vxImageClear:
+.clear:
 	ld	bc, 65535
 	xor	a, a
 	ld	(hl), a
@@ -103,18 +103,18 @@ vxImageClear:
 	ldir
 	ret
 
-vxImageCopy:
+.copy:
 ; hl : org, de : copy, a : format
 	rla
-	jr	c, .ZX7Uncompress
+	jr	c, .ZX7_uncompress
 	rla
-	jr	c, .RLEUncompress
+	jr	c, .RLE_uncompress
 	ld	bc, 65536
 	ldir
 	ret
-.RLEUncompress:
+.RLE_uncompress:
 	ret
-.ZX7Uncompress:
+.ZX7_uncompress:
 ; Routine copied from the C toolchain & speed optimized
 ;  Input:
 ;   HL = compressed data pointer

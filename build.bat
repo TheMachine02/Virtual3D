@@ -7,7 +7,7 @@ mkdir bin
 
 echo building library ram image...
 fasmg lib/bss.asm lib/bss
-lz4.exe -f -l --best lib/bss lib/image
+lz4.exe -f -l --best lib/bss lib/ram
 del lib/bss
 
 echo "building example..."

@@ -610,5 +610,5 @@ relocate VX_VRAM_CACHE
 	exx
 	jp	(hl)
 .restore_rel_size:= $ - VX_VRAM_CACHE
-assert $ < $E10051
+assert .restore_rel_size <= VX_VRAM_CACHE_SIZE
 end relocate

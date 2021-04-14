@@ -49,7 +49,7 @@ format	ti executable 'LVL'
 	ld	hl, (cacheTexture)
 	ld	a, VX_IMAGE_ZX7_COMPRESSED
 	ld	de, $D30000
-	call	vxImageCopy
+	call	vxImage.copy
 
 	ld	hl, 0
 	ld	(CameraAngle), hl

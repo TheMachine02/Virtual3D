@@ -5,93 +5,93 @@ mkdir bin
 :Loop
 
 echo "Converting Tomb Raider III test models..."
-tools/mdlconv.exe example/file/CavesOfKaliyaTRIII.obj -T -N -S -B -X -o=KALIYA
+tools/import.exe example/file/CavesOfKaliyaTRIII.obj -T -N -S -B -X -o=KALIYA
 
 fasmg example/file/CavesOfKaliyaTRIII0.inc bin/KALIYAV.8xv
 fasmg example/file/CavesOfKaliyaTRIII1.inc bin/KALIYAF.8xv
 
-tools/mdlconv.exeexample/file/CityTRIII.obj -T -N -S -B -X -o=CITY
+tools/import.exeexample/file/CityTRIII.obj -T -N -S -B -X -o=CITY
 fasmg example/file/CityTRIII0.inc bin/CITYV.8xv
 fasmg example/file/CityTRIII1.inc bin/CITYF.8xv
 
-tools/mdlconv.exe example/file/TrainRoomTRIII.obj -T -N -S -B -X -o=TRAIN
+tools/import.exe example/file/TrainRoomTRIII.obj -T -N -S -B -X -o=TRAIN
 fasmg example/file/TrainRoomTRIII0.inc bin/TRAINV.8xv
 fasmg example/file/TrainRoomTRIII1.inc bin/TRAINF.8xv
 
-tools/mdlconv.exe example/file/PoolTRIII.obj -T -N -S -B -X -o=POOL
+tools/import.exe example/file/PoolTRIII.obj -T -N -S -B -X -o=POOL
 fasmg example/file/PoolTRIII0.inc bin/POOLV.8xv
 fasmg example/file/PoolTRIII1.inc bin/POOLF.8xv
 
-Rem tools/mdlconv.exe example/file/room_commune.obj -T -N -S -B -X -o=ROOM
+Rem tools/import.exe example/file/room_commune.obj -T -N -S -B -X -o=ROOM
 Rem fasmg example/file/room_commune0.inc bin/ROOMV.8xv
 Rem fasmg example/file/room_commune1.inc bin/ROOMF.8xv
 
 echo "Converting Suzanne..."
 
-tools/mdlconv.exe example/file/Suzanne.obj -C -N -S -B -X -o=SUZAN
+tools/import.exe example/file/Suzanne.obj -C -N -S -B -X -o=SUZAN
 fasmg example/file/Suzanne0.inc bin/SUZANV.8xv
 fasmg example/file/Suzanne1.inc bin/SUZANF.8xv
 
 echo "Converting FFXII test models..."
 
-Rem tools/mdlconv.exe example/file/MateusFFXII.obj -T -N -S -B -X -o=MATEUS
+Rem tools/import.exe example/file/MateusFFXII.obj -T -N -S -B -X -o=MATEUS
 Rem fasmg example/file/MateusFFXII0.inc bin/MATEUSV.8xv 
 Rem fasmg example/file/MateusFFXII1.inc bin/MATEUSF.8xv 
 
-tools/mdlconv.exe example/file/BunnyFFXII.obj -T -N -S -B -X -o=FLUFFY
+tools/import.exe example/file/BunnyFFXII.obj -T -N -S -B -X -o=FLUFFY
 fasmg example/file/BunnyFFXII0.inc bin/FLUFFYV.8xv
 fasmg example/file/BunnyFFXII1.inc bin/FLUFFYF.8xv
 
-tools/mdlconv.exe example/file/FranFFXII.obj -T -N -S -B -X -o=FRAN
+tools/import.exe example/file/FranFFXII.obj -T -N -S -B -X -o=FRAN
 fasmg example/file/FranFFXII0.inc bin/FRANV.8xv
 fasmg example/file/FranFFXII1.inc bin/FRANF.8xv
 
-tools/mdlconv.exe example/file/MjrnFFXII.obj -T -N -S -B -X -o=MJRN
+tools/import.exe example/file/MjrnFFXII.obj -T -N -S -B -X -o=MJRN
 fasmg example/file/MjrnFFXII0.inc bin/MJRNV.8xv
 fasmg example/file/MjrnFFXII1.inc bin/MJRNF.8xv
 
-tools/mdlconv.exe example/file/FranFFXII_LOD1.obj -T -N -S -B -X -o=FRANL
+tools/import.exe example/file/FranFFXII_LOD1.obj -T -N -S -B -X -o=FRANL
 fasmg example/file/FranFFXII_LOD10.inc bin/FRANLV.8xv
 fasmg example/file/FranFFXII_LOD11.inc bin/FRANLF.8xv
 
-tools/mdlconv.exe example/file/VieraSceneFFXII.obj -T -N -S -B -X -o=VIERA
+tools/import.exe example/file/VieraSceneFFXII.obj -T -N -S -B -X -o=VIERA
 fasmg example/file/VieraSceneFFXII0.inc bin/VIERAV.8xv
 fasmg example/file/VieraSceneFFXII1.inc bin/VIERAF.8xv
 
-tools/mdlconv.exe example/file/BomboFFXII.obj -T -N -S -B -X -o=BOMBO
+tools/import.exe example/file/BomboFFXII.obj -T -N -S -B -X -o=BOMBO
 fasmg example/file/BomboFFXII0.inc bin/BOMBOV.8xv
 fasmg example/file/BomboFFXII1.inc bin/BOMBOF.8xv
 
-Rem tools/mdlconv.exe example/file/UltimaFFXII.obj -T -N -S -B -X -o=ULTIMA
+Rem tools/import.exe example/file/UltimaFFXII.obj -T -N -S -B -X -o=ULTIMA
 Rem fasmg example/file/UltimaFFXII0.inc bin/ULTIMAV.8xv 
 Rem fasmg example/file/UltimaFFXII1.inc bin/ULTIMAF.8xv 
 
 echo "Converting FFX test models..."
 
-tools/mdlconv.exe example/file/LuluFFX.obj -T -N -S -B -X -o=LULU
+tools/import.exe example/file/LuluFFX.obj -T -N -S -B -X -o=LULU
 fasmg example/file/LuluFFX0.inc bin/LULUV.8xv 
 fasmg example/file/LuluFFX1.inc bin/LULUF.8xv 
 
 echo "Converting FFVIII test models..."
 
 echo "Converting TonberryFFVIII.obj..."
-tools/mdlconv.exe example/file/TonberryFFVIII.obj -T -N -S -B -X -o=TONB
+tools/import.exe example/file/TonberryFFVIII.obj -T -N -S -B -X -o=TONB
 fasmg example/file/TonberryFFVIII0.inc bin/TONBV.8xv 
 fasmg example/file/TonberryFFVIII1.inc bin/TONBF.8xv 
 
-tools/mdlconv.exe example/file/UltimeciaFFVIII.obj -T -N -S -B -X -o=ULTIM
+tools/import.exe example/file/UltimeciaFFVIII.obj -T -N -S -B -X -o=ULTIM
 fasmg example/file/UltimeciaFFVIII0.inc bin/ULTIMV.8xv 
 fasmg example/file/UltimeciaFFVIII1.inc bin/ULTIMF.8xv 
 
 echo "Converting Zelda test models..."
 
 echo "Converting MidnaZelda.obj"
-tools/mdlconv.exe example/file/MidnaZelda.obj -T -N -S -B -X -o=MIDNA
+tools/import.exe example/file/MidnaZelda.obj -T -N -S -B -X -o=MIDNA
 fasmg example/file/MidnaZelda0.inc bin/MIDNAV.8xv 
 fasmg example/file/MidnaZelda1.inc bin/MIDNAF.8xv 
 
 echo "Converting NabooruZelda.obj"
-tools/mdlconv.exe example/file/NabooruZelda.obj -T -N -S -B -X -o=NABOORU
+tools/import.exe example/file/NabooruZelda.obj -T -N -S -B -X -o=NABOORU
 fasmg example/file/NabooruZelda0.inc bin/NABOORUV.8xv 
 fasmg example/file/NabooruZelda1.inc bin/NABOORUF.8xv 
 

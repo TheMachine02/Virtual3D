@@ -30,7 +30,7 @@ Main:
 	ld	hl, (Model.texture_source)
 	ld	a, VX_IMAGE_ZX7_COMPRESSED
 	ld	de, $D30000
-	call	vxImageCopy
+	call	vxImage.copy
 
 ; setup global variable for rendering, euler angle and the translation of World.matrix
 	ld	hl, 0
