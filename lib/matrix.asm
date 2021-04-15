@@ -240,6 +240,8 @@ vxMatrixRowLoop:
 	add	hl, hl
 	add	hl, hl
 	ld	a, h
+	rl	l
+	adc	a, 0
 	ld	(de), a
 	inc	de
 	inc	iy

@@ -216,10 +216,18 @@ vxQuaternionGetMatrix:
 	pop	de
 	or	a, a
 	sbc	hl, de
-	ld	(ix+1), h
+	ld	a, l
+	rla
+	ld	a, h
+	adc	a, 0
+	ld	(ix+1), a
 	add	hl, de
 	add	hl, de
-	ld	(ix+3), h
+	ld	a, l
+	rla
+	ld	a, h
+	adc	a, 0
+	ld	(ix+3), a
 ; next
 	ld	hl, (iy+VX_QUATERNION_QY)
 	ld	de, (iy+VX_QUATERNION_QW)
@@ -235,10 +243,18 @@ vxQuaternionGetMatrix:
 	pop	de
 	or	a, a
 	sbc	hl, de
-	ld	(ix+6), h
+	ld	a, l
+	rla
+	ld	a, h
+	adc	a, 0
+	ld	(ix+6), a
 	add	hl, de
 	add	hl, de
-	ld	(ix+2), h
+	ld	a, l
+	rla
+	ld	a, h
+	adc	a, 0
+	ld	(ix+2), a
 ; next
 	ld	hl, (iy+VX_QUATERNION_QX)
 	ld	de, (iy+VX_QUATERNION_QW)
@@ -254,10 +270,18 @@ vxQuaternionGetMatrix:
 	pop	de
 	or	a, a
 	sbc	hl, de
-	ld	(ix+5), h
+	ld	a, l
+	rla
+	ld	a, h
+	adc	a, 0
+	ld	(ix+5), a
 	add	hl, de
 	add	hl, de
-	ld	(ix+7), h
+	ld	a, l
+	rla
+	ld	a, h
+	adc	a, 0
+	ld	(ix+7), a
 ; 1-2*qy²-2qz²
 	ld	hl, (iy+VX_QUATERNION_QY)
 	call	vxQuatSquare
@@ -271,7 +295,11 @@ vxQuaternionGetMatrix:
 	sbc	hl, bc
 	or	a, a
 	sbc	hl, de
-	ld	(ix+0), h
+	ld	a, l
+	rla
+	ld	a, h
+	adc	a, 0
+	ld	(ix+0), a
 ; 1-2*qz²-2qx²	
 	push	de
 	ld	hl, (iy+VX_QUATERNION_QX)
@@ -282,7 +310,11 @@ vxQuaternionGetMatrix:
 	sbc	hl, bc
 	or	a, a
 	sbc	hl, de
-	ld	(ix+4), h
+	ld	a, l
+	rla
+	ld	a, h
+	adc	a, 0
+	ld	(ix+4), a
 ; 1-2qx²-2qy²
 	pop	bc
 	ld	hl, $004000
@@ -290,7 +322,11 @@ vxQuaternionGetMatrix:
 	sbc	hl, bc
 	or	a, a
 	sbc	hl, de
-	ld	(ix+8), h
+	ld	a, l
+	rla
+	ld	a, h
+	adc	a, 0
+	ld	(ix+8), a
 	ret
 vxQuaternionRotationAxis:
 ; iy adress of quaternion to write
@@ -348,7 +384,8 @@ vxQuaternionSlerp:
 
 vxQuatMlt:
 ; hl *de, de is not destroyed
-; start with hl*de/256
+; start with hl*de/16384
+; does NOT round
 ; HLxDE/256 [16bits]
 ; (HxD*256+LxD+ExH+LxE/256)
 	ld	b, h
@@ -392,11 +429,9 @@ vxQuatMlt:
 	dec	sp
 	push	hl
 	inc	sp
-	pop	af
-	ld	c, h
-	add	hl, hl
+	pop	bc
 	sbc	hl, hl
-	ld	h, a
+	ld	h, b
 	ld	l, c
 	ret
 vxQuatSquare:

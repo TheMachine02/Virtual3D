@@ -64,10 +64,10 @@ Main:
 	ld	iy, Quaternion_y
 	ld	ix, UnitVector_y
 	call	vxQuaternionRotationAxis
-	ld	ix, Quaternion
-	ld	iy, Quaternion_y
-	call	vxQuaternionMlt
+	ld	ix, Quaternion_y
 	ld	iy, Quaternion
+	call	vxQuaternionMlt
+	ld	iy, Quaternion_y
 	ld	ix, WorldMatrix
 	call	vxQuaternionGetMatrix
 	lea	iy, ix+0
@@ -110,6 +110,7 @@ Main:
 ; multiply it by the ANGLE_PER_MS and divide by 256
 	ld	bc, ANGLE_PER_MS
 ; hl * bc / 256
+	push	hl
 	call	ti._imulu
 	ex	de, hl
 	sbc	hl, hl
@@ -119,61 +120,95 @@ Main:
 	pop	de
 	ld	h, d
 	ld	l, e
+	ex	(sp), hl
+	ld	bc, DELTA_PER_MS
+	call	ti._imulu
 	ex	de, hl
+	sbc	hl, hl
+	dec	sp
+	push	de
+	inc	sp
+	pop	de
+	ld	h, d
+	ld	l, e
+	pop	de
+	push	hl
 	ld	a, ($F5001E)
 	bit	1, a
-	jr	z, .kskip
+	jr	z, .skip0
 	ld	hl, (EulerAngle)
 	add	hl, de
 	ld	(EulerAngle), hl
-.kskip:
+.skip0:
 	ld	a, ($F5001E)
-	bit	3, a
-	jr	z, .kskip1
+	bit	0, a
+	jr	z, .skip2
 	ld	hl, (EulerAngle+3)
 	add	hl, de
 	ld	(EulerAngle+3), hl
-.kskip1:
+.skip2:
 	or	a, a
 	sbc	hl, hl
 	sbc	hl, de
 	ex	de, hl
 	ld	a, ($F5001E)
 	bit	2, a
-	jr	z, .kskip2
+	jr	z, .skip1
 	ld	hl, (EulerAngle)
 	add	hl, de
 	ld	(EulerAngle), hl
-.kskip2:
+.skip1:
 	ld	a, ($F5001E)
-	bit	0, a
-	jr	z, .kskip3
+	bit	3, a
+	jr	z, .skip3
 	ld	hl, (EulerAngle+3)
 	add	hl, de
 	ld	(EulerAngle+3), hl
-.kskip3:
-
-	ld	hl, (WorldMatrix+15)
+.skip3:
+; zoom factor : Z offset of WorldMatrix
+	pop	de
 	ld	a, ($F50012)
 	bit	0,a
-	jr	z, .kskip4
-	ld	de, 4096
+	jr	z, .skip4
+	ld	hl, (WorldMatrix+15)
 	add	hl, de
-.kskip4:
-	bit	4,a
-	jr	z, .kskip5
-	ld	de, -4096
-	add	hl, de
-.kskip5:
 	ld	(WorldMatrix+15), hl
+.skip4:
+	or	a, a
+	sbc	hl, hl
+	sbc	hl, de
+	ex	de, hl
+	bit	4,a
+	jr	z, .skip5
+	ld	hl, (WorldMatrix+15)
+	add	hl, de
+	ld	(WorldMatrix+15), hl
+.skip5:
+	
+; 	bit	1,a
+; 	jr	z, .skip6
+; 	ld	hl, (WorldMatrix+12)
+; 	add	hl, de
+; 	ld	(WorldMatrix+12), hl
+; .skip6:
+; 	or	a, a
+; 	sbc	hl, hl
+; 	sbc	hl, de
+; 	ex	de, hl
+; 	bit	3,a
+; 	jr	z, .skip7
+; 	ld	hl, (WorldMatrix+12)
+; 	add	hl, de
+; 	ld	(WorldMatrix+12), hl
+; .skip7:	
 	ld	a, ($F5001C)
 	bit	0, a
-	jr	z, .kskip6
+	jr	z, .skip8
 	ld	hl, (LightAngle)
 	ld	de, 16
 	add	hl, de
 	ld	(LightAngle), hl
-.kskip6:
+.skip8:
 	ld	a, ($F5001C)
 	bit	6, a
 	jp	z, .loop

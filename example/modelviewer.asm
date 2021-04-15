@@ -37,7 +37,7 @@ Main:
 
 ; setup global variable for rendering, euler angle and the translation of World.matrix
 	ld	hl, 0
-	ld	(World.euler_angle), hl
+	ld	(World.angle_y), hl
 	ld	ix, World.matrix
 	lea	hl, ix+0
 	call	vxMatrixLoadIdentity
@@ -69,10 +69,24 @@ Main:
 	add	a, 56
 	ld	(vxLightUniform+4), a
 
-	ld	hl, (World.euler_angle)
-	ld	iy, World.quaternion
+	ld	hl, (World.angle_y)
+	ld	iy, World.quaternion_y
 	ld	ix, World.unit_vector_y
 	call	vxQuaternionRotationAxis
+	ld	hl, (World.angle_x)
+	ld	iy, World.quaternion_x
+	ld	ix, World.unit_vector_x
+	call	vxQuaternionRotationAxis
+	ld	hl, (World.angle_z)
+	ld	iy, World.quaternion_z
+	ld	ix, World.unit_vector_z
+	call	vxQuaternionRotationAxis
+	ld	ix, World.quaternion_x
+	ld	iy, World.quaternion_y
+	call	vxQuaternionMlt
+	ld	iy, World.quaternion_z
+	call	vxQuaternionMlt
+	ld	iy, World.quaternion_x
 	ld	ix, World.matrix
 	call	vxQuaternionGetMatrix
 	lea	iy, ix+0
@@ -119,6 +133,7 @@ Main:
 ; multiply it by the ANGLE_PER_MS and divide by 256
 	ld	bc, ANGLE_PER_MS
 ; hl * bc / 256
+	push	hl
 	call	ti._imulu
 	ex	de, hl
 	sbc	hl, hl
@@ -128,14 +143,33 @@ Main:
 	pop	de
 	ld	h, d
 	ld	l, e
+	ex	(sp), hl
+	ld	bc, DELTA_PER_MS
+	call	ti._imulu
 	ex	de, hl
+	sbc	hl, hl
+	dec	sp
+	push	de
+	inc	sp
+	pop	de
+	ld	h, d
+	ld	l, e
+	pop	de
+	push	hl
 	ld	a, ($F5001E)
 	bit	1, a
 	jr	z, .skip0
-	ld	hl, (World.euler_angle)
+	ld	hl, (World.angle_y)
 	add	hl, de
-	ld	(World.euler_angle), hl
+	ld	(World.angle_y), hl
 .skip0:
+	ld	a, ($F5001E)
+	bit	0, a
+	jr	z, .skip2
+	ld	hl, (World.angle_x)
+	add	hl, de
+	ld	(World.angle_x), hl
+.skip2:
 	or	a, a
 	sbc	hl, hl
 	sbc	hl, de
@@ -143,41 +177,53 @@ Main:
 	ld	a, ($F5001E)
 	bit	2, a
 	jr	z, .skip1
-	ld	hl, (World.euler_angle)
+	ld	hl, (World.angle_y)
 	add	hl, de
-	ld	(World.euler_angle), hl
+	ld	(World.angle_y), hl
 .skip1:
-	ld	a, ($F5001E)
-	bit	0, a
-	jr	z, .skip2
-	ld	hl, (World.matrix+12)
-	ld	de, DELTA
-	add	hl, de
-	ld	(World.matrix+12), hl
-.skip2:
-
 	ld	a, ($F5001E)
 	bit	3, a
 	jr	z, .skip3
-	ld	hl, (World.matrix+12)
-	ld	de, -DELTA
+	ld	hl, (World.angle_x)
 	add	hl, de
-	ld	(World.matrix+12), hl
+	ld	(World.angle_x), hl
 .skip3:
 ; zoom factor : Z offset of World.matrix
-	ld	hl, (World.matrix+15)
+	pop	de
 	ld	a, ($F50012)
 	bit	0,a
 	jr	z, .skip4
-	ld	de, DELTA
+	ld	hl, (World.matrix+15)
 	add	hl, de
+	ld	(World.matrix+15), hl
 .skip4:
+	or	a, a
+	sbc	hl, hl
+	sbc	hl, de
+	ex	de, hl
 	bit	4,a
 	jr	z, .skip5
-	ld	de, -DELTA
+	ld	hl, (World.matrix+15)
 	add	hl, de
-.skip5:
 	ld	(World.matrix+15), hl
+.skip5:
+	
+	bit	1,a
+	jr	z, .skip6
+	ld	hl, (World.matrix+12)
+	add	hl, de
+	ld	(World.matrix+12), hl
+.skip6:
+	or	a, a
+	sbc	hl, hl
+	sbc	hl, de
+	ex	de, hl
+	bit	3,a
+	jr	z, .skip7
+	ld	hl, (World.matrix+12)
+	add	hl, de
+	ld	(World.matrix+12), hl
+.skip7:
 	
 	ld	a, ($F5001C)
 	bit	6, a
@@ -226,8 +272,18 @@ World:
 	dl	16384, 0, 0
 .unit_vector_z:
 	dl	0, 0, 16384
-.quaternion:
-	dl	0,0,0,0
+.quaternion_y:
+	dl	0, 0, 0, 0
+.quaternion_x:
+	dl	0, 0, 0, 0
+.quaternion_z:
+	dl	0, 0, 0, 0
+.angle_x:
+	dl	0
+.angle_y:
+	dl	0
+.angle_z:
+	dl	0
 .matrix:
 	db	0, 0, 0
 	db	0, 0, 0
@@ -245,8 +301,6 @@ World:
 	db	8
 	db	64
 	dw	0,0,0
-.euler_angle:
-	dl	0,0,0
 
 Model:
 .vertex_appv:
@@ -272,7 +326,7 @@ Model:
 	dl	vxVertexShader.ftransform
 	dl	vxVertexShader.uniform
 	dl	vxPixelShader.texture
-	dl	0	
+	dl	0
 ; simple appv detect
 ; archivate the appv if not already archivated (TODO)
 .load_ressource:

@@ -86,6 +86,13 @@ assert	VX_LUT_SIN mod 2 = 0
 .sin_index_negate:
 	ld	hl, $FFC000
 	ret
+
+.sdiv256:
+	ld	a, l
+	rla
+	ld	a, h
+	adc	a, 0
+	ret
 	
 .udiv:
 ;; divide 16 bits DE by 16 bits BC and output the 16 bits BC result. HL is the remainder
