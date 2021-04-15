@@ -4,6 +4,9 @@ include	"include/ti84pceg.inc"
 
 define	VX_DEBUG_CC_INSTRUCTION
 
+define	DELTA_PER_MS	4096*256/64
+define	ANGLE_PER_MS	8*256/64
+define	DELTA		4096
 
 format	ti executable archived 'V3DFLAT'
 
@@ -23,6 +26,7 @@ Main:
 ; setup global variable for rendering, euler angle and the translation of WorldMatrix
 	ld	hl, 0
 	ld	(EulerAngle), hl
+	ld	(EulerAngle+3), hl
 	ld	hl, 512
 	ld	(LightAngle), hl
 	ld	ix, WorldMatrix
@@ -56,6 +60,14 @@ Main:
 	ld	iy, Quaternion
 	ld	ix, UnitVector
 	call	vxQuaternionRotationAxis
+	ld	hl, (EulerAngle+3)
+	ld	iy, Quaternion_y
+	ld	ix, UnitVector_y
+	call	vxQuaternionRotationAxis
+	ld	ix, Quaternion
+	ld	iy, Quaternion_y
+	call	vxQuaternionMlt
+	ld	iy, Quaternion
 	ld	ix, WorldMatrix
 	call	vxQuaternionGetMatrix
 	lea	iy, ix+0
@@ -88,7 +100,26 @@ Main:
 .wait:
 	cp	a, (hl)
 	jr	nz, .wait
-	ld	de, 8
+.independant_offset:
+; compute offset independant to frame timing
+	ld	de, (VX_TIMER_COUNTER_FR+1)
+; divide de by 187
+	ex	de, hl
+	ld	bc, 187
+	call	ti._idivu
+; multiply it by the ANGLE_PER_MS and divide by 256
+	ld	bc, ANGLE_PER_MS
+; hl * bc / 256
+	call	ti._imulu
+	ex	de, hl
+	sbc	hl, hl
+	dec	sp
+	push	de
+	inc	sp
+	pop	de
+	ld	h, d
+	ld	l, e
+	ex	de, hl
 	ld	a, ($F5001E)
 	bit	1, a
 	jr	z, .kskip
@@ -96,7 +127,17 @@ Main:
 	add	hl, de
 	ld	(EulerAngle), hl
 .kskip:
-	ld	de, -8
+	ld	a, ($F5001E)
+	bit	3, a
+	jr	z, .kskip1
+	ld	hl, (EulerAngle+3)
+	add	hl, de
+	ld	(EulerAngle+3), hl
+.kskip1:
+	or	a, a
+	sbc	hl, hl
+	sbc	hl, de
+	ex	de, hl
 	ld	a, ($F5001E)
 	bit	2, a
 	jr	z, .kskip2
@@ -106,42 +147,33 @@ Main:
 .kskip2:
 	ld	a, ($F5001E)
 	bit	0, a
-	jr	z, .kskip5
-	ld	hl, (WorldMatrix+12)
-	ld	de, 4096
+	jr	z, .kskip3
+	ld	hl, (EulerAngle+3)
 	add	hl, de
-	ld	(WorldMatrix+12), hl
-.kskip5:
+	ld	(EulerAngle+3), hl
+.kskip3:
 
-	ld	a, ($F5001E)
-	bit	3, a
-	jr	z, .kskip6
-	ld	hl, (WorldMatrix+12)
-	ld	de, -4096
-	add	hl, de
-	ld	(WorldMatrix+12), hl
-.kskip6:
 	ld	hl, (WorldMatrix+15)
 	ld	a, ($F50012)
 	bit	0,a
-	jr	z, .kskip3
+	jr	z, .kskip4
 	ld	de, 4096
 	add	hl, de
-.kskip3:
+.kskip4:
 	bit	4,a
-	jr	z, .kskip4
+	jr	z, .kskip5
 	ld	de, -4096
 	add	hl, de
-.kskip4:
+.kskip5:
 	ld	(WorldMatrix+15), hl
 	ld	a, ($F5001C)
 	bit	0, a
-	jr	z, .kskip7
+	jr	z, .kskip6
 	ld	hl, (LightAngle)
 	ld	de, 16
 	add	hl, de
 	ld	(LightAngle), hl
-.kskip7:
+.kskip6:
 	ld	a, ($F5001C)
 	bit	6, a
 	jp	z, .loop
@@ -186,7 +218,11 @@ Triangle:
 
 UnitVector:
 	dl	0,16384,0
+UnitVector_y:
+	dl	16384,0,0
 Quaternion:
+	dl	0,0,0,0
+Quaternion_y:
 	dl	0,0,0,0
 WorldMatrix:
 	dl	0,0,0,0,0,0

@@ -68,19 +68,19 @@ Main:
 
 MainLoop:
 	call	vxTimer.reset
-	
+
 	call	Camera
 	ret	nz
 	
 ; 	ld	hl, 0*256+128
 ; 	ld	de, 0*256+160
 ; 	ld	bc, 32*256+32
-; 	call	vxImageSubSwap
+; 	call	vxImage.sub_swap
 ; 	ld	hl, 128*256+128
 ; 	ld	de, 128*256+160
 ; 	ld	bc, 32*256+32
-; 	call	vxImageSubSwap
-
+; 	call	vxImage.sub_swap
+; 
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
 	ld	hl, (Vertex)

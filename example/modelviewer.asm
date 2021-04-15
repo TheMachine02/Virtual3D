@@ -2,7 +2,10 @@ include	"include/fasmg/ez80.inc"
 include	"include/fasmg/tiformat.inc"
 include	"include/ti84pceg.inc"
 
-define	DELTA	4096
+define	DELTA_PER_MS	4096*256/128
+define	ANGLE_PER_MS	8*256/128
+define	DELTA		4096
+
 define	VX_DEBUG_CC_INSTRUCTION
 
 format	ti executable archived 'V3DVIEW'
@@ -53,7 +56,8 @@ Main:
 	ld	a, 0
 	ld	(vxAnimationKey), a
 ; setup pixel shader
-	ld	ix, lightShader
+;	ld	ix, lightShader
+	ld	ix, alphaShader
 	call	vxShaderLoad
 
 .loop:
@@ -107,7 +111,24 @@ Main:
 	cp	a, (hl)
 	jr	nz, .wait
 
-	ld	de, 8
+	ld	de, (VX_TIMER_COUNTER_FR+1)
+; divide de by 187
+	ex	de, hl
+	ld	bc, 187
+	call	ti._idivu
+; multiply it by the ANGLE_PER_MS and divide by 256
+	ld	bc, ANGLE_PER_MS
+; hl * bc / 256
+	call	ti._imulu
+	ex	de, hl
+	sbc	hl, hl
+	dec	sp
+	push	de
+	inc	sp
+	pop	de
+	ld	h, d
+	ld	l, e
+	ex	de, hl
 	ld	a, ($F5001E)
 	bit	1, a
 	jr	z, .skip0
@@ -115,7 +136,10 @@ Main:
 	add	hl, de
 	ld	(World.euler_angle), hl
 .skip0:
-	ld	de, -8
+	or	a, a
+	sbc	hl, hl
+	sbc	hl, de
+	ex	de, hl
 	ld	a, ($F5001E)
 	bit	2, a
 	jr	z, .skip1
@@ -226,15 +250,15 @@ World:
 
 Model:
 .vertex_appv:
-	db	ti.AppVarObj, "TONBV",0
+	db	ti.AppVarObj, "FRANV",0
 .vertex_source:
 	dl	0
 .triangle_appv:
-	db	ti.AppVarObj, "TONBF", 0
+	db	ti.AppVarObj, "FRANF", 0
 .triangle_source:
 	dl	0
 .texture_appv:
-	db	ti.AppVarObj, "TONBT", 0
+	db	ti.AppVarObj, "FRANT", 0
 .texture_source:
 	dl	0	
 .matrix:
