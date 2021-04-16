@@ -248,12 +248,12 @@ vxVertexStream:
 	ld	(ix+VX_MATRIX_TZ), bc
 	add	hl, hl
 	add	hl, hl
-	ld	(iy-1+4), hl
+	ld	(iy-1+6), hl
 	ld	hl, (ix+VX_MATRIX_TY)
 	ld	(ix+VX_MATRIX_TY), bc
 	add	hl, hl
 	add	hl, hl
-	ld	(iy-1+2), hl
+	ld	(iy-1+3), hl
 	ld	hl, (ix+VX_MATRIX_TX)
 	ld	(ix+VX_MATRIX_TX), bc
 	add	hl, hl

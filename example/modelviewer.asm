@@ -2,8 +2,9 @@ include	"include/fasmg/ez80.inc"
 include	"include/fasmg/tiformat.inc"
 include	"include/ti84pceg.inc"
 
-define	DELTA_PER_MS	4096*256/128
-define	ANGLE_PER_MS	8*256/128
+define	DELTA_PER_MS	3072*256/128
+define	ANGLE_PER_MS	4*256/128
+define	VIEW_OPTION_PANEL	1 shl 0
 
 define	VX_DEBUG_CC_INSTRUCTION
 
@@ -42,8 +43,7 @@ Main:
 	call	vxMatrixLoadIdentity
 	ld	ix, Model.matrix
 	ld	hl, 1024
-	ld	(ix+13), l
-	ld	(ix+14), h
+	ld	(ix+VX_MATRIX_TZ), hl
 ; load the lightning
 	ld	hl, World.light
 	ld	de, vxLightUniform
@@ -56,13 +56,15 @@ Main:
 	call	vxMaterialLoad
 
 ; set animation key
-	ld	a, 0
+	xor	a, a
 	ld	(vxAnimationKey), a
 
+; set option
+	ld	(Viewframe.option), a
 ; setup pixel shader
 ;	ld	ix, gouraudShader
-;	ld	ix, lightShader
-	ld	ix, alphaShader
+	ld	ix, lightShader
+;	ld	ix, alphaShader
 	call	vxShaderLoad
 
 .loop:
@@ -73,14 +75,14 @@ Main:
 ; 	and	a, 7
 ; 	add	a, 56
 ; 	ld	(vxLightUniform+4), a
-; 	ld	hl, (World.light_angle)
-; 	call	vxMath.sin
-; 	ld	a, h
-; 	ld	(vxLightUniform), a
-; 	ld	hl, (World.light_angle)
-; 	call	vxMath.cos
-; 	ld	a, h
-; 	ld	(vxLightUniform+2), a	
+	ld	hl, (World.light_angle)
+	call	vxMath.sin
+	ld	a, h
+	ld	(vxLightUniform), a
+	ld	hl, (World.light_angle)
+	call	vxMath.cos
+	ld	a, h
+	ld	(vxLightUniform+2), a	
 ; compute model rotation
 	ld	hl, (Model.angle_y)
 	ld	iy, Model.quaternion_y
@@ -127,12 +129,20 @@ Main:
 	ld	(debug.triangle_count), hl
 
 	call	vxPrimitiveDepthSort
-	
-	call	vxFramebufferClear
+
+	ld	c, $00
+	call	vxFramebufferClearColor
+
 	call	vxPrimitiveSubmit
 
+	ld	a, (Viewframe.option)
+	bit	0, a
+	jr	z, .frame
 	call	debug.display_panel
-
+	jr	.swap
+.frame:
+	call	debug.display_frame
+.swap:
 	call	vxFramebufferSwap
 
 .keyboard:
@@ -257,6 +267,14 @@ Main:
 	ld	(World.light_angle), hl
 .skip8:
 
+	ld	a, ($F50012)
+	bit	6, a
+	jr	z, .skip9
+	ld	a, (Viewframe.option)
+	xor	a, VIEW_OPTION_PANEL
+	ld	(Viewframe.option), a
+.skip9:
+	
 	ld	a, ($F5001C)
 	bit	6, a
 	jp	z, .loop
@@ -297,6 +315,10 @@ Main:
 .random_seed:
 	rb	12
 
+Viewframe:
+.option:
+	db	0
+	
 World:
 .unit_vector_y:
 	dl	0, 16384, 0
@@ -309,34 +331,35 @@ World:
 	db	0, 0, 0
 	db	0, 0, 0
 	dl	0, 0, 0
-.posx:
-	dw	0
-.posy:
-	dw	0
-.posz:
-	dw	0
+.pos_x:
+	dl	0
+.pos_y:
+	dl	0
+.pos_z:
+	dl	0
 	rb	1
 .light:
-	db	64,0,0
-	db	4
-	db	64
-	dw	0,0,0
+	db	0,0,-64
+	db	0
+	db	96
+	db	VX_LIGHT_INFINITE
+	dl	0,0,0
 .light_angle:
 	dl	512
 	
 Model:
 .vertex_appv:
-	db	ti.AppVarObj, "FRANV",0
+	db	ti.AppVarObj, "ULTIMV",0
 ;	db	ti.AppVarObj, "SUZANV",0
 .vertex_source:
 	dl	0
 .triangle_appv:
-	db	ti.AppVarObj, "FRANF", 0
+	db	ti.AppVarObj, "ULTIMF", 0
 ;	db	ti.AppVarObj, "SUZANF",0
 .triangle_source:
 	dl	0
 .texture_appv:
-	db	ti.AppVarObj, "FRANT", 0
+	db	ti.AppVarObj, "ULTIMT", 0
 .texture_source:
 	dl	0	
 .matrix:
@@ -357,11 +380,11 @@ Model:
 .angle_z:
 	dl	0	
 .material:
-	db	VX_FORMAT_TEXTURE   ;VX_FORMAT_GOURAUD
+	db	VX_FORMAT_TEXTURE		; GOURAUD
 	dl	VX_VERTEX_BUFFER
 	dl	vxVertexShader.ftransform
 	dl	vxVertexShader.uniform
-	dl	vxPixelShader.texture
+	dl	0
 	dl	0
 ; simple appv detect
 ; archivate the appv if not already archivated (TODO)

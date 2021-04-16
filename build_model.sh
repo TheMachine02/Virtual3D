@@ -79,7 +79,7 @@ echo "Converting TonberryFFVIII.obj..."
 fasmg example/file/TonberryFFVIII0.inc bin/TONBV.8xv 
 fasmg example/file/TonberryFFVIII1.inc bin/TONBF.8xv 
 
-./tools/import  example/file/UltimeciaFFVIII.obj -C -N -S -B -X -o=ULTIM
+./tools/import  example/file/UltimeciaFFVIII.obj -T -N -S -B -X -o=ULTIM
 # -T -N -S -B -X -F -o=ULTIM
 fasmg example/file/UltimeciaFFVIII0.inc bin/ULTIMV.8xv 
 fasmg example/file/UltimeciaFFVIII1.inc bin/ULTIMF.8xv 

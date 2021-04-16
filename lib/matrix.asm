@@ -386,7 +386,6 @@ vxMatrixLightLoop:
 	call	vxfTransform
 ; now copy back to my light !
 ; I need to divide the position by 64
-	
 	ld	hl, (vxPosition)
 	add	hl, hl
 	add	hl, hl
@@ -504,7 +503,7 @@ vxfTransform:
 	add	hl, bc
 	add	hl, de
 	ld	a, (ix+1)
-	ld	bc, (iy+2)
+	ld	bc, (iy+3)
 	ex	de, hl
 	ld	h, b
 	ld	l, a
@@ -530,7 +529,7 @@ vxfTransform:
 	add	hl, bc
 	add	hl, de
 	ld	a, (ix+2)
-	ld	bc, (iy+4)
+	ld	bc, (iy+6)
 	ld	d, c
 	ld	e, a
 	mlt	de
@@ -585,7 +584,7 @@ vxfTransform:
 	add	hl, bc
 	add	hl, de
 	ld	a, (ix+4)
-	ld	bc, (iy+2)
+	ld	bc, (iy+3)
 	ex	de, hl
 	ld	h, b
 	ld	l, a
@@ -666,7 +665,7 @@ vxfTransform:
 	add	hl, bc
 	add	hl, de
 	ld	a, (ix+7)
-	ld	bc, (iy+2)
+	ld	bc, (iy+3)
 	ex	de, hl
 	ld	h, b
 	ld	l, a
@@ -692,7 +691,7 @@ vxfTransform:
 	add	hl, bc
 	add	hl, de
 	ld	a, (ix+8)
-	ld	bc, (iy+4)
+	ld	bc, (iy+6)
 	ld	d, c
 	ld	e, a
 	mlt	de
@@ -722,65 +721,65 @@ vxfTransform:
 	ld	(vxPosition+6), hl
 	ret
 
-vxMatrixLookAt:
-; zaxis = normal(At - Eye)
-; xaxis = normal(cross(Up, zaxis))
-; yaxis = cross(zaxis, xaxis)
-; xaxis.x           xaxis.y           xaxis.z          0
-; yaxis.x           yaxis.y           yaxis.z          0
-; zaxis.x           zaxis.y           zaxis.z          0
-;-dot(xaxis, eye)  -dot(yaxis, eye)  -dot(zaxis, eye)  l
-; ix is eye, iy is At, bc is Up
-	ld	de, (ix+VX_VECTOR_WX)
-	ld	hl, (iy+VX_VECTOR_WX)
-	or	a, a
-	sbc	hl, de
-	ld	(vxTmpVector+VX_VECTOR_WX), hl
-
-	ld	de, (ix+VX_VECTOR_WY)
-	ld	hl, (iy+VX_VECTOR_WY)
-	or	a, a
-	sbc	hl, de
-	ld	(vxTmpVector+VX_VECTOR_WY), hl
-
-	ld	de, (ix+VX_VECTOR_WZ)
-	ld	hl, (iy+VX_VECTOR_WZ)
-	or	a, a
-	sbc	hl, de
-	ld	(vxTmpVector+VX_VECTOR_WZ), hl
-
-	ld	iy, vxTmpVector
-	ld	hl, vxLookAtMatrix+VX_MATRIX_C6
-	call	vxNormalize
-
-	push	ix
-	push	bc
-	pop	ix
-	ld	iy, vxLookAtMatrix+VX_MATRIX_C6
-	ld	hl, vxLookAtMatrix+VX_MATRIX_C0
-	call	vxCrossProduct
-
-	ld	ix, vxLookAtMatrix+VX_MATRIX_C6
-	ld	iy, vxLookAtMatrix+VX_MATRIX_C0
-	ld	hl, vxLookAtMatrix+VX_MATRIX_C3
-	call	vxCrossProduct
-	pop	iy
-	ld	ix, vxLookAtMatrix
-	call	vxfTransform
-; here we copy negated value to translation part of the matrix
-	ld	de, (vxPosition+VX_VECTOR_LX)
-	or	a, a
-	sbc hl,hl
-	sbc hl, de
-	ld	(ix+VX_MATRIX_TX), hl
-	ld	de, (vxPosition+VX_VECTOR_LY)
-	or	a, a
-	sbc hl,hl
-	sbc hl, de
-	ld	(ix+VX_MATRIX_TY), hl
-	ld	de, (vxPosition+VX_VECTOR_LZ)
-	or	a, a
-	sbc hl,hl
-	sbc hl, de
-	ld	(ix+VX_MATRIX_TZ), hl
-	ret
+; vxMatrixLookAt:
+; ; zaxis = normal(At - Eye)
+; ; xaxis = normal(cross(Up, zaxis))
+; ; yaxis = cross(zaxis, xaxis)
+; ; xaxis.x           xaxis.y           xaxis.z          0
+; ; yaxis.x           yaxis.y           yaxis.z          0
+; ; zaxis.x           zaxis.y           zaxis.z          0
+; ;-dot(xaxis, eye)  -dot(yaxis, eye)  -dot(zaxis, eye)  l
+; ; ix is eye, iy is At, bc is Up
+; 	ld	de, (ix+VX_VECTOR_WX)
+; 	ld	hl, (iy+VX_VECTOR_WX)
+; 	or	a, a
+; 	sbc	hl, de
+; 	ld	(vxTmpVector+VX_VECTOR_WX), hl
+; 
+; 	ld	de, (ix+VX_VECTOR_WY)
+; 	ld	hl, (iy+VX_VECTOR_WY)
+; 	or	a, a
+; 	sbc	hl, de
+; 	ld	(vxTmpVector+VX_VECTOR_WY), hl
+; 
+; 	ld	de, (ix+VX_VECTOR_WZ)
+; 	ld	hl, (iy+VX_VECTOR_WZ)
+; 	or	a, a
+; 	sbc	hl, de
+; 	ld	(vxTmpVector+VX_VECTOR_WZ), hl
+; 
+; 	ld	iy, vxTmpVector
+; 	ld	hl, vxLookAtMatrix+VX_MATRIX_C6
+; 	call	vxNormalize
+; 
+; 	push	ix
+; 	push	bc
+; 	pop	ix
+; 	ld	iy, vxLookAtMatrix+VX_MATRIX_C6
+; 	ld	hl, vxLookAtMatrix+VX_MATRIX_C0
+; 	call	vxCrossProduct
+; 
+; 	ld	ix, vxLookAtMatrix+VX_MATRIX_C6
+; 	ld	iy, vxLookAtMatrix+VX_MATRIX_C0
+; 	ld	hl, vxLookAtMatrix+VX_MATRIX_C3
+; 	call	vxCrossProduct
+; 	pop	iy
+; 	ld	ix, vxLookAtMatrix
+; 	call	vxfTransform
+; ; here we copy negated value to translation part of the matrix
+; 	ld	de, (vxPosition+VX_VECTOR_LX)
+; 	or	a, a
+; 	sbc hl,hl
+; 	sbc hl, de
+; 	ld	(ix+VX_MATRIX_TX), hl
+; 	ld	de, (vxPosition+VX_VECTOR_LY)
+; 	or	a, a
+; 	sbc hl,hl
+; 	sbc hl, de
+; 	ld	(ix+VX_MATRIX_TY), hl
+; 	ld	de, (vxPosition+VX_VECTOR_LZ)
+; 	or	a, a
+; 	sbc hl,hl
+; 	sbc hl, de
+; 	ld	(ix+VX_MATRIX_TZ), hl
+; 	ret
