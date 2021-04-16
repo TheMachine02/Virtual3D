@@ -2,7 +2,7 @@
 # Material Count: 4
 
 newmtl c1006_00_001_001
-Ns 96.078431
+Ns 96.078443
 Ka 1.000000 1.000000 1.000000
 Kd 0.640000 0.640000 0.640000
 Ks 0.031250 0.031250 0.031250
@@ -10,10 +10,10 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd C:\Users\Zeromus\Documents\ez80project\fran.png
+map_Kd C:/Users/Zeromus/Documents/ez80project/fran.png
 
 newmtl c1006_01_001_001
-Ns 96.078431
+Ns 96.078443
 Ka 1.000000 1.000000 1.000000
 Kd 0.640000 0.640000 0.640000
 Ks 0.031250 0.031250 0.031250
@@ -21,10 +21,10 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd C:\Users\Zeromus\Documents\ez80project\fran.png
+map_Kd C:/Users/Zeromus/Documents/ez80project/fran.png
 
 newmtl c1006_02_001_001
-Ns 96.078431
+Ns 96.078443
 Ka 1.000000 1.000000 1.000000
 Kd 0.640000 0.640000 0.640000
 Ks 0.031250 0.031250 0.031250
@@ -32,10 +32,10 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd C:\Users\Zeromus\Documents\ez80project\fran.png
+map_Kd C:/Users/Zeromus/Documents/ez80project/fran.png
 
 newmtl c1006_03_001_001
-Ns 96.078431
+Ns 96.078443
 Ka 1.000000 1.000000 1.000000
 Kd 0.640000 0.640000 0.640000
 Ks 0.031250 0.031250 0.031250
@@ -43,4 +43,4 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.000000
 d 1.000000
 illum 2
-map_Kd C:\Users\Zeromus\Documents\ez80project\fran.png
+map_Kd C:/Users/Zeromus/Documents/ez80project/fran.png

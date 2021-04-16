@@ -48,16 +48,19 @@ vxModelViewCache:
  db	0,0,0
  db	0,0,0
  db	0,0,0
+vxModelViewCache_t:
  dl	0,0,0
 vxModelWorld:
  db	0,0,0
  db	0,0,0
  db	0,0,0
+vxModelWorld_t:
  dl	0,0,0
 vxTModelWorld:
  db	0,0,0
  db	0,0,0
  db	0,0,0
+vxTModelWorld_t:
  dl	0,0,0
 vxLightUniform:
  db	0,0,0
@@ -70,13 +73,14 @@ vxTexturePage:
 vxPosition:
  dl	0,0,0
  db	0
-vxWorldEye:
+vxView_t:
  dl	0,0,0
  db	0
 vxModelView:
  db    0,0,0
  db    0,0,0
  db    0,0,0
+vxModelView_t:
  dl    0,0,0
 vxLight:
  db    0,0,0
@@ -87,8 +91,18 @@ vxModelViewReverse:
  db	0,0,0
  db	0,0,0
  dl	0,0,0
-vxDepthSortTemp:=$E30014
-
+vxIdentityMatrix:
+ db	64,0,0
+ db	0,64,0
+ db	0,0,64
+ dl	0,0,0
+vxProjectionMatrix:
+ db	48,0,0
+ db	0,64,0
+ db	0,0,64
+vxProjectionMatrix_t:
+ dl	0,0,0
+ 
 vxPrimitiveSubmit:
 .reset:
 ; various reset blahblah
@@ -220,7 +234,7 @@ vxVertexStream:
 	ld	de, vxModelView
 	ld	bc, VX_MATRIX_SIZE
 	ldir
-; modelViewReverseTranslate = modelViewTranslate * transpose(modelview)
+; modelViewReverseTranslate = -modelViewTranslate * transpose(modelview)
 ; equivalent to eye position in modelspace
 	push	iy
 	ld	hl, vxModelView
@@ -229,7 +243,7 @@ vxVertexStream:
 	ldir
 	ld	ix, vxModelViewReverse
 	call	vxMatrixTranspose
-	ld	iy, vxWorldEye
+	ld	iy, vxView_t
 	ld	hl, (ix+VX_MATRIX_TZ)
 	ld	(ix+VX_MATRIX_TZ), bc
 	add	hl, hl
@@ -246,7 +260,7 @@ vxVertexStream:
 	add	hl, hl
 	ld	(iy-1), hl
 	call	vxfTransform
-	ld	de, vxWorldEye
+	ld	de, vxView_t
 	call	vxfPositionExtract
 	pop	hl
 ; modelworld=modelworld0

@@ -54,13 +54,13 @@ vxPrimitiveAssembly:
 ; now the view vector
 ; we'll need to generate actual LUT table for bc * a (signed)
 ; bc is know is advance, but we have 3 table for -64 to 64
-	ld	de, (vxWorldEye)
+	ld	de, (vxView_t)
 	ld	hl, VX_VIEW_MLTX + VX_VIEW_MLT_OFFSET - 1
 	call	.view_mlt
-	ld	de, (vxWorldEye+3)
+	ld	de, (vxView_t+3)
 	ld	hl, VX_VIEW_MLTY + VX_VIEW_MLT_OFFSET - 1
 	call	.view_mlt
-	ld	de, (vxWorldEye+6)
+	ld	de, (vxView_t+6)
 	ld	hl, VX_VIEW_MLTZ + VX_VIEW_MLT_OFFSET - 1
 	call	.view_mlt
 	ld	hl, VX_VIEW_MLTX

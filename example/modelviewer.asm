@@ -4,13 +4,13 @@ include	"include/ti84pceg.inc"
 
 define	DELTA_PER_MS	4096*256/128
 define	ANGLE_PER_MS	8*256/128
-define	DELTA		4096
 
 define	VX_DEBUG_CC_INSTRUCTION
 
 format	ti executable archived 'V3DVIEW'
 
 Main:
+.init:
 	ld	hl, Model.vertex_appv
 	call	Model.load_ressource
 	ret	c
@@ -25,7 +25,7 @@ Main:
 	call	Model.load_ressource
 	ret	c
 	ld	(Model.texture_source), hl
-
+	
 ; init the virtual 3d library
 	call	vxEngineInit
 	ret	c		; quit if error at init
@@ -36,64 +36,82 @@ Main:
 	call	vxImage.copy
 
 ; setup global variable for rendering, euler angle and the translation of World.matrix
-	ld	hl, 0
-	ld	(World.angle_y), hl
-	ld	ix, World.matrix
-	lea	hl, ix+0
+	ld	hl, Model.matrix
 	call	vxMatrixLoadIdentity
-	ld	hl, 65536
-	ld	(ix+15), hl		; Z translation of the matrix
+	ld	hl, World.matrix
+	call	vxMatrixLoadIdentity
+	ld	ix, Model.matrix
+	ld	hl, 1024
+	ld	(ix+13), l
+	ld	(ix+14), h
 ; load the lightning
 	ld	hl, World.light
 	ld	de, vxLightUniform
 	ld	bc, VX_LIGHT_SIZE
 	ldir
+
 ; load the model material as MATERIAL0	
 	ld	hl, Model.material
 	ld	a, VX_MATERIAL0
 	call	vxMaterialLoad
+
 ; set animation key
 	ld	a, 0
 	ld	(vxAnimationKey), a
+
 ; setup pixel shader
+;	ld	ix, gouraudShader
 ;	ld	ix, lightShader
 	ld	ix, alphaShader
 	call	vxShaderLoad
 
 .loop:
 	call	vxTimer.reset
-
-	call	.random
-	ld	a, l
-	and	a, 7
-	add	a, 56
-	ld	(vxLightUniform+4), a
-
-	ld	hl, (World.angle_y)
-	ld	iy, World.quaternion_y
+; lightning effect
+; 	call	.random
+; 	ld	a, l
+; 	and	a, 7
+; 	add	a, 56
+; 	ld	(vxLightUniform+4), a
+; 	ld	hl, (World.light_angle)
+; 	call	vxMath.sin
+; 	ld	a, h
+; 	ld	(vxLightUniform), a
+; 	ld	hl, (World.light_angle)
+; 	call	vxMath.cos
+; 	ld	a, h
+; 	ld	(vxLightUniform+2), a	
+; compute model rotation
+	ld	hl, (Model.angle_y)
+	ld	iy, Model.quaternion_y
 	ld	ix, World.unit_vector_y
 	call	vxQuaternionRotationAxis
-	ld	hl, (World.angle_x)
-	ld	iy, World.quaternion_x
+	ld	hl, (Model.angle_x)
+	ld	iy, Model.quaternion_x
 	ld	ix, World.unit_vector_x
 	call	vxQuaternionRotationAxis
-	ld	hl, (World.angle_z)
-	ld	iy, World.quaternion_z
+	ld	hl, (Model.angle_z)
+	ld	iy, Model.quaternion_z
 	ld	ix, World.unit_vector_z
 	call	vxQuaternionRotationAxis
-	ld	ix, World.quaternion_x
-	ld	iy, World.quaternion_y
+	ld	ix, Model.quaternion_x
+	ld	iy, Model.quaternion_y
 	call	vxQuaternionMlt
-	ld	iy, World.quaternion_z
+	ld	iy, Model.quaternion_z
 	call	vxQuaternionMlt
-	ld	iy, World.quaternion_x
-	ld	ix, World.matrix
+	ld	iy, Model.quaternion_x
+	ld	ix, Model.matrix
 	call	vxQuaternionGetMatrix
-	lea	iy, ix+0
-	ld	ix, vxProjectionMatrix
-	ld	hl, World.matrix
-	call	vxMatrixMlt
-
+; 	lea	iy, ix+0
+; 	ld	ix, vxProjectionMatrix
+; 	ld	hl, World.matrix
+; 	call	vxMatrixMlt
+; TODO : remove this quick hack
+	ld	hl, vxProjectionMatrix
+	ld	de, World.matrix
+	ld	bc, 9
+	ldir
+	
 	ld	ix, World.matrix
 	ld	iy, Model.matrix
 	ld	hl, (Model.vertex_source)
@@ -143,10 +161,13 @@ Main:
 	pop	de
 	ld	h, d
 	ld	l, e
+; min = 1
+	inc	hl
 	ex	(sp), hl
 	ld	bc, DELTA_PER_MS
 	call	ti._imulu
 	ex	de, hl
+	or	a, a
 	sbc	hl, hl
 	dec	sp
 	push	de
@@ -154,21 +175,23 @@ Main:
 	pop	de
 	ld	h, d
 	ld	l, e
+; min = 1
+	inc	hl
 	pop	de
 	push	hl
 	ld	a, ($F5001E)
 	bit	1, a
 	jr	z, .skip0
-	ld	hl, (World.angle_y)
+	ld	hl, (Model.angle_y)
 	add	hl, de
-	ld	(World.angle_y), hl
+	ld	(Model.angle_y), hl
 .skip0:
 	ld	a, ($F5001E)
 	bit	0, a
 	jr	z, .skip2
-	ld	hl, (World.angle_x)
+	ld	hl, (Model.angle_x)
 	add	hl, de
-	ld	(World.angle_x), hl
+	ld	(Model.angle_x), hl
 .skip2:
 	or	a, a
 	sbc	hl, hl
@@ -177,16 +200,16 @@ Main:
 	ld	a, ($F5001E)
 	bit	2, a
 	jr	z, .skip1
-	ld	hl, (World.angle_y)
+	ld	hl, (Model.angle_y)
 	add	hl, de
-	ld	(World.angle_y), hl
+	ld	(Model.angle_y), hl
 .skip1:
 	ld	a, ($F5001E)
 	bit	3, a
 	jr	z, .skip3
-	ld	hl, (World.angle_x)
+	ld	hl, (Model.angle_x)
 	add	hl, de
-	ld	(World.angle_x), hl
+	ld	(Model.angle_x), hl
 .skip3:
 ; zoom factor : Z offset of World.matrix
 	pop	de
@@ -224,7 +247,16 @@ Main:
 	add	hl, de
 	ld	(World.matrix+12), hl
 .skip7:
-	
+
+	ld	a, ($F5001C)
+	bit	0, a
+	jr	z, .skip8
+	ld	hl, (World.light_angle)
+	ld	de, 16
+	add	hl, de
+	ld	(World.light_angle), hl
+.skip8:
+
 	ld	a, ($F5001C)
 	bit	6, a
 	jp	z, .loop
@@ -272,18 +304,6 @@ World:
 	dl	16384, 0, 0
 .unit_vector_z:
 	dl	0, 0, 16384
-.quaternion_y:
-	dl	0, 0, 0, 0
-.quaternion_x:
-	dl	0, 0, 0, 0
-.quaternion_z:
-	dl	0, 0, 0, 0
-.angle_x:
-	dl	0
-.angle_y:
-	dl	0
-.angle_z:
-	dl	0
 .matrix:
 	db	0, 0, 0
 	db	0, 0, 0
@@ -297,18 +317,22 @@ World:
 	dw	0
 	rb	1
 .light:
-	db	0,0,-64
-	db	8
+	db	64,0,0
+	db	4
 	db	64
 	dw	0,0,0
-
+.light_angle:
+	dl	512
+	
 Model:
 .vertex_appv:
 	db	ti.AppVarObj, "FRANV",0
+;	db	ti.AppVarObj, "SUZANV",0
 .vertex_source:
 	dl	0
 .triangle_appv:
 	db	ti.AppVarObj, "FRANF", 0
+;	db	ti.AppVarObj, "SUZANF",0
 .triangle_source:
 	dl	0
 .texture_appv:
@@ -319,9 +343,21 @@ Model:
 	db	64,0,0
 	db	0,64,0
 	db	0,0,64
-	dw	0,0,0
+	dl	0,0,0
+.quaternion_y:
+	dl	0, 0, 0, 0
+.quaternion_x:
+	dl	0, 0, 0, 0
+.quaternion_z:
+	dl	0, 0, 0, 0
+.angle_x:
+	dl	0
+.angle_y:
+	dl	0
+.angle_z:
+	dl	0	
 .material:
-	db	VX_FORMAT_TEXTURE
+	db	VX_FORMAT_TEXTURE   ;VX_FORMAT_GOURAUD
 	dl	VX_VERTEX_BUFFER
 	dl	vxVertexShader.ftransform
 	dl	vxVertexShader.uniform
