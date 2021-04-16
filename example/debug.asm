@@ -92,11 +92,10 @@ debug:
 	call	vxTimer.read
 	ld	(.tmp), de
 	ld	(.tmp+3), a
-	ld	de, (.tmp+1)
+	ld	hl, (.tmp+1)
 ; divide de by 187
-	ex	de, hl
 	ld	bc, 187
-	jp	__idivs
+	jp	ti._idivu
 
 ; bc : string, hl : position, de : counter
 .display_timer:

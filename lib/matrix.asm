@@ -336,17 +336,18 @@ vxMatrixTransform:
 	ret
 
 vxMatrixTranspose:
-; 160 TStates + translation		; registers de, hl & condition flags altered
-	ld	h, (ix+VX_MATRIX_C2)
-	ld	e, (ix+VX_MATRIX_C3)
-	ld	d, (ix+VX_MATRIX_C6)
-	ld	l, (ix+VX_MATRIX_C7)
-	ld	(ix+VX_MATRIX_C1), de
-	ld	(ix+VX_MATRIX_C5), hl
-	ld	d, (ix+VX_MATRIX_C1)
-	ld	e, (ix+VX_MATRIX_C5)
-	ld	(ix+VX_MATRIX_C3), d
-	ld	(ix+VX_MATRIX_C7), e
+	ld	c, (ix+VX_MATRIX_C3)
+	ld	a, (ix+VX_MATRIX_C1)
+	ld	(ix+VX_MATRIX_C3), a
+	ld	(ix+VX_MATRIX_C1), c
+	ld	c, (ix+VX_MATRIX_C6)
+	ld	a, (ix+VX_MATRIX_C2)
+	ld	(ix+VX_MATRIX_C6), a
+	ld	(ix+VX_MATRIX_C2), c
+	ld	c, (ix+VX_MATRIX_C7)
+	ld	a, (ix+VX_MATRIX_C5)
+	ld	(ix+VX_MATRIX_C7), a
+	ld	(ix+VX_MATRIX_C5), c
 	ld	de, (ix+VX_MATRIX_TX)
 	or	a, a
 	sbc	hl, hl

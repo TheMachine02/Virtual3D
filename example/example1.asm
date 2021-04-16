@@ -185,22 +185,22 @@ Main:
 	ld	(WorldMatrix+15), hl
 .skip5:
 	
-; 	bit	1,a
-; 	jr	z, .skip6
-; 	ld	hl, (WorldMatrix+12)
-; 	add	hl, de
-; 	ld	(WorldMatrix+12), hl
-; .skip6:
-; 	or	a, a
-; 	sbc	hl, hl
-; 	sbc	hl, de
-; 	ex	de, hl
-; 	bit	3,a
-; 	jr	z, .skip7
-; 	ld	hl, (WorldMatrix+12)
-; 	add	hl, de
-; 	ld	(WorldMatrix+12), hl
-; .skip7:	
+	bit	1,a
+	jr	z, .skip6
+	ld	hl, (WorldMatrix+12)
+	add	hl, de
+	ld	(WorldMatrix+12), hl
+.skip6:
+	or	a, a
+	sbc	hl, hl
+	sbc	hl, de
+	ex	de, hl
+	bit	3,a
+	jr	z, .skip7
+	ld	hl, (WorldMatrix+12)
+	add	hl, de
+	ld	(WorldMatrix+12), hl
+.skip7:	
 	ld	a, ($F5001C)
 	bit	0, a
 	jr	z, .skip8
