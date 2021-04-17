@@ -90,6 +90,7 @@ vxModelViewReverse:
  db	0,0,0
  db	0,0,0
  db	0,0,0
+vxModelViewReverse_t:
  dl	0,0,0
 vxIdentityMatrix:
  db	64,0,0
@@ -97,8 +98,8 @@ vxIdentityMatrix:
  db	0,0,64
  dl	0,0,0
 vxProjectionMatrix:
- db	48,0,0
- db	0,64,0
+ db	56,0,0
+ db	0,75,0
  db	0,0,64
 vxProjectionMatrix_t:
  dl	0,0,0
@@ -242,25 +243,17 @@ vxVertexStream:
 	ld	bc, VX_MATRIX_SIZE
 	ldir
 	ld	ix, vxModelViewReverse
-	call	vxMatrixTranspose
 	ld	iy, vxView_t
-	ld	hl, (ix+VX_MATRIX_TZ)
+	call	vxMatrixTranspose
+	lea	hl, ix+VX_MATRIX_TX
+	lea	de, iy+0
+	ld	bc, 9
+	ldir	
 	ld	(ix+VX_MATRIX_TZ), bc
-	add	hl, hl
-	add	hl, hl
-	ld	(iy-1+6), hl
-	ld	hl, (ix+VX_MATRIX_TY)
 	ld	(ix+VX_MATRIX_TY), bc
-	add	hl, hl
-	add	hl, hl
-	ld	(iy-1+3), hl
-	ld	hl, (ix+VX_MATRIX_TX)
 	ld	(ix+VX_MATRIX_TX), bc
-	add	hl, hl
-	add	hl, hl
-	ld	(iy-1), hl
-	call	vxfTransform
-	ld	de, vxView_t
+	call	vxfTransformDouble
+	lea	de, iy+0
 	call	vxfPositionExtract
 	pop	hl
 ; modelworld=modelworld0
@@ -279,6 +272,10 @@ vxVertexStream:
 	ld	hl, vxLight
 	ld	iy, vxLightUniform
 	call	vxMatrixLightning
+	ld	iy, vxModelView
+	ld	ix, vxProjectionMatrix
+	ld	hl, vxModelView
+	call	vxMatrixTransform
 ; load up shader data
 	ld	ix, (vxPrimitiveMaterial)
 	ld	hl, (ix+VX_MATERIAL_VERTEX_UNIFORM)

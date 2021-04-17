@@ -405,10 +405,6 @@ _kskip2:
 	call	vxQuaternionRotationAxis
 	ld	ix, WorldMatrix
 	call	vxQuaternionGetMatrix
-; 	ld	iy, WorldMatrix
-; 	ld	ix, vxProjectionMatrix
-; 	ld	hl, WorldMatrix
-; 	call	vxMatrixMlt
 
 	ld	a, ($F5001E)
 	bit	0, a

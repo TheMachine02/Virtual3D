@@ -305,11 +305,11 @@ vxMatrixScale:
 	
 vxMatrixTransform:
 ; (hl) = (iy)*(ix) with translation
-; iy is a animation matrix, ix is a world matrix, hl is world matrix
+; iy is a matrix, ix is a matrix, hl is matrix
 	push	hl
 ; load up the translation of matrix
 	lea	iy, iy+VX_MATRIX_TX
-	call	vxfTransform
+	call	vxfTransformDouble
 	lea	iy, iy-VX_MATRIX_TX
 	pop	hl
 	call	vxMatrixMlt
@@ -467,7 +467,14 @@ vxfPositionExtract:
 	inc	hl
 	ld	(hl), a
 	ret
-	
+
+vxfTransformDouble:
+	lea	hl, iy+0
+	ld	de, vxPosition
+	ld	bc, 9
+	ldir
+	lea	de, iy+0
+	call	vxfPositionExtract
 vxfTransform:
 ; input : iy vector, ix matrix
 ; [ix+0]*[iy]+[ix+1]*[iy+2]+[ix+2]*[iy+4]+[ix+9]=x

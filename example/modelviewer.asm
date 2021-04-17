@@ -41,8 +41,8 @@ Main:
 	call	vxMatrixLoadIdentity
 	ld	hl, World.matrix
 	call	vxMatrixLoadIdentity
-	ld	ix, Model.matrix
-	ld	hl, 1024
+	ld	ix, World.matrix
+	ld	hl, 512*64
 	ld	(ix+VX_MATRIX_TZ), hl
 ; load the lightning
 	ld	hl, World.light
@@ -84,35 +84,26 @@ Main:
 	ld	a, h
 	ld	(vxLightUniform+2), a	
 ; compute model rotation
-	ld	hl, (Model.angle_y)
-	ld	iy, Model.quaternion_y
+	ld	hl, (World.angle_y)
+	ld	iy, World.quaternion_y
 	ld	ix, World.unit_vector_y
 	call	vxQuaternionRotationAxis
-	ld	hl, (Model.angle_x)
-	ld	iy, Model.quaternion_x
+	ld	hl, (World.angle_x)
+	ld	iy, World.quaternion_x
 	ld	ix, World.unit_vector_x
 	call	vxQuaternionRotationAxis
-	ld	hl, (Model.angle_z)
-	ld	iy, Model.quaternion_z
+	ld	hl, (World.angle_z)
+	ld	iy, World.quaternion_z
 	ld	ix, World.unit_vector_z
 	call	vxQuaternionRotationAxis
-	ld	ix, Model.quaternion_x
-	ld	iy, Model.quaternion_y
+	ld	ix, World.quaternion_x
+	ld	iy, World.quaternion_y
 	call	vxQuaternionMlt
-	ld	iy, Model.quaternion_z
+	ld	iy, World.quaternion_z
 	call	vxQuaternionMlt
-	ld	iy, Model.quaternion_x
-	ld	ix, Model.matrix
+	ld	iy, World.quaternion_x
+	ld	ix, World.matrix
 	call	vxQuaternionGetMatrix
-; 	lea	iy, ix+0
-; 	ld	ix, vxProjectionMatrix
-; 	ld	hl, World.matrix
-; 	call	vxMatrixMlt
-; TODO : remove this quick hack
-	ld	hl, vxProjectionMatrix
-	ld	de, World.matrix
-	ld	bc, 9
-	ldir
 	
 	ld	ix, World.matrix
 	ld	iy, Model.matrix
@@ -192,16 +183,16 @@ Main:
 	ld	a, ($F5001E)
 	bit	1, a
 	jr	z, .skip0
-	ld	hl, (Model.angle_y)
+	ld	hl, (World.angle_y)
 	add	hl, de
-	ld	(Model.angle_y), hl
+	ld	(World.angle_y), hl
 .skip0:
 	ld	a, ($F5001E)
 	bit	0, a
 	jr	z, .skip2
-	ld	hl, (Model.angle_x)
+	ld	hl, (World.angle_x)
 	add	hl, de
-	ld	(Model.angle_x), hl
+	ld	(World.angle_x), hl
 .skip2:
 	or	a, a
 	sbc	hl, hl
@@ -210,16 +201,16 @@ Main:
 	ld	a, ($F5001E)
 	bit	2, a
 	jr	z, .skip1
-	ld	hl, (Model.angle_y)
+	ld	hl, (World.angle_y)
 	add	hl, de
-	ld	(Model.angle_y), hl
+	ld	(World.angle_y), hl
 .skip1:
 	ld	a, ($F5001E)
 	bit	3, a
 	jr	z, .skip3
-	ld	hl, (Model.angle_x)
+	ld	hl, (World.angle_x)
 	add	hl, de
-	ld	(Model.angle_x), hl
+	ld	(World.angle_x), hl
 .skip3:
 ; zoom factor : Z offset of World.matrix
 	pop	de
@@ -320,6 +311,18 @@ Viewframe:
 	db	0
 	
 World:
+.quaternion_y:
+	dl	0, 0, 0, 0
+.quaternion_x:
+	dl	0, 0, 0, 0
+.quaternion_z:
+	dl	0, 0, 0, 0
+.angle_x:
+	dl	0
+.angle_y:
+	dl	0
+.angle_z:
+	dl	0
 .unit_vector_y:
 	dl	0, 16384, 0
 .unit_vector_x:
@@ -367,18 +370,6 @@ Model:
 	db	0,64,0
 	db	0,0,64
 	dl	0,0,0
-.quaternion_y:
-	dl	0, 0, 0, 0
-.quaternion_x:
-	dl	0, 0, 0, 0
-.quaternion_z:
-	dl	0, 0, 0, 0
-.angle_x:
-	dl	0
-.angle_y:
-	dl	0
-.angle_z:
-	dl	0	
 .material:
 	db	VX_FORMAT_TEXTURE		; GOURAUD
 	dl	VX_VERTEX_BUFFER
