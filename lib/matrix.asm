@@ -326,19 +326,16 @@ vxMatrixTransform:
 	ret
 
 vxMatrixTranspose:
-	ld	c, (ix+VX_MATRIX_C3)
 	ld	a, (ix+VX_MATRIX_C1)
+	ld	h, (ix+VX_MATRIX_C2)
+	ld	e, (ix+VX_MATRIX_C3)
+	ld	c, (ix+VX_MATRIX_C5)
+	ld	d, (ix+VX_MATRIX_C6)
+	ld	l, (ix+VX_MATRIX_C7)
+	ld	(ix+VX_MATRIX_C1), de
 	ld	(ix+VX_MATRIX_C3), a
-	ld	(ix+VX_MATRIX_C1), c
-	ld	c, (ix+VX_MATRIX_C6)
-	ld	a, (ix+VX_MATRIX_C2)
-	ld	(ix+VX_MATRIX_C6), a
-	ld	(ix+VX_MATRIX_C2), c
-	ld	c, (ix+VX_MATRIX_C7)
-	ld	a, (ix+VX_MATRIX_C5)
-	ld	(ix+VX_MATRIX_C7), a
-	ld	(ix+VX_MATRIX_C5), c
-	ld	de, (ix+VX_MATRIX_TX)
+	ld	(ix+VX_MATRIX_C5), hl
+	ld	(ix+VX_MATRIX_C7), c
 	or	a, a
 	sbc	hl, hl
 	sbc	hl, de
