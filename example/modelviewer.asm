@@ -2,8 +2,8 @@ include	"include/fasmg/ez80.inc"
 include	"include/fasmg/tiformat.inc"
 include	"include/ti84pceg.inc"
 
-define	DELTA_PER_MS	3072*256/128
-define	ANGLE_PER_MS	8*256/128
+define	DELTA_PER_MS	2048*256/128
+define	ANGLE_PER_MS	4*256/128
 define	VIEW_OPTION_PANEL	1 shl 0
 
 define	VX_DEBUG_CC_INSTRUCTION
@@ -62,8 +62,8 @@ Main:
 ; set option
 	ld	(Viewframe.option), a
 ; setup pixel shader
-	ld	ix, gouraudShader
-;	ld	ix, lightShader
+;	ld	ix, gouraudShader
+	ld	ix, lightShader
 ;	ld	ix, alphaShader
 	call	vxShaderLoad
 
@@ -352,17 +352,17 @@ World:
 	
 Model:
 .vertex_appv:
-;	db	ti.AppVarObj, "ULTIMV",0
-	db	ti.AppVarObj, "SUZANV",0
+	db	ti.AppVarObj, "MATEUSV",0
+;	db	ti.AppVarObj, "SUZANV",0
 .vertex_source:
 	dl	0
 .triangle_appv:
-;	db	ti.AppVarObj, "ULTIMF", 0
-	db	ti.AppVarObj, "SUZANF",0
+	db	ti.AppVarObj, "MATEUSF", 0
+;	db	ti.AppVarObj, "SUZANF",0
 .triangle_source:
 	dl	0
 .texture_appv:
-	db	ti.AppVarObj, "ULTIMT", 0
+	db	ti.AppVarObj, "MATEUST", 0
 .texture_source:
 	dl	0	
 .matrix:
@@ -371,7 +371,7 @@ Model:
 	db	0,0,64
 	dl	0,0,0
 .material:
-	db	VX_FORMAT_GOURAUD	;VX_FORMAT_TEXTURE
+	db	VX_FORMAT_TEXTURE	;VX_FORMAT_GOURAUD
 	dl	VX_VERTEX_BUFFER
 	dl	vxVertexShader.ftransform
 	dl	vxVertexShader.uniform

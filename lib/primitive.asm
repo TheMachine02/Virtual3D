@@ -153,7 +153,7 @@ relocate VX_PRIMITIVE_INTERPOLATION_CODE
 .triangle:
 ; check if we need interpolation (VX_FORMAT_INTERPOLATION_MASK)
 	rla
-	jp	c, .target_triangle_color
+	jp	nc, .target_triangle_color
 	rla
 	jr	nc, .target_triangle_gouraud
 

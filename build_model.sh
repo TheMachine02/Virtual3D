@@ -30,9 +30,9 @@ fasmg example/file/Suzanne1.inc bin/SUZANF.8xv
 
 echo "Converting FFXII test models..."
 
-# ./tools/import  example/file/MateusFFXII.obj -T -N -S -B -X -o=MATEUS
-# fasmg example/file/MateusFFXII0.inc bin/MATEUSV.8xv 
-# fasmg example/file/MateusFFXII1.inc bin/MATEUSF.8xv 
+./tools/import  example/file/MateusFFXII_LOD1.obj -T -N -S -B -X -o=MATEUS
+fasmg example/file/MateusFFXII_LOD10.inc bin/MATEUSV.8xv 
+fasmg example/file/MateusFFXII_LOD11.inc bin/MATEUSF.8xv 
 
 ./tools/import  example/file/BunnyFFXII.obj -T -N -S -B -X -o=FLUFFY
 fasmg example/file/BunnyFFXII0.inc bin/FLUFFYV.8xv
@@ -62,9 +62,9 @@ fasmg example/file/VieraSceneFFXII1.inc bin/VIERAF.8xv
 fasmg example/file/BomboFFXII0.inc bin/BOMBOV.8xv
 fasmg example/file/BomboFFXII1.inc bin/BOMBOF.8xv
 
-./tools/import  example/file/UltimaFFXII_LOD1.obj -C -N -S -B -X -o=ULTIMA
-fasmg example/file/UltimaFFXII_LOD10.inc bin/ULTIMAV.8xv 
-fasmg example/file/UltimaFFXII_LOD11.inc bin/ULTIMAF.8xv 
+#./tools/import  example/file/UltimaFFXII_LOD1.obj -T -N -S -B -X -o=ULTIMA
+#fasmg example/file/UltimaFFXII_LOD10.inc bin/ULTIMAV.8xv 
+#fasmg example/file/UltimaFFXII_LOD11.inc bin/ULTIMAF.8xv 
 
 echo "Converting FFX test models..."
 
@@ -80,7 +80,6 @@ fasmg example/file/TonberryFFVIII0.inc bin/TONBV.8xv
 fasmg example/file/TonberryFFVIII1.inc bin/TONBF.8xv 
 
 ./tools/import  example/file/UltimeciaFFVIII.obj -T -N -S -B -X -o=ULTIM
-# -T -N -S -B -X -F -o=ULTIM
 fasmg example/file/UltimeciaFFVIII0.inc bin/ULTIMV.8xv 
 fasmg example/file/UltimeciaFFVIII1.inc bin/ULTIMF.8xv 
 

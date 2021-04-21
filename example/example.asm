@@ -2,7 +2,7 @@ include	"include/fasmg/ez80.inc"
 include	"include/fasmg/tiformat.inc"
 include	"include/ti84pceg.inc"
 
-define	VX_DEBUG_CC_INSTRUCTION
+;define	VX_DEBUG_CC_INSTRUCTION
 
 format	ti executable archived 'V3DALPHA'
 
@@ -59,8 +59,8 @@ Main:
 	ld	a, 0
 	ld	(vxLightUniform+4), a
 
-;	ld	ix, alphaShader
-;	call	vxShaderLoad
+	ld	ix, alphaShader
+	call	vxShaderLoad
 
 	ld	hl, material
 	ld	a, VX_MATERIAL0
@@ -72,15 +72,15 @@ MainLoop:
 	call	Camera
 	ret	nz
 	
-; 	ld	hl, 0*256+128
-; 	ld	de, 0*256+160
-; 	ld	bc, 32*256+32
-; 	call	vxImageSub.swap
-; 	ld	hl, 128*256+128
-; 	ld	de, 128*256+160
-; 	ld	bc, 32*256+32
-; 	call	vxImageSub.swap
-; 
+	ld	hl, 0*256+128
+	ld	de, 0*256+160
+	ld	bc, 32*256+32
+	call	vxImageSub.swap
+	ld	hl, 128*256+128
+	ld	de, 128*256+160
+	ld	bc, 32*256+32
+	call	vxImageSub.swap
+ 
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
 	ld	hl, (Vertex)
@@ -114,14 +114,14 @@ MainLoop:
 	
 ;	ld	c, 11100000b
 ;	call	vxClearBuffer
-	call	vxFramebufferClear
-; 	ld	bc, (EulerAngle)
-;	inc	b
-;	call	Skybox.render
+;	call	vxFramebufferClear
+	ld	bc, (EulerAngle)
+	inc	b
+	call	Skybox.render
 	
 	call	vxPrimitiveSubmit
 
-	call	debug.display_panel
+	call	debug.display_frame
 
 ; apply filter
 	ld	a, (posY+1)
@@ -332,15 +332,15 @@ Temp:
 	dl	0,0
 
 VertexName:
-	db	ti.AppVarObj, "KALIYAV",0
+	db	ti.AppVarObj, "POOLV",0
 Vertex:
 	dl	0
 TriangleName:
-	db	ti.AppVarObj, "KALIYAF", 0
+	db	ti.AppVarObj, "POOLF", 0
 Triangle:
 	dl	0
 TextName:
-	db	ti.AppVarObj, "KALIYAT",0
+	db	ti.AppVarObj, "POOLT",0
 Texture:
 	dl	0
 UnitVector:
