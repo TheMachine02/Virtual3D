@@ -97,9 +97,10 @@ vxIdentityMatrix:
  db	0,64,0
  db	0,0,64
  dl	0,0,0
+; projection matrix is (1/tan(fov/2)) / aspect and the (1/tan(fov/2))
 vxProjectionMatrix:
- db	56,0,0
- db	0,75,0
+ db	48,0,0
+ db	0,64,0
  db	0,0,64
 vxProjectionMatrix_t:
  dl	0,0,0
@@ -272,10 +273,13 @@ vxVertexStream:
 	ld	hl, vxLight
 	ld	iy, vxLightUniform
 	call	vxMatrixLightning
+;	ld	iy, vxModelView
+;	ld	ix, vxProjectionMatrix
+;	ld	hl, vxModelView
+;	call	vxMatrixTransform
 	ld	iy, vxModelView
-	ld	ix, vxProjectionMatrix
 	ld	hl, vxModelView
-	call	vxMatrixTransform
+	call	vxfMatrixPerspective
 ; load up shader data
 	ld	ix, (vxPrimitiveMaterial)
 	ld	hl, (ix+VX_MATERIAL_VERTEX_UNIFORM)
@@ -389,7 +393,7 @@ vxPrimitiveDepthOffset:
 
 vxPrimitiveDepthSort:
 ; 311 cycles per triangle with an added constant ~34000 cycles
-; sorting a full queue take less than 30ms
+; sorting a full queue take less than 27 ms
 	cce	ge_z_sort
 	ld	hl, VX_PRIMITIVE_SORT_COPY
 	ld	de, VX_PRIMITIVE_SORT_CODE

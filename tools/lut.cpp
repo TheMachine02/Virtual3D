@@ -57,14 +57,11 @@ void generate_sinus()
 		return;
 	}
 
-	float angle = 0.0f;
-	
-	for(int i=0;i<256;i++)
+	for(double angle=0.0f;angle<256.0f;angle+=1.0f)
 	{
 		out << " dw ";
-		out << (int)round(sin(angle*M_PI/128.0f)*16384);
+		out << (int)round(sin(angle*M_PI/512.0f)*16384.0f);
 		out << "\n";
-		angle+=0.25f;
 	}
 }
 
@@ -76,15 +73,12 @@ void generate_inverse()
 		cout << "Can't open output file" << std::endl;
 		return;
 	}
-
-	float inverse=0.0f;
 	
-	for(int i=0;i<322;i++)
+	for(double inverse=0.0f;inverse<322.0f;inverse+=1.0f)
 	{
 		out << " dw ";
 		out << (int)round(65536.0f/inverse)-1;
 		out << "\n";
-		inverse+=1.0f;
 	}
 	
 	

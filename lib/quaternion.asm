@@ -328,6 +328,7 @@ vxQuaternionGetMatrix:
 	adc	a, 0
 	ld	(ix+8), a
 	ret
+
 vxQuaternionRotationAxis:
 ; iy adress of quaternion to write
 ; ix unit vector
@@ -354,6 +355,7 @@ vxQuaternionRotationAxis:
 	call	vxMath.cos
 	ld	(iy+VX_QUATERNION_QW), hl
 	ret
+
 vxQuaternionDot:
 	ld	hl, (ix+VX_QUATERNION_QW)
 	ld	de, (iy+VX_QUATERNION_QW)
@@ -377,6 +379,7 @@ vxQuaternionDot:
 	pop	de
 	add	hl, de
 	ret
+
 vxQuaternionSlerp:
 	ret
 
@@ -427,12 +430,16 @@ vxQuatMlt:
 	add	hl, hl
 	add	hl, hl
 	dec	sp
+	ld	a, l
 	push	hl
 	inc	sp
 	pop	bc
 	sbc	hl, hl
 	ld	h, b
 	ld	l, c
+	rla
+	ret	nc
+	inc	hl
 	ret
 vxQuatSquare:
 ; bc is kept intact
@@ -478,5 +485,8 @@ vxSqAbsSkp:
 	pop	af
 	ld	e, h
 	ld	d, a
+	rl	l
+	ret	nc
+	inc	de
 	ret
 

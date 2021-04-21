@@ -22,9 +22,9 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
 
-vxImage:
+vxImageSub:
 
-.sub_copy:
+.copy:
 ; hl : org, bc : rect size, de : copy
 	push	bc
 	ld	bc, VX_IMAGE_PAGE
@@ -36,7 +36,7 @@ vxImage:
 	ld	a, b
 	ld	b, 0
 ; ready to copy
-.sub_copy_loop:
+.copy_loop:
 	push	bc
 	ldir
 	pop	bc
@@ -52,10 +52,10 @@ vxImage:
 	inc	h
 	inc	d
 	dec	a
-	jr	nz, .sub_copy_loop
+	jr	nz, .copy_loop
 	ret
 	
-.sub_swap:
+.swap:
 ; hl : org, bc : rect size, de : copy
 	push	bc
 	ld	bc, VX_IMAGE_PAGE
@@ -91,6 +91,8 @@ vxImage:
 	dec	a
 	jr	nz, .swap_loop
 	ret	
+
+vxImage:
 
 .clear:
 	ld	bc, 65535

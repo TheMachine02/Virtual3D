@@ -2,7 +2,7 @@ include	"include/fasmg/ez80.inc"
 include	"include/fasmg/tiformat.inc"
 include	"include/ti84pceg.inc"
 
-;define	VX_DEBUG_CC_INSTRUCTION
+define	VX_DEBUG_CC_INSTRUCTION
 
 format	ti executable archived 'V3DALPHA'
 
@@ -59,8 +59,8 @@ Main:
 	ld	a, 0
 	ld	(vxLightUniform+4), a
 
-; 	ld	ix, alphaShader
-; 	call	vxShaderLoad
+;	ld	ix, alphaShader
+;	call	vxShaderLoad
 
 	ld	hl, material
 	ld	a, VX_MATERIAL0
@@ -75,11 +75,11 @@ MainLoop:
 ; 	ld	hl, 0*256+128
 ; 	ld	de, 0*256+160
 ; 	ld	bc, 32*256+32
-; 	call	vxImage.sub_swap
+; 	call	vxImageSub.swap
 ; 	ld	hl, 128*256+128
 ; 	ld	de, 128*256+160
 ; 	ld	bc, 32*256+32
-; 	call	vxImage.sub_swap
+; 	call	vxImageSub.swap
 ; 
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
@@ -121,7 +121,7 @@ MainLoop:
 	
 	call	vxPrimitiveSubmit
 
-	call	debug.display_frame
+	call	debug.display_panel
 
 ; apply filter
 	ld	a, (posY+1)

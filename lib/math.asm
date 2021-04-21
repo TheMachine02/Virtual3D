@@ -71,7 +71,7 @@ assert	VX_LUT_SIN mod 2 = 0
 	bit	1, h
 	ld	hl, VX_LUT_SIN shr 1
 	ld	l, a
-	add	hl, hl	; sure c flag will be reset!
+	add	hl, hl
 	ld.s	hl, (hl)
 	ret	z
 	ex	de, hl

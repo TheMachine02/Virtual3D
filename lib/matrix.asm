@@ -33,91 +33,6 @@ vxLookAtMatrix:
 
 ; TODO : clean this file, remove useless function, optimize other (matrix multiplication could benefit from full unroll) 
  
-vxProjectionVector:
- db	192, 0, 0
- 
-vxMatrixProjection:
-; scale the matrix iy by the projection vector
-; 0 = 256
-	ld	hl, vxProjectionVector
-	ld	c, 3
-.outer:
-	ld	b, 3
-	xor	a, a
-.outer0:
-	or	a, (hl)
-	jr	nz, .inner
-	lea	iy, iy+3
-	inc	hl
-	dec	c
-	jr	nz, .outer0
-	jr	.translate
-.inner:
-	ld	d, (iy+0)
-	ld	e, (hl)
-	xor	a, a
-	bit	7, d
-	jr	z, $+3
-	sub	a, e
-	mlt	de
-	rl	e
-	adc	a, d
-	ld	(iy+0), a
-	inc	iy
-	djnz	.inner
-	inc	hl
-	dec	c
-	jr	nz, .outer
-; now the translation
-.translate:
-	ret
-
-; (iy)*(de) (signed 24 bits * unsigned 8 bits / 256)
-; hlu * a *256 + h*a + l*a / 256
-; if hl < 0
-	ld	b, 3
-	ld	de, vxProjectionVector
-.vector:
-	ld	a, (de)
-	or	a, a
-	jr	z, .skip
-	push	de
-	ld	h, (iy+2)
-	ld	l, a
-	bit	7, h
-	mlt	hl	; condition bits NOT affected
-	jr	z, $+6
-	neg
-	add	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	ld	a, (de)
-	ld	e, (iy+1)
-	ld	d, a
-	mlt	de
-	add	hl, de
-	ld	d, a
-	ld	e, (iy+0)
-	mlt	de
-	rl	e
-	ld	e, d
-	ld	d, 0
-	adc	hl, de
-	ld	(iy+0), hl
-	pop	de
-.skip:
-	lea	iy, iy+3
-	inc	de
-	djnz	.vector
-	ret
- 
 vxMatrixLoadIdentity:
 ; input : hl matrix
 	ex	de, hl
@@ -231,7 +146,7 @@ vxMatrixRowLoop:
 	add	hl, hl
 	ld	a, h
 	rl	l
-	adc	a, 0
+	adc	a, c
 	ld	(de), a
 	inc	de
 	inc	iy
@@ -245,62 +160,6 @@ vxMatrixRowLoop:
 	add	ix, bc
 	ex	de, hl
 	add	hl, bc
-	ret
-
-vxMatrixScale:
-; ix is matrix, iy is vector, hl is matrix result
-	ld	c, 3
-	ex	de, hl
-.out_loop:
-	ld	b, 3
-.in_loop:
-; row
-	ld	h, (ix+0)
-	ld	l, (iy+0)
-	xor	a, a
-	bit	7, h
-	jr	z, $+3
-	sub	a, l
-	bit	7, l
-	jr	z, $+3
-	sub	a, h
-	mlt	hl
-	add	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	ld	a, h
-	ld	(de), a
-	inc	de
-	inc	ix
-	djnz	.in_loop
-	inc	iy
-	dec	c
-	jr	nz, .out_loop
-; ; also need to scale the translation part
-; ; those are 24 bits * 8 bits / 64
-; ; hl * a / 64
-; ; hlu*a*65536/64+h*a*256/64+l*a/64
-; ; de:hl is the result
-; 	ld	a, (iy+0)
-; 	ld	l, a
-; 	ld	h, (ix+1)
-; 	mlt	hl
-; 	ld	e, h
-; 	ld	h, l
-; 	ld	l, 0
-; 	ld	c, a
-; 	ld	b, (ix+0)
-; 	mlt	bc
-; 	add	hl, bc
-; ; hl = correct lower bytes
-; 	ld	c, a
-; 	ld	b, (ix+2)
-; 	mlt	bc
-; 	
-; 
-; 
-; 
 	ret
 	
 vxMatrixTransform:
@@ -417,57 +276,152 @@ vxMatrixLightLoop:
 
 vxfPositionExtract:
 ; vxPosition/64 -> de
-	ld	hl, (vxPosition+1)
-	ld	a, (vxPosition)
-	add	a, a
-	adc	hl, hl
-	add	a, a
-	ld	a, h
-	adc	hl, hl
-	rla
+	ld	hl, (vxPosition)
+	add	hl, hl
 	sbc	a, a
-	ex	de, hl
-	ld	(hl), e
-	inc	hl
-	ld	(hl), d
-	inc	hl
-	ld	(hl), a
-	inc	hl
-	ex	de, hl
-	ld	hl, (vxPosition+4)
-	ld	a, (vxPosition+3)
-	add	a, a
-	adc	hl, hl
-	add	a, a
-	ld	a, h
-	adc	hl, hl
+	add	hl, hl
+	dec	sp
+	push	hl
+	inc	sp
+	pop	bc
 	rla
-	sbc	a, a
-	ex	de, hl
-	ld	(hl), e
-	inc	hl
-	ld	(hl), d
-	inc	hl
-	ld	(hl), a
-	inc	hl
-	ex	de, hl
-	ld	hl, (vxPosition+7)
-	ld	a, (vxPosition+6)
-	add	a, a
-	adc	hl, hl
-	add	a, a
-	ld	a, h
-	adc	hl, hl
+	ld	a, l
+	sbc	hl, hl
+	ld	h, b
+	ld	l, c
 	rla
-	sbc	a, a
+	jr	nc, $+3
+	inc	hl
 	ex	de, hl
-	ld	(hl), e
+	ld	(hl), de
 	inc	hl
-	ld	(hl), d
 	inc	hl
-	ld	(hl), a
+	inc	hl
+	ex	de, hl
+	ld	hl, (vxPosition+3)
+	add	hl, hl
+	sbc	a, a
+	add	hl, hl
+	dec	sp
+	push	hl
+	inc	sp
+	pop	bc
+	rla
+	ld	a, l
+	sbc	hl, hl
+	ld	h, b
+	ld	l, c
+	rla
+	jr	nc, $+3
+	inc	hl
+	ex	de, hl
+	ld	(hl), de
+	inc	hl
+	inc	hl
+	inc	hl
+	ex	de, hl
+	ld	hl, (vxPosition+6)
+	add	hl, hl
+	sbc	a, a
+	add	hl, hl
+	dec	sp
+	push	hl
+	inc	sp
+	pop	bc
+	rla
+	ld	a, l
+	sbc	hl, hl
+	ld	h, b
+	ld	l, c
+	rla
+	jr	nc, $+3
+	inc	hl
+	ex	de, hl
+	ld	(hl), de
 	ret
 
+vxfMatrixPerspective:
+; (hl) = transform the modelview matrix (iy) by a specific fov 90° aspect ratio 4:3 matrix
+; first lign  *48/64 (signed*unsigned)
+	ld	d, (iy+0)
+	ld	e, 192
+	xor	a, a
+	bit	7, d
+	jr	z, $+3
+	sub	a, e
+	mlt	de
+	rl	e
+	adc	a, d
+	ld	(hl), a
+	inc	hl
+
+	ld	d, (iy+1)
+	ld	e, 192
+	xor	a, a
+	bit	7, d
+	jr	z, $+3
+	sub	a, e
+	mlt	de
+	rl	e
+	adc	a, d
+	ld	(hl), a
+	inc	hl
+	
+	ld	d, (iy+2)
+	ld	e, 192
+	xor	a, a
+	bit	7, d
+	jr	z, $+3
+	sub	a, e
+	mlt	de
+	rl	e
+	adc	a, d
+	ld	(hl), a
+	inc	hl
+
+	ex	de, hl
+	lea	hl, iy+3
+	ld	bc, VX_MATRIX_SIZE - 3
+	ldir
+	ld	bc, -9
+	ex	de, hl
+	add	hl, bc
+; hl is TX of created matrix
+; iy is source
+	push	hl
+	ld	a, 192
+	ld	h, (iy+VX_MATRIX_TX+2)
+	ld	l, a
+	bit	7, h
+	mlt	hl
+	jr	z, $+6
+	neg
+	add	a, h
+	ld	h, a
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	ld	e, (iy+VX_MATRIX_TX+1)
+	ld	d, 192
+	mlt	de
+	add	hl, de
+	ld	d, 192
+	ld	e, (iy+VX_MATRIX_TX)
+	mlt	de
+	rl	e
+	ld	e, d
+	ld	d, 0
+	add	hl, de
+	ex	de, hl
+	pop	hl
+	ld	(hl), de
+	ret
+	
 vxfTransformDouble:
 	lea	hl, iy+0
 	ld	de, vxPosition
@@ -789,4 +743,88 @@ vxfTransform:
 ; 	sbc hl,hl
 ; 	sbc hl, de
 ; 	ld	(ix+VX_MATRIX_TZ), hl
+; 	ret
+; vxProjectionVector:
+;  db	192, 0, 0
+;  
+; vxMatrixProjection:
+; ; scale the matrix iy by the projection vector
+; ; 0 = 256
+; 	ld	hl, vxProjectionVector
+; 	ld	c, 3
+; .outer:
+; 	ld	b, 3
+; 	xor	a, a
+; .outer0:
+; 	or	a, (hl)
+; 	jr	nz, .inner
+; 	lea	iy, iy+3
+; 	inc	hl
+; 	dec	c
+; 	jr	nz, .outer0
+; 	jr	.translate
+; .inner:
+; 	ld	d, (iy+0)
+; 	ld	e, (hl)
+; 	xor	a, a
+; 	bit	7, d
+; 	jr	z, $+3
+; 	sub	a, e
+; 	mlt	de
+; 	rl	e
+; 	adc	a, d
+; 	ld	(iy+0), a
+; 	inc	iy
+; 	djnz	.inner
+; 	inc	hl
+; 	dec	c
+; 	jr	nz, .outer
+; ; now the translation
+; .translate:
+; 	ret
+; 
+; ; (iy)*(de) (signed 24 bits * unsigned 8 bits / 256)
+; ; hlu * a *256 + h*a + l*a / 256
+; ; if hl < 0
+; 	ld	b, 3
+; 	ld	de, vxProjectionVector
+; .vector:
+; 	ld	a, (de)
+; 	or	a, a
+; 	jr	z, .skip
+; 	push	de
+; 	ld	h, (iy+2)
+; 	ld	l, a
+; 	bit	7, h
+; 	mlt	hl	; condition bits NOT affected
+; 	jr	z, $+6
+; 	neg
+; 	add	a, h
+; 	ld	h, a
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	ld	a, (de)
+; 	ld	e, (iy+1)
+; 	ld	d, a
+; 	mlt	de
+; 	add	hl, de
+; 	ld	d, a
+; 	ld	e, (iy+0)
+; 	mlt	de
+; 	rl	e
+; 	ld	e, d
+; 	ld	d, 0
+; 	adc	hl, de
+; 	ld	(iy+0), hl
+; 	pop	de
+; .skip:
+; 	lea	iy, iy+3
+; 	inc	de
+; 	djnz	.vector
 ; 	ret

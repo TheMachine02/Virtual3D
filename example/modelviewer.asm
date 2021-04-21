@@ -3,7 +3,7 @@ include	"include/fasmg/tiformat.inc"
 include	"include/ti84pceg.inc"
 
 define	DELTA_PER_MS	3072*256/128
-define	ANGLE_PER_MS	4*256/128
+define	ANGLE_PER_MS	8*256/128
 define	VIEW_OPTION_PANEL	1 shl 0
 
 define	VX_DEBUG_CC_INSTRUCTION
@@ -42,7 +42,7 @@ Main:
 	ld	hl, World.matrix
 	call	vxMatrixLoadIdentity
 	ld	ix, World.matrix
-	ld	hl, 512*64
+	ld	hl, 1024*64
 	ld	(ix+VX_MATRIX_TZ), hl
 ; load the lightning
 	ld	hl, World.light
@@ -62,8 +62,8 @@ Main:
 ; set option
 	ld	(Viewframe.option), a
 ; setup pixel shader
-;	ld	ix, gouraudShader
-	ld	ix, lightShader
+	ld	ix, gouraudShader
+;	ld	ix, lightShader
 ;	ld	ix, alphaShader
 	call	vxShaderLoad
 
@@ -82,7 +82,7 @@ Main:
 	ld	hl, (World.light_angle)
 	call	vxMath.cos
 	ld	a, h
-	ld	(vxLightUniform+2), a	
+	ld	(vxLightUniform+2), a
 ; compute model rotation
 	ld	hl, (World.angle_y)
 	ld	iy, World.quaternion_y
@@ -352,13 +352,13 @@ World:
 	
 Model:
 .vertex_appv:
-	db	ti.AppVarObj, "ULTIMV",0
-;	db	ti.AppVarObj, "SUZANV",0
+;	db	ti.AppVarObj, "ULTIMV",0
+	db	ti.AppVarObj, "SUZANV",0
 .vertex_source:
 	dl	0
 .triangle_appv:
-	db	ti.AppVarObj, "ULTIMF", 0
-;	db	ti.AppVarObj, "SUZANF",0
+;	db	ti.AppVarObj, "ULTIMF", 0
+	db	ti.AppVarObj, "SUZANF",0
 .triangle_source:
 	dl	0
 .texture_appv:
@@ -371,7 +371,7 @@ Model:
 	db	0,0,64
 	dl	0,0,0
 .material:
-	db	VX_FORMAT_TEXTURE		; GOURAUD
+	db	VX_FORMAT_GOURAUD	;VX_FORMAT_TEXTURE
 	dl	VX_VERTEX_BUFFER
 	dl	vxVertexShader.ftransform
 	dl	vxVertexShader.uniform
