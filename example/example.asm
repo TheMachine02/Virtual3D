@@ -322,11 +322,11 @@ material:
 	dl	0
 
 posX:
-	dl	-3*256
+	dl	0*256+128
 posY:
-	dl	-1*256
+	dl	0*256-128
 posZ:
-	dl	-3*256
+	dl	4*256
 
 Temp:
 	dl	0,0
