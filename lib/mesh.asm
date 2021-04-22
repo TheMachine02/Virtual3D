@@ -27,6 +27,7 @@
 ; they should be small with many triangles and possibly bones or animation
 ; backface culling is performed BEFORE per-triangle frustrum culling for them and vertex are only transformed for non - rejected backface culling face
 ; because the mesh have 50% triangle backward with high density, it should be beneficial to do, especially since there shouldn't be many frustrum culled triangle within the mesh (mesh should be culled by the bounding box, much more efficiently)
+; also enable contribution culling within mesh (if the face is estimated to have an area < 1 cull it, it allow to not assemble & clip & render useless triangle)
 
 vxPrimitiveMesh:
 ; send a mesh for submit
@@ -85,7 +86,7 @@ vxPrimitiveMeshPrepass:
 	ret
 	
 vxPrimitiveMeshAssembly:
-; special assembly, only take care of frustrum cull & sorting
+; special assembly, only take care of frustrum cull & contribution cull & sorting
 ; read only from geometry_queued by the previous works ?
 ; single pass
 ; setup the various SMC

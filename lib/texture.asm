@@ -467,9 +467,9 @@ vxShaderAdress2Write=$+1
 	jr	z, $+4
 	dec.s	hl
 	ld	(iy+VX_FDUDX), hl
-.triangleMipmap:
+; .triangleMipmap:
 ; 	ld	sp, TMP
-; 	call	vxMipmapLevel
+; 	call	vxMipmap.vrs
 .triangleGradient:
 	ld	a, (iy+VX_REGISTER_Y2)
 	sub	a, (iy+VX_REGISTER_Y0)

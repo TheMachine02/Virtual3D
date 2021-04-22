@@ -25,6 +25,97 @@
 ; mipmapping :
 
 vxMipmap:
+; this work as a POC, the actual speed gain is NOT here due to the nop, we need to adjust jump table
+.vrs:
+	ld	bc, (iy+VX_FDUDX)
+	bit	7, b
+	jr	z, .vrs_abs_du
+	xor	a, a
+	sub	a, c
+	ld	c, a
+	sbc	a, a
+	sub	a, b
+	ld	b, a
+.vrs_abs_du:
+	ld	hl, (iy+VX_FDVDX)
+	bit	7, h
+	jr	z, .vrs_abs_dv
+	xor	a, a
+	sub	a, l
+	ld	l, a
+	sbc	a, a
+	sub	a, h
+	ld	h, a
+.vrs_abs_dv:
+	ld	a, h
+	or	a, b
+	jr	nz, .vrs_write_zero
+	ld	a, l
+	or	a, c
+	cp	a, $81
+	jr	nc, .vrs_write_zero
+; 	cp	a, $41
+; 	jr	nc, .vrs_write_half
+; 	ld	a, 11111111b
+; 	jr	.vrs_common
+.vrs_write_half:
+	ld	a, 10110101b
+.vrs_common:
+	ld	(vxShaderUniform0+1), a
+	ld	hl, (iy+VX_FDVDX)
+	add	hl, hl
+	ld	(iy+VX_FDVDX), l
+	ld	(iy+VX_FDVDX+1), h
+	ld	hl, (iy+VX_FDUDX)
+	add	hl, hl
+	ld	(iy+VX_FDUDX), l
+	ld	(iy+VX_FDUDX+1), h
+	ld	hl, VX_PIXEL_SHADER_CODE+7
+	ld	de, VX_PIXEL_SHADER_CODE+10
+	ld	a, $D9
+	ld	(de), a
+	inc	de
+	ld	bc, 3
+	ldir
+	ld	hl, .djnz_dual
+	ld	c, 2
+	ldir
+; then put some zero nop here
+	ld	hl, VIRTUAL_NULL_RAM
+	ld	c, 6
+	ldir	
+	jr	.vrs_adjust
+.vrs_write_zero:
+	ld	hl, VX_PIXEL_SHADER_CODE
+	ld	de, VX_PIXEL_SHADER_CODE+10
+	ld	bc, 10
+	ldir
+	ld	hl, .djnz_single
+	ld	c, 2
+	ldir	
+.vrs_adjust:
+	bit	7, (iy+VX_FDVDX+1)
+	ret	z
+	ld	hl, (iy+VX_FDUDX)
+	dec.s	hl
+	ld	(iy+VX_FDUDX), hl
+	ret
+
+.dummy:
+	rb	20
+.djnz_single:
+	djnz	.dummy
+	
+.dummy_2:
+	rb	14
+.djnz_dual:
+	djnz	.dummy_2
+	
+	
+	
+	
+; 146
+	
 .generate:
 ; generate LUT table for mipmapping ?
 ; 256x256 : lvl 0

@@ -183,7 +183,7 @@ vxPrimitiveStream:
 	inc	hl
 	inc	hl
 	ld	hl, (hl)
-	call	vxVertexStream		; stream vertex data to cache
+	call	vxVertexCache.setup		; stream vertex data to cache
 	pop	iy			; polygon list
 	ret	nz			; quit the stream if nz set (bounding box test failed)
 	lea	iy, iy+VX_STREAM_HEADER_SIZE
@@ -211,7 +211,7 @@ vxPrimitiveStream:
 	ld	(vxGeometrySize), hl
 	ret
 
-vxVertexStream:
+vxVertexCache:
 ; de - vertex source, bc - vertex cache, ix worldview0 matrix, iy modelworld0 matrix (should be an model matrix)
 ; hl is the vertex shader program
 ; NOTE : expect material to be set
@@ -273,13 +273,13 @@ vxVertexStream:
 	ld	hl, vxLight
 	ld	iy, vxLightUniform
 	call	vxMatrixLightning
-;	ld	iy, vxModelView
-;	ld	ix, vxProjectionMatrix
-;	ld	hl, vxModelView
-;	call	vxMatrixTransform
 	ld	iy, vxModelView
+	ld	ix, vxProjectionMatrix
 	ld	hl, vxModelView
-	call	vxfMatrixPerspective
+	call	vxMatrixTransform
+;	ld	iy, vxModelView
+;	ld	hl, vxModelView
+;	call	vxfMatrixPerspective
 ; load up shader data
 	ld	ix, (vxPrimitiveMaterial)
 	ld	hl, (ix+VX_MATERIAL_VERTEX_UNIFORM)

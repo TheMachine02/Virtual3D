@@ -271,6 +271,7 @@ define	VX_FALSE			0
 define	VX_VRAM_CACHE			$E10010
 define	VX_VRAM_CACHE_SIZE		64
 define	VX_VRAM				$E30800
+define	VX_VRAM_SIZE			1024
 
 define	VIRTUAL_BASE_RAM		$D00000
 define	VIRTUAL_VERSION			$10

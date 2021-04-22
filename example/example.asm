@@ -59,8 +59,8 @@ Main:
 	ld	a, 0
 	ld	(vxLightUniform+4), a
 
-	ld	ix, alphaShader
-	call	vxShaderLoad
+;	ld	ix, alphaShader
+;	call	vxShaderLoad
 
 	ld	hl, material
 	ld	a, VX_MATERIAL0
@@ -72,14 +72,14 @@ MainLoop:
 	call	Camera
 	ret	nz
 	
-	ld	hl, 0*256+128
-	ld	de, 0*256+160
-	ld	bc, 32*256+32
-	call	vxImageSub.swap
-	ld	hl, 128*256+128
-	ld	de, 128*256+160
-	ld	bc, 32*256+32
-	call	vxImageSub.swap
+; 	ld	hl, 0*256+128
+; 	ld	de, 0*256+160
+; 	ld	bc, 32*256+32
+; 	call	vxImageSub.swap
+; 	ld	hl, 128*256+128
+; 	ld	de, 128*256+160
+; 	ld	bc, 32*256+32
+; 	call	vxImageSub.swap
  
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
@@ -114,10 +114,10 @@ MainLoop:
 	
 ;	ld	c, 11100000b
 ;	call	vxClearBuffer
-;	call	vxFramebufferClear
-	ld	bc, (EulerAngle)
-	inc	b
-	call	Skybox.render
+	call	vxFramebufferClear
+;	ld	bc, (EulerAngle)
+;	inc	b
+;	call	Skybox.render
 	
 	call	vxPrimitiveSubmit
 
@@ -322,25 +322,25 @@ material:
 	dl	0
 
 posX:
-	dl	0*256+128
-posY:
 	dl	0*256-128
+posY:
+	dl	-1*256
 posZ:
-	dl	4*256
+	dl	0*256-128
 
 Temp:
 	dl	0,0
 
 VertexName:
-	db	ti.AppVarObj, "POOLV",0
+	db	ti.AppVarObj, "KALIYAV",0
 Vertex:
 	dl	0
 TriangleName:
-	db	ti.AppVarObj, "POOLF", 0
+	db	ti.AppVarObj, "KALIYAF", 0
 Triangle:
 	dl	0
 TextName:
-	db	ti.AppVarObj, "POOLT",0
+	db	ti.AppVarObj, "KALIYAT",0
 Texture:
 	dl	0
 UnitVector:

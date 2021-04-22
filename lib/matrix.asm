@@ -416,7 +416,7 @@ vxfMatrixPerspective:
 	rl	e
 	ld	e, d
 	ld	d, 0
-	add	hl, de
+	adc	hl, de
 	ex	de, hl
 	pop	hl
 	ld	(hl), de

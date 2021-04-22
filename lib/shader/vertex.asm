@@ -86,17 +86,17 @@ vxVertexShader:
 	ld	bc, (hl)
 	ld	(.MTZ), bc
 ; lightning write
-	add	hl, de
-	ld	de, .LV0
-	ldi
-	ld	de, .LV1
-	ldi
-	ld	de, .LV2
-	ldi
-	ld	de, .LA
-	ldi
-	ld	de, .LE
-	ldi
+; 	add	hl, de
+; 	ld	de, .LV0
+; 	ldi
+; 	ld	de, .LV1
+; 	ldi
+; 	ld	de, .LV2
+; 	ldi
+; 	ld	de, .LA
+; 	ldi
+; 	ld	de, .LE
+; 	ldi
 ; scissor set
 ; NOTE : this should be + 1
 	ld	a, VX_SCREEN_HEIGHT+1
@@ -117,7 +117,7 @@ vxVertexShader:
 ; SMC registers are set with uniform routine
 .ftransform:
 
-relocate VX_VERTEX_SHADER_CODE
+relocate VX_VRAM
 .ftransform_stream:
 	ld	a, (iy+VX_VERTEX_SIGN)
 	dec	a
@@ -181,64 +181,64 @@ relocate VX_VERTEX_SHADER_CODE
 	add	hl, de
 	ld	(ix+VX_VERTEX_RY), hl
 ; lightning model is here, infinite directionnal light, no pow
-	xor	a, a
-	ld	c, (iy+VX_VERTEX_NX)
-.LV0=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-	ld	c, (iy+VX_VERTEX_NY)
-.LV1=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-	ld	c, (iy+VX_VERTEX_NZ)
-.LV2=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-; max(a,0)
-	jp	p, .light_scale
-	xor	a, a
-	jr	.light_ambient
-.light_scale:
-	add	a, a
-	add	a, a
-	ld	c, a
-; LE have a 64 scaling
-.LE=$+1
-	ld	b, $CC
-	mlt	bc
-	ld	a, b
-	rl	c
-.light_ambient:
-.LA=$+1
-	adc	a, $CC
-; min(a,15)
-	cp	a, 32
-	jr	c, $+4
-	ld	a, 31
-	ld	(ix+VX_VERTEX_GPR2), a
-; use this target for gouraud shading, this is v register
-	ld	(ix+VX_VERTEX_GPR1), a
+; 	xor	a, a
+; 	ld	c, (iy+VX_VERTEX_NX)
+; .LV0=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; 	ld	c, (iy+VX_VERTEX_NY)
+; .LV1=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; 	ld	c, (iy+VX_VERTEX_NZ)
+; .LV2=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; ; max(a,0)
+; 	jp	p, .light_scale
+; 	xor	a, a
+; 	jr	.light_ambient
+; .light_scale:
+; 	add	a, a
+; 	add	a, a
+; 	ld	c, a
+; ; LE have a 64 scaling
+; .LE=$+1
+; 	ld	b, $CC
+; 	mlt	bc
+; 	ld	a, b
+; 	rl	c
+; .light_ambient:
+; .LA=$+1
+; 	adc	a, $CC
+; ; min(a,15)
+; 	cp	a, 32
+; 	jr	c, $+4
+; 	ld	a, 31
+; 	ld	(ix+VX_VERTEX_GPR2), a
+; ; use this target for gouraud shading, this is v register
+; 	ld	(ix+VX_VERTEX_GPR1), a
 .perspective_divide:
 ;	ld	hl, (ix+VX_VERTEX_RY)
 	ld	bc, (ix+VX_VERTEX_RZ)
@@ -673,7 +673,7 @@ align 64
 	sbc	hl, de
 	ret
 
-assert $ < $E30C01
+assert ($-VX_VRAM) <= VX_VRAM_SIZE
 end relocate
 
 .iterate:
@@ -723,5 +723,5 @@ relocate VX_VRAM_CACHE
  dl	.perspective_screen_ry
  dl	.perspective_screen_rx
 
-assert $ < $E10051
+assert ($-VX_VRAM_CACHE) <= VX_VRAM_CACHE_SIZE
 end relocate
