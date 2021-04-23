@@ -63,6 +63,10 @@ vxPrimitiveAssembly:
 	ld	de, (vxView_t+6)
 	ld	hl, VX_VIEW_MLTZ + VX_VIEW_MLT_OFFSET - 1
 	call	.view_mlt
+; preload the first value, it is used as stream end mark
+	ld	de, (iy+VX_TRIANGLE_I0)
+	dec	e
+	ret	z
 	ld	hl, VX_VIEW_MLTX
 	ld	i, hl
 ; setup the various SMC
@@ -80,29 +84,29 @@ vxPrimitiveAssembly:
 	ld	(.MTR), a
 	inc	hl
 ; this is the VBO
-	ld	bc, (hl)
-; preload the first value, it is used as stream end mark
-	ld	hl, (iy+VX_TRIANGLE_I0)
-	bit	0, l
-	ret	nz
 	ld	(.SP_RET0), sp
-	ld	sp, VX_VERTEX_RZ
+	ld	hl, (hl)
+	ld	sp, hl
+	ld	bc, VX_VERTEX_RZ
+	ex	de, hl
 .pack:
-	add	hl, bc
-	ld	a, (hl)
+	inc	l
 	add	hl, sp
+	ld	a, (hl)
+	add	hl, bc
 	ld	de, (hl)
 	ld	hl, (iy+VX_TRIANGLE_I1)
-	add	hl, bc
-	and	a, (hl)
 	add	hl, sp
+	and	a, (hl)
+	add	hl, bc
 	ld	hl, (hl)
 	add	hl, de
 	ex	de, hl
 	ld	hl, (iy+VX_TRIANGLE_I2)
-	add	hl, bc
+	add	hl, sp
 	and	a, (hl)
 	jr	nz, .discard
+.backface_cull:
 	exx
 ; switch to shadow for the bfc
 	ld	hl, i
@@ -124,7 +128,7 @@ vxPrimitiveAssembly:
 	add	hl, hl
 	exx
 	jr	nc, .discard
-	add	hl, sp
+	add	hl, bc
 	ld	hl, (hl)
 	add	hl, de
 	add	hl, hl
@@ -171,8 +175,8 @@ vxPrimitiveAssembly:
 .STR:=$+2
 	lea	iy, iy+$1C
 	ld	hl, (iy+VX_TRIANGLE_I0)
-	bit	0, l
-	jr	z, .pack
+	dec	l
+	jr	nz, .pack
 .SP_RET0:=$+1
 	ld	sp, $CCCCCC
 	ret

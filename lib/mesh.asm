@@ -40,14 +40,86 @@ vxPrimitiveMesh:
 ;  c : animation key
 	ret
 
-
+; very interesting for mesh, but hard to optimise
+vxNClip:
+; we'll compute (y2-y1)*(x0-x1) - (y0-y1)*(x2-x1)
+	inc	hl
+	inc	bc
+	inc	de
+	push	hl
+	push	bc
+	ld	a, (bc)
+	inc	hl
+	ld	hl, (hl)
+	ex	de, hl
+	inc	hl
+	ld	bc, (hl)
+	ex	de, hl
+; hl-bc is x0-x1
+	or	a, a
+	sbc	hl, bc
+	sra	h
+	rr	l
+	ld	c, h
+	ex	de, hl
+	dec	hl
+	sub	a, (hl)
+	ld	d, a
+	ld	a, 0
+	jr	nc, $+3
+	sub	a, e
+	bit	7, c
+	jr	z, $+3
+	sub	a, d
+	mlt	de
+	add	a, d
+	ld	d, a
+; bc and hl need a restore
+; (y1-y0)*(x2-x1)
+;  a - (hl)*hl-bc
+	ld	a, (hl)
+	inc	hl
+	ld	c, (hl)	; b still hold correct value
+	pop	hl	; pop bc
+	inc	hl
+	ld	hl, (hl)
+	or	a, a
+	sbc	hl, bc
+	sra	h
+	rr	l
+	ld	c, h
+	ex	de, hl
+	ex	(sp), hl	; save previous de
+	sub	a, (hl)
+	ld	d, a
+	ld	a, 0
+	jr	nc, $+3
+	sub	a, e
+	bit	7, c
+	jr	z, $+3
+	sub	a, d
+	mlt	de
+	add	a, d
+	ld	d, a
+; do de + temp_value
+	pop	hl
+	add	hl, de
+	dec	hl
+	rl	h
+	ret
+	
+	
+	
+	
 vxPrimitiveMeshPrepass:
 ; backface culling pass
 ; MULTIPLE PASS ON MULTIPLE STREAM
 ; reset all vertex belonging to the mesh within cache with special (untransformed) value
 ; it should be within X value (only area free)
 ; compute bone - eyeworld then stream each patch of vertex stream while loading each bone & eye world uniform
+; sp = buffer
 	ld	ix, VX_GEOMETRY_QUEUE
+	ld	a, VX_VERTEX_SET
 .prepass:
 	ld	hl, i
 	ld	l, (iy+VX_TRIANGLE_N0)
@@ -68,13 +140,13 @@ vxPrimitiveMeshPrepass:
 	jr	nc, .discard
 	ld	hl, (iy+VX_TRIANGLE_I1)
 	add	hl, sp
-	set	7, (hl)
+	ld	(hl), a
 	ld	hl, (iy+VX_TRIANGLE_I1)
 	add	hl, sp
-	set	7, (hl)
+	ld	(hl), a
 	ld	hl, (iy+VX_TRIANGLE_I1)
 	add	hl, sp
-	set	7, (hl)
+	ld	(hl), a
 	ld	(ix+0), iy
 	lea	ix, ix+4
 .discard:
@@ -114,11 +186,17 @@ vxPrimitiveMeshAssembly:
 .pack:
 	add	hl, bc
 	ld	a, (hl)
+	ex	af, af'
+	ld	a, (hl)
+	ex	af, af'
 	add	hl, sp
 	ld	de, (hl)
 	ld	hl, (iy+VX_TRIANGLE_I1)
 	add	hl, bc
 	and	a, (hl)
+	ex	af, af'
+	or	a, (hl)
+	ex	af, af'
 	add	hl, sp
 	ld	hl, (hl)
 	add	hl, de
@@ -127,6 +205,17 @@ vxPrimitiveMeshAssembly:
 	add	hl, bc
 	and	a, (hl)
 	jr	nz, .discard
+	ex	af, af'
+	or	a, (hl)
+; z = try coverage cull
+	jr	nz, .discard_clip
+; coverage cull is here
+	exx
+	
+	
+	
+	exx
+.discard_clip:
 	add	hl, sp
 	ld	hl, (hl)
 	add	hl, de

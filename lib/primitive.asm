@@ -79,7 +79,6 @@ vxPrimitiveRender:
 	ld	c, (iy+VX_TRIANGLE_COLOR)
 	ld	b, a
 	ld	a, (bc)
-	ld	a, iyl
 	ld	(VX_PRIMITIVE_COLOR_RBG), a
 	lea	bc, ix+0
 	ld	a, (bc)

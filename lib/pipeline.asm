@@ -383,7 +383,23 @@ vxVertexCache:
 	ret
 .uniform:
 	jp	(hl)
-
+.reset:
+; hl - base adress, bc - vertex count
+	ld	a, c
+	dec	bc
+	inc	b
+	ld	c, b
+	ld	b, a
+	ld	a, VX_VERTEX_RESET
+	ld	de, VX_VERTEX_SIZE
+.reset_loop:
+	ld	(hl), a
+	add	hl, de
+	djnz	.reset_loop
+	dec	c
+	jr	nz, .reset_loop
+	ret
+	
 ; set the depth offset of the current primitive stream
 vxPrimitiveDepthOffset:
 	ld	de, VX_DEPTH_OFFSET
