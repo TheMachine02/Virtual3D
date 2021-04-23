@@ -500,13 +500,13 @@ vxParametric:
 	sbc	hl, de	; hl = p1-p0
 	or	a, h	; replaces "ld a,h" & avoid "or a,a" later
 	ld	h, b
-	dec	sp
-	push	hl
 	inc	sp
+	push	hl
 ; l x b /256 -> d
 	mlt	hl
 	ld	d, h
 ; grab hlu in h
+	dec	sp
 	pop	hl	; also h=b -> l
 ; hlu x b x 256
 	ld	e, h	; hlu saved in e for later...
@@ -546,29 +546,28 @@ vxParametric:
 
 .factor:
 ; bc (16bits) = abs(hl)*65536/abs(hl-de)
-; abs(hl) < abs(hl-de)
-; de < 0 and hl > 0 : substract carry
-; hl > 0 and de < 0 : substract dont carry, we need to negate
 	ex	de, hl
 	or	a, a
 	sbc	hl, de
+; abs(de-hl), if >0 then de <0
+	jp	p, .factor_delta_abs
+	push	de
+	add	hl, de
 	ex	de, hl
-	jr	c, .factor_delta_abs
-	push	hl
-	sbc	hl, hl
+	or	a, a
 	sbc	hl, de
-	ex	de, hl
-	pop	hl
-	jr	.factor_compute
+	pop	de
 .factor_delta_abs:
+	ex	de, hl
+	add	hl, hl
+	jr	nc, .factor_abs
 	push	de
 	ex	de, hl
 	or	a, a
 	sbc	hl, hl
 	sbc	hl, de
 	pop	de
-.factor_compute:
-	add	hl, hl
+.factor_abs:
 	sbc	hl, de
 	jr	nc, $+3
 	add	hl, de
