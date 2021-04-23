@@ -90,10 +90,10 @@ vxPrimitiveRender:
 .clip_triangle_color:
 	ld	iy, VX_PATCH_INPUT
 ; I have actually switched hl and de previously
-	ld	(iy+VX_TRIANGLE_I0), de
-	ld	(iy+VX_TRIANGLE_I1), hl
-	ld	(iy+VX_TRIANGLE_I2), bc
-	ld	(iy+VX_TRIANGLE_I2+3), de
+	ld	(iy+VX_PATCH_I0), de
+	ld	(iy+VX_PATCH_I1), hl
+	ld	(iy+VX_PATCH_I2), bc
+	ld	(iy+VX_PATCH_I3), de
 	ld	b, 3
 	call	vxPrimitiveClipFrustrum
 ; fall through filling polygons
@@ -105,13 +105,13 @@ vxPrimitiveRender:
 	dec	b
 	ret	m
 	ret	z
-	ld	hl, (iy+VX_POLYGON_I0)
+	ld	hl, (iy+VX_PATCH_I0)
 .raster_color_loop:
 	push	bc
-	ld	de, (iy+VX_POLYGON_I1)
-	ld	bc, (iy+VX_POLYGON_I2)
+	ld	de, (iy+VX_PATCH_I1)
+	ld	bc, (iy+VX_PATCH_I2)
 	push	hl
-	pea	iy+3
+	pea	iy+VX_PATCH_INDEX_SIZE
 	call	.raster_triangle_color
 	pop	iy
 	pop	hl
@@ -200,11 +200,11 @@ relocate VX_PRIMITIVE_INTERPOLATION_CODE
 	jr	z, .raster_triangle_interpolate
 .clip_triangle_interpolate:
 	ld	iy, VX_PATCH_INPUT
-	ld	(iy+VX_TRIANGLE_I0), de
-	ld	(iy+VX_TRIANGLE_I1), hl
-	ld	(iy+VX_TRIANGLE_I2), bc
+	ld	(iy+VX_PATCH_I0), de
+	ld	(iy+VX_PATCH_I1), hl
+	ld	(iy+VX_PATCH_I2), bc
 ; make patch cyclic
-	ld	(iy+VX_TRIANGLE_I2+3), de
+	ld	(iy+VX_PATCH_I3), de
 	ld	b, 3
 	call	vxPrimitiveClipFrustrum
 .raster_polygon_interpolate:
@@ -214,13 +214,13 @@ relocate VX_PRIMITIVE_INTERPOLATION_CODE
 	dec	b
 	ret	m
 	ret	z
-	ld	hl, (iy+VX_POLYGON_I0)
+	ld	hl, (iy+VX_PATCH_I0)
 .raster_interpolate_loop:
 	push	bc
-	ld	de, (iy+VX_POLYGON_I1)
-	ld	bc, (iy+VX_POLYGON_I2)
+	ld	de, (iy+VX_PATCH_I1)
+	ld	bc, (iy+VX_PATCH_I2)
 	push	hl
-	pea	iy+3
+	pea	iy+VX_PATCH_INDEX_SIZE
 	call	.raster_triangle_interpolate
 	pop	iy
 	pop	hl

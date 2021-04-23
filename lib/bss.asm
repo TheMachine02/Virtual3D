@@ -46,10 +46,13 @@ VX_VIEW_MLTY:
  rb	256
 VX_VIEW_MLTZ:
  rb	256 
-; free span
- rb	256
-
- align 512
+VX_PATCH_VERTEX_POOL:
+ rb	128
+VX_PATCH_INPUT:
+ rb	64
+VX_PATCH_OUTPUT:
+ rb	64
+align 512
 VX_LUT_SIN:
  dw 0
  dw 101

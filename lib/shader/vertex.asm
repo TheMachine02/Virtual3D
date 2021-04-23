@@ -278,7 +278,6 @@ relocate VX_VRAM
 ; we got a gap here, were we can put zclip
 .perspective_zclip:
 	sbc	hl, bc
-; X < Z
 	jp	m, .perspective_clip_ry_0
 	or	a, 00100010b
 .perspective_clip_ry_0:

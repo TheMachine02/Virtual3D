@@ -26,18 +26,18 @@ define	VX_PLANE_BIT0		10000000b	; vertical right edge (x=320)
 define	VX_PLANE_BIT1		01000000b	; vertical left edge (x=0)
 define	VX_PLANE_BIT2		00100000b	; horizontal upper edge (y=0)
 define	VX_PLANE_BIT3		00010000b	; horizontal lower edge (y=240)
-define 	VX_MAX_PATCH_VERTEX    	8
-define 	VX_MAX_PATCH_SIZE	64
-define	VX_PATCH_INPUT		$D03480
-define	VX_PATCH_OUTPUT		$D034C0
-define	VX_PATCH_VERTEX_POOL	$D03400
+define 	VX_MAX_PATCH_VERTEX    	8		; number of newly created vertex
+define 	VX_MAX_PATCH_SIZE	16		; number of vertex per patch at max
 
 define	VX_CLIPPLANE_3D_MASK	11110000b
 define	VX_CLIPPLANE_2D_MASK	00001111b
 
+define	VX_PATCH_I0		0
+define	VX_PATCH_I1		4
+define	VX_PATCH_I2		8
+define	VX_PATCH_I3		12
+define	VX_PATCH_INDEX_SIZE	4
 
-vxPatchSize:
- db	0
 vxPatchVertexCache:
  dl	0
 VX_PATCH_VERTEX:
@@ -105,13 +105,12 @@ vxPrimitiveClipPlane:
 ; output ;
 ; iy : clipped patch (VX_PATCH_OUPUT)
 ;  b : number of point
-	ld	(vxPatchSize), a
 	push	iy
 	push	ix
 ; b : count, c : planemask
 .clipSutherHodgmanLoop:
-	ld	hl, (iy+VX_POLYGON_I1)
-	ld	de, (iy+VX_POLYGON_I0)
+	ld	hl, (iy+VX_PATCH_I1)
+	ld	de, (iy+VX_PATCH_I0)
 	ld	a, (de)
 	and	a, (hl)
 	and	a, c
@@ -120,20 +119,23 @@ vxPrimitiveClipPlane:
 	or	a, (hl)
 	and	a, c
 	jr	nz, .clipEdge
-	ld	(ix+VX_POLYGON_I0), de
-	ld	a, (vxPatchSize)
+	ld	(ix+VX_PATCH_I0), de
 .incEdge:
-	lea	ix, ix+3
-	inc	a
-	ld	(vxPatchSize), a
+	lea	ix, ix+VX_PATCH_INDEX_SIZE
 .noEdge:
-	lea	iy, iy + 3
+	lea	iy, iy+VX_PATCH_INDEX_SIZE
 	djnz	.clipSutherHodgmanLoop
-	ld	a, (vxPatchSize)
-	ld	b, a
 	pop	iy
-	ld	hl, (iy+VX_POLYGON_I0)
-	ld	(ix+VX_POLYGON_I0), hl
+	ld	hl, (iy+VX_PATCH_I0)
+	ld	(ix+VX_PATCH_I0), hl
+	lea	hl, ix+0
+	lea	bc, iy+0
+	or	a, a
+	sbc	hl, bc
+	ld	a, l
+	rrca
+	rrca
+	ld	b, a
 	pop	ix
 	ret
 ; all works is here ;
@@ -181,21 +183,21 @@ vxPrimitiveClipPlane:
 	push	iy
 ; save plane mask for later
 	push	af
-	call	vxParametricFactor
-	ld	ix, (iy+VX_POLYGON_I0)
-	ld	iy, (iy+VX_POLYGON_I1)
+	call	vxParametric.factor
+	ld	ix, (iy+VX_PATCH_I0)
+	ld	iy, (iy+VX_PATCH_I1)
 ; ix = iy+0 (p0) , iy = iy+3 (p1)
 ; compute (p1-p0)*t+p0, for 24 bits vertex
 ; t = bc, p0 = ix, p1 = iy, output = clip_vertex0
 ; vertex coordinate rx
 	ld	hl, (iy+VX_VERTEX_RX)
 	ld	de, (ix+VX_VERTEX_RX)
-	call	vxParametricExtendMlt
+	call	vxParametric.mlt
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_RX), hl
 ; vertex coordinate rz
 	ld	hl, (iy+VX_VERTEX_RZ)
 	ld	de, (ix+VX_VERTEX_RZ)
-	call	vxParametricExtendMlt
+	call	vxParametric.mlt
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_RZ), hl
 ; vertex coordinate ry
 	pop	af
@@ -263,10 +265,10 @@ vxPrimitiveClipPlane:
 	sbc	hl, bc
 	adc	a, a
 	cpl
-	ld	e, a
-	ld	d, VX_SCREEN_WIDTH/2+1
-	mlt	de
-	ld	a, d
+	ld	l, a
+	ld	h, VX_SCREEN_WIDTH shr 1
+	mlt	hl
+	ld	a, h
 	sbc	hl, hl
 	jr	nc, $+3
 	cpl
@@ -318,17 +320,15 @@ vxPrimitiveClipPlane:
 	pop	ix
 ; do specific edge shift here
 	pop	af
-	ld	a, (vxPatchSize)
 	jr	nz, .edgeRentring
 ; edge leaving
-	ld	hl, (iy+VX_POLYGON_I0)
-	ld	(ix+VX_POLYGON_I0), hl
-	lea	ix, ix+3
-	inc	a
+	ld	hl, (iy+VX_PATCH_I0)
+	ld	(ix+VX_PATCH_I0), hl
+	lea	ix, ix+VX_PATCH_INDEX_SIZE
 .edgeRentring:
 	ld	hl, VX_PATCH_VERTEX
 	ld	de, (vxPatchVertexCache)
-	ld	(ix+VX_POLYGON_I0), de
+	ld	(ix+VX_PATCH_I0), de
 	ld	bc, VX_VERTEX_SIZE
 	ldir
 	ld	(vxPatchVertexCache), de
@@ -372,21 +372,21 @@ vxPrimitiveClipPlane:
 	push	ix
 	push	iy
 	push	af	; push flag plane
-	call	vxParametricFactor
-	ld	ix, (iy+VX_POLYGON_I0)
-	ld	iy, (iy+VX_POLYGON_I1)
+	call	vxParametric.factor
+	ld	ix, (iy+VX_PATCH_I0)
+	ld	iy, (iy+VX_PATCH_I1)
 ; ix = iy+0 (p0) , iy = iy+3 (p1)
 ; compute (p1-p0)*t+p0, for 24 bits vertex
 ; t = bc, p0 = ix, p1 = iy, output = clip_vertex0
 ; vertex coordinate ry
 	ld	hl, (iy+VX_VERTEX_RY)
 	ld	de, (ix+VX_VERTEX_RY)
-	call	vxParametricExtendMlt
+	call	vxParametric.mlt
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_RY), hl
 ; vertex coordinate rz
 	ld	hl, (iy+VX_VERTEX_RZ)
 	ld	de, (ix+VX_VERTEX_RZ)
-	call	vxParametricExtendMlt
+	call	vxParametric.mlt
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_RZ), hl
 ; vertex coordinate rx
 ; here, rx = -z or +z (based on plane, right plane = +)
@@ -454,15 +454,15 @@ vxPrimitiveClipPlane:
 	add	hl, hl
 	sbc	hl, bc
 	adc	a, a
-	cpl
 	add	a, a
-	ld	l, VX_SCREEN_HEIGHT/2+1
-	ld	h, a
+	cpl
+	ld	l, a
+	ld	h, VX_SCREEN_HEIGHT shr 1
 	mlt	hl
 	ld	a, h
-	jr	nc, $+3
-	cpl
-	adc	a, VX_SCREEN_HEIGHT_CENTER
+	jr	c, $+4
+	neg
+	add	a, VX_SCREEN_HEIGHT_CENTER
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SY), a
 	xor	a, a
 	jp	.parametricCCompute
@@ -491,7 +491,8 @@ vxPrimitiveClipPlane:
 	ld	a, c
 	jp	.parametricCCompute
 
-vxParametricExtendMlt:
+vxParametric:
+.mlt:
 ; (p1-p0)*f/65536+p0
 ; p1 = hl (24bits), p0 = de (24bits), f = bc (16bits)
 	push	de
@@ -499,21 +500,21 @@ vxParametricExtendMlt:
 	sbc	hl, de	; hl = p1-p0
 	or	a, h	; replaces "ld a,h" & avoid "or a,a" later
 	ld	h, b
+	inc	sp
 	push	hl
 ; l x b /256 -> d
 	mlt	hl
 	ld	d, h
 ; grab hlu in h
-	inc	sp
-	pop	hl	; also h=b -> l
 	dec	sp
+	pop	hl	; also h=b -> l
 ; hlu x b x 256
 	ld	e, h	; hlu saved in e for later...
 	bit	7, h
 	mlt	hl
-	jr	z, .signAdjust
+	jr	z, .mlt_sign_adjust
 	sbc	hl, bc
-.signAdjust:
+.mlt_sign_adjust:
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
@@ -543,30 +544,30 @@ vxParametricExtendMlt:
 	add	hl, de	; add	up p0
 	ret
 
-vxParametricFactor:
+.factor:
 ; bc (16bits) = abs(hl)*65536/abs(hl-de)
 	ex	de, hl
 	or	a, a
 	sbc	hl, de
 ; abs(de-hl), if >0 then de <0
-	jp	p, .deltaAbs
+	jp	p, .factor_delta_abs
 	push	de
 	add	hl, de
 	ex	de, hl
 	or	a, a
 	sbc	hl, de
 	pop	de
-.deltaAbs:
+.factor_delta_abs:
 	ex	de, hl
 	add	hl, hl
-	jr	nc, .absValue
+	jr	nc, .factor_abs
 	push	de
 	ex	de, hl
 	or	a, a
 	sbc	hl, hl
 	sbc	hl, de
 	pop	de
-.absValue:
+.factor_abs:
 	sbc	hl, de
 	jr	nc, $+3
 	add	hl, de
