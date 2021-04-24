@@ -213,56 +213,64 @@ vxPrimitiveClipPlane:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SY), a
 	push	bc
 	ld	hl, (VX_PATCH_VERTEX+VX_VERTEX_RX)
-	ld	bc, (VX_PATCH_VERTEX+VX_VERTEX_RZ)
-.parametricDivide1:
+	ld	a, (VX_PATCH_VERTEX+VX_VERTEX_RZ+2)
+	rla
+	jr	nc, .parametric_divide_rx
+; if z < 0 after cliping 3 plane, it can only be out on the last plane
+; 	xor	a, a
+; 	ld	de, (VX_PATCH_VERTEX+VX_VERTEX_RX)
+; 	add	hl, de
+; 	add	hl, hl
+; 	jp	nc, .parametricCCompute
+	ld	a, 00010000b
+	jr	.parametricCCompute
+.parametric_divide_rx:
 	xor	a, a
 	add	hl, hl
-	jr	nc, $+9
+	jr	nc, .parametric_absolute_rx
 	rla
 	ex	de, hl
 	sbc	hl, hl
 	sbc	hl, de
 	or	a, a
-	sbc	hl, bc
-	jr	c, .nextcarry1
-	sbc	hl, bc
-	jr	nc, .equal1
-	or	a, a
-.nextcarry1:
-	adc	a, a
-	add	hl, bc
-	add	hl, hl
-	sbc	hl, bc
+.parametric_absolute_rx:
+	ld	de, (VX_PATCH_VERTEX+VX_VERTEX_RZ)
+	sbc	hl, de
 	jr	nc, $+3
-	add	hl, bc
+	add	hl, de
 	adc	a, a
 	add	hl, hl
-	sbc	hl, bc
+	sbc	hl, de
 	jr	nc, $+3
-	add	hl, bc
+	add	hl, de
 	adc	a, a
 	add	hl, hl
-	sbc	hl, bc
+	sbc	hl, de
 	jr	nc, $+3
-	add	hl, bc
+	add	hl, de
 	adc	a, a
 	add	hl, hl
-	sbc	hl, bc
+	sbc	hl, de
 	jr	nc, $+3
-	add	hl, bc
+	add	hl, de
 	adc	a, a
 	add	hl, hl
-	sbc	hl, bc
+	sbc	hl, de
 	jr	nc, $+3
-	add	hl, bc
+	add	hl, de
 	adc	a, a
 	add	hl, hl
-	sbc	hl, bc
+	sbc	hl, de
 	jr	nc, $+3
-	add	hl, bc
+	add	hl, de
 	adc	a, a
 	add	hl, hl
-	sbc	hl, bc
+	sbc	hl, de
+	jr	nc, $+3
+	add	hl, de
+	adc	a, a
+	add	hl, hl
+	sbc	hl, de
 	adc	a, a
 	cpl
 	ld	l, a
@@ -275,14 +283,6 @@ vxPrimitiveClipPlane:
 	ld	l, a
 	ld	de, VX_SCREEN_WIDTH_CENTER
 	adc	hl, de
-	jr	.writex
-.equal1:
-	rra
-	ld	hl, $000140	;=VX_SCREEN_WIDTH_CENTER+(VX_SCREEN_WIDTH/2)
-	jr	nc, .writex
-	dec	h
-	ld	l, h	;=VX_SCREEN_WIDTH_CENTER-(VX_SCREEN_WIDTH/2)
-.writex:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SX), hl
 	xor	a, a
 ; common compute ;
@@ -408,22 +408,30 @@ vxPrimitiveClipPlane:
 ; beware, RZ can be negative here. If so, it block stuff up, so, set code accordingly
 	ld	a, (VX_PATCH_VERTEX+VX_VERTEX_RZ+2)
 	rla
-	jr	c, .clipz0
-.parametricDivide0:
+	jr	c, .parametric_zclip_ry
+.parametric_divide_ry:
 	xor	a, a
 	add	hl, hl
-	jr	nc, $+9
+	jr	nc, .parametric_absolute_ry
 	rla
 	ex	de, hl
 	sbc	hl, hl
 	sbc	hl, de
 	or	a, a
+.parametric_absolute_ry:
 	sbc	hl, bc
-	jr	c, .nextcarry0
+	jr	c, .parametric_iterate_ry
 	sbc	hl, bc
-	jr	nc, .equal0
-	or	a, a
-.nextcarry0:
+	ccf
+	jr	nc, .parametric_iterate_ry
+; clip code compute for ry
+	rra
+	ld	a, 00100010b
+; 00010001b if negative
+	jr	nc, $+3
+	rrca
+	jp	.parametricCCompute
+.parametric_iterate_ry:
 	adc	a, a
 	add	hl, bc
 	add	hl, hl
@@ -466,30 +474,25 @@ vxPrimitiveClipPlane:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SY), a
 	xor	a, a
 	jp	.parametricCCompute
-.equal0:
-	jr	nz, .clipy0
-	rra
-	ld	a, VX_SCREEN_HEIGHT_CENTER+(VX_SCREEN_HEIGHT/2)
-	jr	c, $+3
-	xor	a, a	;=VX_SCREEN_HEIGHT_CENTER-(VX_SCREEN_HEIGHT/2)
-	ld	(VX_PATCH_VERTEX+VX_VERTEX_SY), a
-	jp	.parametricCCompute
-.clipz0:
+
+.parametric_zclip_ry:
+	xor	a, a
+	sbc	hl, bc
+	jp	m, .parametric_zclip_ry_0
+	or	a, 00100000b
+.parametric_zclip_ry_0:
+	add	hl, bc
+	add	hl, bc
 	add	hl, hl
-	rla
-.clipy0:
-; we need to take care of extra clipping incurring on y plane only, since vertical plane will be both clipped proprely at first (and it doesn't change anything)
-; so when it moves on to the y code, x won't be clipped anymore, only clamped, which is more than enough
-	rra
-	ld	c, 00010000b
-	ld	a, VX_SCREEN_HEIGHT_CENTER+(VX_SCREEN_HEIGHT/2)
-	jr	c, .clipy1
-	xor	a, a	;=VX_SCREEN_HEIGHT_CENTER-(VX_SCREEN_HEIGHT/2)
-	ld	c, 00100000b
-.clipy1:
-	ld	(VX_PATCH_VERTEX+VX_VERTEX_SY), a
-	ld	a, c
-	jp	.parametricCCompute
+	jr	nc, .parametric_zclip_ry_1
+	or	a, 00010000b
+.parametric_zclip_ry_1:
+	ld	hl, (VX_PATCH_VERTEX+VX_VERTEX_RX)
+	add	hl, bc
+	add	hl, hl
+	jp	nc, .parametricCCompute
+	or	a, 01000000b
+	jp	.parametricCCompute	
 
 vxParametric:
 .mlt:
@@ -500,13 +503,13 @@ vxParametric:
 	sbc	hl, de	; hl = p1-p0
 	or	a, h	; replaces "ld a,h" & avoid "or a,a" later
 	ld	h, b
-	inc	sp
+	dec	sp
 	push	hl
 ; l x b /256 -> d
 	mlt	hl
 	ld	d, h
 ; grab hlu in h
-	dec	sp
+	inc	sp
 	pop	hl	; also h=b -> l
 ; hlu x b x 256
 	ld	e, h	; hlu saved in e for later...
@@ -546,28 +549,30 @@ vxParametric:
 
 .factor:
 ; bc (16bits) = abs(hl)*65536/abs(hl-de)
+ ; abs(hl) < abs(hl-de)
+; de < 0 and hl > 0 : substract carry
+; hl > 0 and de < 0 : substract dont carry, we need to negate
 	ex	de, hl
 	or	a, a
 	sbc	hl, de
-; abs(de-hl), if >0 then de <0
+	ex	de, hl
 	jp	p, .factor_delta_abs
-	push	de
-	add	hl, de
-	ex	de, hl
+	push	hl
 	or	a, a
+	sbc	hl, hl
 	sbc	hl, de
-	pop	de
-.factor_delta_abs:
 	ex	de, hl
-	add	hl, hl
-	jr	nc, .factor_abs
+	pop	hl
+	jr	.factor_compute
+.factor_delta_abs:
 	push	de
 	ex	de, hl
 	or	a, a
 	sbc	hl, hl
 	sbc	hl, de
 	pop	de
-.factor_abs:
+.factor_compute:
+	add	hl, hl
 	sbc	hl, de
 	jr	nc, $+3
 	add	hl, de
