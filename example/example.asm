@@ -28,13 +28,23 @@ Main:
 	ret	c
 	ld	(Texture), hl
 	
+	ld	hl, MipName
+	call	find
+	ret	c
+	ld	(Mipmap), hl	
+	
 ; init the virtual 3d library (please init after OS issue)
 	call	vxEngine.init
 	ret	c		; quit if error at init
 
 	ld	hl, (Texture)
 	ld	a, VX_IMAGE_ZX7_COMPRESSED
-	ld	de, $D30000
+	ld	de, VX_TEXTURE
+	call	vxImage.copy
+	
+	ld	hl, (Mipmap)
+	ld	a, VX_IMAGE_ZX7_COMPRESSED
+	ld	de, VX_TEXTURE_MIPMAP
 	call	vxImage.copy
 
 	call	Filter.generate
@@ -342,6 +352,10 @@ Triangle:
 TextName:
 	db	ti.AppVarObj, "KALIYAT",0
 Texture:
+	dl	0
+MipName:
+	db	ti.AppVarObj, "KALIYAM",0
+Mipmap:
 	dl	0
 UnitVector:
 	dl	0,16384,0

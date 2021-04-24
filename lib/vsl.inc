@@ -276,6 +276,10 @@ define	VX_VRAM_CACHE_SIZE		64
 define	VX_VRAM				$E30800
 define	VX_VRAM_SIZE			1024
 
+; location of the mipmap level
+define	VX_TEXTURE			$D30000
+define	VX_TEXTURE_MIPMAP		$D28000
+
 define	VIRTUAL_BASE_RAM		$D00000
 define	VIRTUAL_VERSION			$10
 define	VIRTUAL_NULL_RAM		$E40000

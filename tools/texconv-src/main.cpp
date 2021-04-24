@@ -237,8 +237,8 @@ void convertTexturePage(string filename, string outname, unsigned char option)
     Optimal *opt;
     uint8_t *ret = NULL;
     size_t outsize;
-    opt = optimize(texture, 65536);
-    ret = compress(opt, texture, 65536, &outsize, &delta);
+    opt = optimize(texture, image.size()/4);
+    ret = compress(opt, texture, image.size()/4, &outsize, &delta);
     free(opt);
 
     if(ret==NULL || (outsize>65535)) {
@@ -255,9 +255,9 @@ void convertTexturePage(string filename, string outname, unsigned char option)
 	else{
 
 	out << "db ";
-    for(unsigned int j=0;j<(image_size/4);j++) {
+    for(unsigned int j=0;j<(image.size()/4);j++) {
         out << (int)texture[j];
-        if(j!=((image_size/4)-1)) out <<",";
+        if(j!=((image.size()/4)-1)) out <<",";
     }
 	}
 	return;

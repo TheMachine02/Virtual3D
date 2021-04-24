@@ -101,7 +101,11 @@ fasmg example/file/NabooruZelda1.inc bin/NABOORUF.8xv
 # fasmg example/file/XML1.ez80 bin/LARAF.8xv 
 
 echo "Converting CavesOfKaliyaTRIII.png"
-./tools/texconv -compress -o=KALIYAT example/file/CavesOfKaliyaTRIII.png #-dithering
+./tools/texconv -compress -dithering -o=KALIYAT example/file/CavesOfKaliyaTRIII.png
+fasmg example/file/CavesOfKaliyaTRIII.inc bin/KALIYAT.8xv 
+echo "Converting CavesOfKaliyaTRIII_mip.png"
+./tools/texconv -compress -o=KALIYAM example/file/CavesOfKaliyaTRIII_mip.png
+fasmg example/file/CavesOfKaliyaTRIII_mip.inc bin/KALIYAM.8xv 
 
 echo "Converting CityTRIII.png"
 ./tools/texconv -dithering -compress -o=CITYT example/file/CityTRIII.png
@@ -169,7 +173,6 @@ echo "Converting BomboFFXII.png"
 echo "Converting UltimaFFXII.png"
 ./tools/texconv -dithering -compress -o=ULTIMAT example/file/UltimaFFXII.png
 
-fasmg example/file/CavesOfKaliyaTRIII.inc bin/KALIYAT.8xv 
 fasmg example/file/PoolTRIII.inc bin/POOLT.8xv
 fasmg example/file/CityTRIII.inc bin/CITYT.8xv 
 fasmg example/file/TrainRoomTRIII.inc bin/TRAINT.8xv 

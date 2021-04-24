@@ -111,25 +111,17 @@ vxMipmap:
 .djnz_dual:
 	djnz	.dummy_2
 	
-	
-	
-	
-; 146
-	
 .generate:
 ; generate LUT table for mipmapping ?
 ; 256x256 : lvl 0
-; 128x128 : lvl 1, 16K,  start adress = $D2C000
-; 64x64   : lvl 2, 4K,   start adress = $D2B000
-; 32x32   : lvl 3, 1K,   start adress = $D2AC00
-; 16x16   : lvl 4, 256,  start adress = $D2AB00
-; 8x8     : lvl 5, 16b,  start adress = $D2AA00
+; 128x128 : lvl 1, 16K
+; 64x64   : lvl 2, 4K
+; 32x32   : lvl 3, 1K
+; 16x16   : lvl 4, 256
 ; each texel is the average of the four texel of the precedent level
 ; we also need to offset the v coordinate by the necessary value
 ; LUT table does : U >> lvl + U offset and V >> lvl + V offset
-
-
-
+	ret
 
 .gradient:
 ; apply LUT table

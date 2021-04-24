@@ -18,6 +18,7 @@ void generate_convolve();
 void generate_sinus();
 void generate_inverse();
 void generate_log();
+void generate_mipmap();
 
 int main(int argc, char* argv[])
 {
@@ -25,8 +26,48 @@ int main(int argc, char* argv[])
 	generate_convolve();
 	generate_inverse();
 	generate_log();
+	generate_mipmap();
 }
 
+void generate_mipmap()
+{
+	ofstream out;
+	out.open("mip.asm");
+	if(!(out.good()))
+	{
+		cout << "Can't open output file" << std::endl;
+		return;
+	}
+
+	int i;
+	// level 1
+	for(i=0;i<256;i++)
+		out << " db " << (i>>1) + 128 << "\n";
+	for(i=0;i<256;i++)
+		out << " db " << (i>>1) + 128 << "\n";
+	out << "\n";
+	
+	// level 2
+	for(i=0;i<256;i++)
+		out << " db " << (i>>2) + 64 << "\n";
+	for(i=0;i<256;i++)
+		out << " db " << (i>>2) + 192 << "\n";
+	out << "\n";
+	
+	// level 3
+	for(i=0;i<256;i++)
+		out << " db " << (i>>3) + 96 << "\n";
+	for(i=0;i<256;i++)
+		out << " db " << (i>>3) + 160 << "\n";
+	out << "\n";
+	
+	// level 4
+	for(i=0;i<256;i++)
+		out << " db " << (i>>4) + 112 << "\n";
+	for(i=0;i<256;i++)
+		out << " db " << (i>>4) + 144 << "\n";
+}
+	
 void generate_log()
 {
 	ofstream out;
