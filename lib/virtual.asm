@@ -37,6 +37,7 @@ vxEngine:
 vxEngineInit:
 ; get indic off
 	call	ti.RunIndicOff
+	call	ti.boot.ClearVRAM
 ; disable interrupts
 	di
 	ld	a, $D0
@@ -44,12 +45,12 @@ vxEngineInit:
 	ld	hl, $E00005
 ; Set flash wait states to 5 + 3 = 8 (total access time = 9)
 	ld	(hl), 3
-	call	ti.boot.ClearVRAM
-; LCD init
-	call	vxFramebufferSetup
-; memory initialisation
+	call	port_setup
 	call	vxMemoryCreateDevice
-; data initialisation
+; unlock SHA256 (port setup is still valid)
+	call	port_privilege_unlock
+; memory initialisation	
+	call	vxFramebufferSetup
 	ld	de, VIRTUAL_BASE_RAM
 	ld	hl, .arch_image
 	call	lz4.decompress
@@ -80,6 +81,12 @@ vxEngineInit:
 file	'ram'
 
 vxEngineQuit:
+	ld	iy, _OS_FLAGS
+	call	vxFramebufferRestore
+	call	vxMemoryDestroyDevice
+;	call	port_setup
+; relock SHA256, port setup has been restored by destroy device (or should be)
+	call	port_privilege_lock
 	ld	hl, $F50000
 	ld	(hl), h	; Mode 0
 	inc	l		; 0F50001h
@@ -92,9 +99,6 @@ vxEngineQuit:
 	ld	(hl), 8	; Number of rows to scan
 	inc	l		; 0F50005h
 	ld	(hl), 8	; Number of columns to scan
-	ld	iy, _OS_FLAGS
-	call	vxFramebufferRestore
-	call	vxMemoryDestroyDevice
 	ld	hl, $E00005
 	ld	(hl), 4	; Set flash wait states to 5 + 4 = 9 (total access time = 10)
 	call	ti.HomeUp
@@ -105,6 +109,7 @@ vxEngineQuit:
 	jp	ti.DrawBatteryIndicator
 
 ; memory backing function
+; port safe
 vxMemoryCreateDevice:
 	di
 	ld	hl, $D00000
@@ -112,7 +117,6 @@ vxMemoryCreateDevice:
 	inc	hl
 	ld	(hl), $A5
 	dec	hl
-	call	port_setup
 	call	port_unlock
 	ld	a, $3F
 	call	vxMemorySafeErase
@@ -126,8 +130,7 @@ vxMemoryCreateDevice:
 	ld	de, $3C0000
 	ld	bc, $40000
 	call	ti.WriteFlash
-; we leave the memory protection off BUT flash lock ON (for SHA256 acess)
-	jp	port_privilege_lock
+	jp	port_lock
 	
 vxMemorySafeErase:
 	di
@@ -147,11 +150,8 @@ vxMemoryDestroyDevice:
 	ld	de, $D1A881
 	ld	bc, $02577F
 	ldir
-; unlock and re-lock the port
-	call	port_setup
-	call	port_unlock
-	jp	port_lock
-	
+	ret
+
 ; core of the library
 include	"assembly.asm"
 include	"framebuffer.asm"

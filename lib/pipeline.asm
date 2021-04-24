@@ -399,6 +399,20 @@ vxVertexCache:
 	dec	c
 	jr	nz, .reset_loop
 	ret
+
+vxScissor:
+	
+.rect2D:
+; set the scissor to given rect2D
+	ret
+
+.compose:
+; set the scissor given rect2D adapated to the current scissor
+	ret
+	
+.query:
+; get the current scissor state
+	ret
 	
 ; set the depth offset of the current primitive stream
 vxPrimitiveDepthOffset:
