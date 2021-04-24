@@ -26,6 +26,8 @@
 ; ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 ; POSSIBILITY OF SUCH DAMAGE.
 
+; port privilege unlock and adapatation by TheMachine02
+
 os_num = 0
 
 macro ports? v, lock, unlock, priv_lock, priv_unlock
@@ -100,12 +102,16 @@ port_setup:
 	jq	.store_smc
 
 port_privilege_lock:
-	jp	0
+	push	de,bc,hl
+	call	0
 .code := $-3
+	jq	port_unlock.pop
 
 port_privilege_unlock:
-	jp	0
+	push	de,bc,hl
+	call	0
 .code := $-3
+	jq	port_unlock.pop
 
 port_unlock:
 	push	de,bc,hl
@@ -316,6 +322,9 @@ port_os560:
 	in0	a,($06)
 	res	2,a
 	out0	($06),a
+; relock the memory protection which is unlocked by the helper
+	ld	a,$d1
+	out0	($22),a
 	ret
 
 port_helper_size:=$-port_ospre55

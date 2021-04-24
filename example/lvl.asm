@@ -43,7 +43,7 @@ format	ti executable 'LVL'
 	ret	c
 	ld	(cacheTexture), hl
 
-	call	vxEngineInit
+	call	vxEngine.init
 	ret	c		; quit if error at init	
 	
 	ld	hl, (cacheTexture)

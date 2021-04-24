@@ -32,9 +32,8 @@ end virtual
 ; functions
 
 vxEngine:
-	jp	vxEngineEnd
 
-vxEngineInit:
+.init:
 ; get indic off
 	call	ti.RunIndicOff
 	call	ti.boot.ClearVRAM
@@ -73,14 +72,14 @@ vxEngineInit:
 ; init timer
 	call	vxTimer.init
 ; insert stack position
-	ld	hl, vxEngineQuit
+	ld	hl, .quit
 	ex	(sp), hl
 	jp	(hl)
 
 .arch_image:
 file	'ram'
 
-vxEngineQuit:
+.quit:
 	ld	iy, _OS_FLAGS
 	call	vxFramebufferRestore
 	call	vxMemoryDestroyDevice
