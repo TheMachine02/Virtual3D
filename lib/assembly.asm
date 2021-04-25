@@ -147,28 +147,24 @@ vxPrimitiveAssembly:
 	add	a, VX_GEOMETRY_SIZE
 	ld	(hl), a
 	inc	h
-	jr	nc, .overflow_l
-	inc	(hl)
-.overflow_l:
+	jr	c, .overflow_l
+.continue_l:
 	inc	h
 	ld	l, d
 	ld	a, (hl)
 	add	a, VX_GEOMETRY_SIZE
 	ld	(hl), a
 	inc	h
-	jr	nc, .overflow_h
-	inc	(hl)
-.overflow_h:
+	jr	c, .overflow_h
+.continue_h:
 	inc	h
 ; we can't acess deu quickly here, so do a slow read
 	ld	l, (ix+VX_GEOMETRY_DEPTH+2)
 	ld	a, (hl)
 	add	a, VX_GEOMETRY_KEY_SIZE
 	ld	(hl), a
-	jr	nc, .overflow_u
-	inc	h
-	inc	(hl)
-.overflow_u:
+	jr	c, .overflow_u
+.continue_u:
 	ld	(ix+VX_GEOMETRY_INDEX), iy
 	lea	ix, ix+VX_GEOMETRY_SIZE
 .discard:
@@ -180,6 +176,18 @@ vxPrimitiveAssembly:
 .SP_RET0:=$+1
 	ld	sp, $CCCCCC
 	ret
+; out of bound in bucket handle
+; those occurs only every ~42 triangles within each bucket size
+.overflow_l:
+	inc	(hl)
+	jr	.continue_l
+.overflow_h:
+	inc	(hl)
+	jr	.continue_h
+.overflow_u:
+	inc	h
+	inc	(hl)
+	jr	.continue_u
 ; a (signed) time bc (know is advance), so we can use a LUT table to perform this multiplication at a quite low cost (64 values*3 to compute, we can even push them at cost of 2 bytes + 3 write)
 .view_mlt:
 	ld	(.SP_RET1), sp
