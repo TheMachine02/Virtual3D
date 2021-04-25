@@ -143,183 +143,53 @@ vxMipmap:
 ; we'll do this, only take 8 bits of the derivative
 ; 0,5*log2(max( (dFdxU*dFdxU) + (dFdxV*dFdxV) , (dFdyU*dFdyU)+(dFdyV*dFdyV)))
 
-	ld	a, (iy+VX_FDUDX+1)
-	bit	7, a
-	jr	z, $+4
-	neg
-	ld	b, a
-	ld	c, a
-	mlt	bc
-	
-	ld	a, (iy+VX_FDVDX+1)
-	bit	7, a
-	jr	z, $+4
-	neg
-	ld	h, a
-	ld	l, a
-	mlt	hl
-	add	hl, bc
-	ex	de, hl
-	
-	ld	a, (iy+VX_FDUDY+1)
-	bit	7, a
-	jr	z, $+4
-	neg
-	ld	b, a
-	ld	c, a
-	mlt	bc
-	
-	ld	a, (iy+VX_FDVDY+1)
-	bit	7, a
-	jr	z, $+4
-	neg
-	ld	h, a
-	ld	l, a
-	mlt	hl
-	add	hl, bc
+ 	ld	a, (iy+VX_FDUDX+1)
+ 	bit	7, a
+ 	jr	z, $+3
+ 	cpl
+ 	ld	b, a
+ 	ld	c, a
+ 	mlt	bc
+ 	
+ 	ld	a, (iy+VX_FDVDX+1)
+ 	bit	7, a
+ 	jr	z, $+3
+ 	cpl
+ 	ld	h, a
+ 	ld	l, a
+ 	mlt	hl
+ 	add	hl, bc
+ 	ex	de, hl
+ 	
+ 	ld	a, (iy+VX_FDUDY+1)
+ 	bit	7, a
+ 	jr	z, $+3
+ 	cpl
+ 	ld	b, a
+ 	ld	c, a
+ 	mlt	bc
+ 	
+ 	ld	a, (iy+VX_FDVDY+1)
+ 	bit	7, a
+ 	jr	z, $+3
+ 	cpl
+ 	ld	h, a
+ 	ld	l, a
+ 	mlt	hl
+ 	add	hl, bc
 
-
-; 	ld	bc, (iy+VX_FDUDX)
-; 	bit	7, b
-; 	jr	z, .gradient_abs_dudx
-; 	xor	a, a
-; 	sub	a, c
-; 	ld	c, a
-; 	sbc	a, a
-; 	sub	a, b
-; 	ld	b, a
-; .gradient_abs_dudx:
-; 	ld	a, c
-; 	ld	h, b
-; 	ld	l, b
-; 	mlt	hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	mlt	bc
-; 	add	hl, bc
-; 	add	hl, bc
-; 	ld	b, a
-; 	ld	c, a
-; 	mlt	bc
-; 	ld	c, b
-; 	ld	b, 0
-; 	add	hl, bc
-; 	ex	de, hl
-; 	ld	bc, (iy+VX_FDVDX)
-; 	bit	7, b
-; 	jr	z, .gradient_abs_dvdx
-; 	xor	a, a
-; 	sub	a, c
-; 	ld	c, a
-; 	sbc	a, a
-; 	sub	a, b
-; 	ld	b, a
-; .gradient_abs_dvdx:
-; 	ld	a, c
-; 	ld	h, b
-; 	ld	l, b
-; 	mlt	hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	mlt	bc
-; 	add	hl, bc
-; 	add	hl, bc
-; 	ld	b, a
-; 	ld	c, a
-; 	mlt	bc
-; 	ld	c, b
-; 	ld	b, 0
-; 	add	hl, bc
+; 	sbc	hl, de
 ; 	add	hl, de
-; 	push	hl
-; 	
-; 	ld	bc, (iy+VX_FDUDY)
-; 	bit	7, b
-; 	jr	z, .gradient_abs_dudy
-; 	xor	a, a
-; 	sub	a, c
-; 	ld	c, a
-; 	sbc	a, a
-; 	sub	a, b
-; 	ld	b, a
-; .gradient_abs_dudy:
-; 	ld	a, c
-; 	ld	h, b
-; 	ld	l, b
-; 	mlt	hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	mlt	bc
-; 	add	hl, bc
-; 	add	hl, bc
-; 	ld	b, a
-; 	ld	c, a
-; 	mlt	bc
-; 	ld	c, b
-; 	ld	b, 0
-; 	add	hl, bc
+; 	jr	c, $+3
 ; 	ex	de, hl
-; 	ld	bc, (iy+VX_FDVDY)
-; 	bit	7, b
-; 	jr	z, .gradient_abs_dvdy
-; 	xor	a, a
-; 	sub	a, c
-; 	ld	c, a
-; 	sbc	a, a
-; 	sub	a, b
-; 	ld	b, a
-; .gradient_abs_dvdy:
-; 	ld	a, c
-; 	ld	h, b
-; 	ld	l, b
-; 	mlt	hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	add	hl, hl
-; 	mlt	bc
-; 	add	hl, bc
-; 	add	hl, bc
-; 	ld	b, a
-; 	ld	c, a
-; 	mlt	bc
-; 	ld	c, b
-; 	ld	b, 0
-; 	add	hl, bc
-; 	add	hl, de
-; 	pop	de
 
-	or	a, a
-	sbc	hl, de
 	add	hl, de
-	jr	c, $+3
+	sra	h
+	rr	l
 	ex	de, hl
 ; hl is max(dot,dot)
-	ld	a, l
 	ld	hl, VX_LOG_LUT
-	ld	l, a
+	ld	l, e
 	ld	a, (hl)
 	ld	b, a
 	or	a, a
@@ -362,7 +232,7 @@ vxMipmap:
 	ld	(iy+VX_FDVDX), hl
 	bit	7, h
 	jr	z, $+4
-	dec.s	de	
+	dec.s	de
 	ld	(iy+VX_FDUDX), de
 	
 	ld	de, (iy+VX_FDUDY)
@@ -440,6 +310,13 @@ VX_LOG_LUT:
  db 2
  db 2
  db 2
+ db 2
+ db 2
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
  db 3
  db 3
  db 3
@@ -635,18 +512,140 @@ VX_LOG_LUT:
  db 4
  db 4
  db 4
- db 4
- db 4
- db 4
- db 4
- db 4
- db 4
- db 4
-
-
-
  
  rb	64
  TMP:
  rb	64
  
+
+; 	ld	bc, (iy+VX_FDUDX)
+; 	bit	7, b
+; 	jr	z, .gradient_abs_dudx
+; 	xor	a, a
+; 	sub	a, c
+; 	ld	c, a
+; 	sbc	a, a
+; 	sub	a, b
+; 	ld	b, a
+; .gradient_abs_dudx:
+; 	ld	a, c
+;  	ld	h, b
+;  	ld	l, b
+;  	mlt	hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	mlt	bc
+;  	add	hl, bc
+;  	add	hl, bc
+;  	ld	b, a
+;  	ld	c, a
+;  	mlt	bc
+;  	ld	c, b
+;  	ld	b, 0
+;  	add	hl, bc
+;  	ex	de, hl
+;  	ld	bc, (iy+VX_FDVDX)
+;  	bit	7, b
+;  	jr	z, .gradient_abs_dvdx
+;  	xor	a, a
+;  	sub	a, c
+;  	ld	c, a
+;  	sbc	a, a
+;  	sub	a, b
+;  	ld	b, a
+;  .gradient_abs_dvdx:
+;  	ld	a, c
+;  	ld	h, b
+;  	ld	l, b
+;  	mlt	hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	mlt	bc
+;  	add	hl, bc
+;  	add	hl, bc
+;  	ld	b, a
+;  	ld	c, a
+;  	mlt	bc
+;  	ld	c, b
+;  	ld	b, 0
+;  	add	hl, bc
+;  	add	hl, de
+;  	push	hl
+;  	
+;  	ld	bc, (iy+VX_FDUDY)
+;  	bit	7, b
+;  	jr	z, .gradient_abs_dudy
+;  	xor	a, a
+;  	sub	a, c
+;  	ld	c, a
+;  	sbc	a, a
+;  	sub	a, b
+;  	ld	b, a
+;  .gradient_abs_dudy:
+;  	ld	a, c
+;  	ld	h, b
+;  	ld	l, b
+;  	mlt	hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	mlt	bc
+;  	add	hl, bc
+;  	add	hl, bc
+;  	ld	b, a
+;  	ld	c, a
+;  	mlt	bc
+;  	ld	c, b
+;  	ld	b, 0
+;  	add	hl, bc
+;  	ex	de, hl
+;  	ld	bc, (iy+VX_FDVDY)
+;  	bit	7, b
+;  	jr	z, .gradient_abs_dvdy
+;  	xor	a, a
+;  	sub	a, c
+;  	ld	c, a
+;  	sbc	a, a
+;  	sub	a, b
+;  	ld	b, a
+;  .gradient_abs_dvdy:
+;  	ld	a, c
+;  	ld	h, b
+;  	ld	l, b
+;  	mlt	hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	add	hl, hl
+;  	mlt	bc
+;  	add	hl, bc
+;  	add	hl, bc
+;  	ld	b, a
+;  	ld	c, a
+;  	mlt	bc
+;  	ld	c, b
+;  	ld	b, 0
+;  	add	hl, bc
+;  	add	hl, de
+;  	pop	de

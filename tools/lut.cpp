@@ -83,7 +83,7 @@ void generate_log()
 	for(int i=0;i<256;i++)
 	{
 		out << " db ";
-		out << (int)round(log2(a)/2.0f-0.375f);
+		out << (int)round(log2(a)/2.0f-0.4f);
 		out << "\n";
 		a += 1.0f;
 	}
