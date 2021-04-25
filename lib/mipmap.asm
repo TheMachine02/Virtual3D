@@ -141,150 +141,188 @@ vxMipmap:
 ;     return 0.5 * log2(delta_max_sqr);
 ; }
 ; we'll do this, only take 8 bits of the derivative
-; 0,5*log2(max( (dFdxU*dFdxU) + (dFdxV*dFdxV) , (dFdyU*dFdyU)+(dFdyV*dFdyV)))	
-	ld	bc, (iy+VX_FDUDX)
-	bit	7, b
-	jr	z, .gradient_abs_dudx
-	xor	a, a
-	sub	a, c
-	ld	c, a
-	sbc	a, a
-	sub	a, b
-	ld	b, a
-.gradient_abs_dudx:
-	ld	a, c
-	ld	h, b
-	ld	l, b
-	mlt	hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	mlt	bc
-	add	hl, bc
-	add	hl, bc
+; 0,5*log2(max( (dFdxU*dFdxU) + (dFdxV*dFdxV) , (dFdyU*dFdyU)+(dFdyV*dFdyV)))
+
+	ld	a, (iy+VX_FDUDX+1)
+	bit	7, a
+	jr	z, $+4
+	neg
 	ld	b, a
 	ld	c, a
 	mlt	bc
-	ld	c, b
-	ld	b, 0
-	add	hl, bc
-	ex	de, hl
-	ld	bc, (iy+VX_FDVDX)
-	bit	7, b
-	jr	z, .gradient_abs_dvdx
-	xor	a, a
-	sub	a, c
-	ld	c, a
-	sbc	a, a
-	sub	a, b
-	ld	b, a
-.gradient_abs_dvdx:
-	ld	a, c
-	ld	h, b
-	ld	l, b
-	mlt	hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	mlt	bc
-	add	hl, bc
-	add	hl, bc
-	ld	b, a
-	ld	c, a
-	mlt	bc
-	ld	c, b
-	ld	b, 0
-	add	hl, bc
-	add	hl, de
-	push	hl
 	
-	ld	bc, (iy+VX_FDUDY)
-	bit	7, b
-	jr	z, .gradient_abs_dudy
-	xor	a, a
-	sub	a, c
-	ld	c, a
-	sbc	a, a
-	sub	a, b
-	ld	b, a
-.gradient_abs_dudy:
-	ld	a, c
-	ld	h, b
-	ld	l, b
+	ld	a, (iy+VX_FDVDX+1)
+	bit	7, a
+	jr	z, $+4
+	neg
+	ld	h, a
+	ld	l, a
 	mlt	hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	mlt	bc
-	add	hl, bc
-	add	hl, bc
-	ld	b, a
-	ld	c, a
-	mlt	bc
-	ld	c, b
-	ld	b, 0
 	add	hl, bc
 	ex	de, hl
-	ld	bc, (iy+VX_FDVDY)
-	bit	7, b
-	jr	z, .gradient_abs_dvdy
-	xor	a, a
-	sub	a, c
-	ld	c, a
-	sbc	a, a
-	sub	a, b
+	
+	ld	a, (iy+VX_FDUDY+1)
+	bit	7, a
+	jr	z, $+4
+	neg
 	ld	b, a
-.gradient_abs_dvdy:
-	ld	a, c
-	ld	h, b
-	ld	l, b
+	ld	c, a
+	mlt	bc
+	
+	ld	a, (iy+VX_FDVDY+1)
+	bit	7, a
+	jr	z, $+4
+	neg
+	ld	h, a
+	ld	l, a
 	mlt	hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	mlt	bc
 	add	hl, bc
-	add	hl, bc
-	ld	b, a
-	ld	c, a
-	mlt	bc
-	ld	c, b
-	ld	b, 0
-	add	hl, bc
-	add	hl, de
-	pop	de
+
+
+; 	ld	bc, (iy+VX_FDUDX)
+; 	bit	7, b
+; 	jr	z, .gradient_abs_dudx
+; 	xor	a, a
+; 	sub	a, c
+; 	ld	c, a
+; 	sbc	a, a
+; 	sub	a, b
+; 	ld	b, a
+; .gradient_abs_dudx:
+; 	ld	a, c
+; 	ld	h, b
+; 	ld	l, b
+; 	mlt	hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	mlt	bc
+; 	add	hl, bc
+; 	add	hl, bc
+; 	ld	b, a
+; 	ld	c, a
+; 	mlt	bc
+; 	ld	c, b
+; 	ld	b, 0
+; 	add	hl, bc
+; 	ex	de, hl
+; 	ld	bc, (iy+VX_FDVDX)
+; 	bit	7, b
+; 	jr	z, .gradient_abs_dvdx
+; 	xor	a, a
+; 	sub	a, c
+; 	ld	c, a
+; 	sbc	a, a
+; 	sub	a, b
+; 	ld	b, a
+; .gradient_abs_dvdx:
+; 	ld	a, c
+; 	ld	h, b
+; 	ld	l, b
+; 	mlt	hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	mlt	bc
+; 	add	hl, bc
+; 	add	hl, bc
+; 	ld	b, a
+; 	ld	c, a
+; 	mlt	bc
+; 	ld	c, b
+; 	ld	b, 0
+; 	add	hl, bc
+; 	add	hl, de
+; 	push	hl
+; 	
+; 	ld	bc, (iy+VX_FDUDY)
+; 	bit	7, b
+; 	jr	z, .gradient_abs_dudy
+; 	xor	a, a
+; 	sub	a, c
+; 	ld	c, a
+; 	sbc	a, a
+; 	sub	a, b
+; 	ld	b, a
+; .gradient_abs_dudy:
+; 	ld	a, c
+; 	ld	h, b
+; 	ld	l, b
+; 	mlt	hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	mlt	bc
+; 	add	hl, bc
+; 	add	hl, bc
+; 	ld	b, a
+; 	ld	c, a
+; 	mlt	bc
+; 	ld	c, b
+; 	ld	b, 0
+; 	add	hl, bc
+; 	ex	de, hl
+; 	ld	bc, (iy+VX_FDVDY)
+; 	bit	7, b
+; 	jr	z, .gradient_abs_dvdy
+; 	xor	a, a
+; 	sub	a, c
+; 	ld	c, a
+; 	sbc	a, a
+; 	sub	a, b
+; 	ld	b, a
+; .gradient_abs_dvdy:
+; 	ld	a, c
+; 	ld	h, b
+; 	ld	l, b
+; 	mlt	hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	mlt	bc
+; 	add	hl, bc
+; 	add	hl, bc
+; 	ld	b, a
+; 	ld	c, a
+; 	mlt	bc
+; 	ld	c, b
+; 	ld	b, 0
+; 	add	hl, bc
+; 	add	hl, de
+; 	pop	de
+
 	or	a, a
 	sbc	hl, de
 	add	hl, de
 	jr	c, $+3
 	ex	de, hl
 ; hl is max(dot,dot)
-	ld	a, h
+	ld	a, l
 	ld	hl, VX_LOG_LUT
 	ld	l, a
 	ld	a, (hl)
-	srl	a
 	ld	b, a
+	or	a, a
 	jr	z, .mipmap_skip_lut
 ; a is the mipmap level
 ; get u&v offseting table
@@ -345,116 +383,63 @@ vxMipmap:
 	dec.s	de	
 	ld	(iy+VX_FDUDY), de
 	ret
-	
-vxMipmapLevel:
-; about 400 cycles more
-; get mipmap level from delta's
-; log2(min(max(abs(dFdxU),abs(dFdyU)),max(abs(dFdxV),abs(dFdyV)))
-	ld	de, (iy+VX_FDUDX)
-	bit	7, d
-	jr	z, .abs_s0
-	xor	a, a
-	sub	a, e
-	ld	e, a
-	sbc	a, a
-	sub	a, d
-	ld	d, a
-.abs_s0:
-	ld	hl, (iy+VX_FDUDY)
-	bit	7, h
-	jr	z, .abs_s1
-	xor	a, a
-	sub	a, l
-	ld	l, a
-	sbc	a, a
-	sub	a, h
-	ld	h, a
-.abs_s1:
-	ex.s	de, hl
-; both abs() are de and hl, compare them
-	or	a, a
-	sbc	hl, de
-	add	hl, de
-; if hl > de : p, else m
-	jp	p, .cc0
-	ex	de, hl
-.cc0:
-; hl is the lowest of both
-; save it for later
-	push	hl
-	ld	de, (iy+VX_FDVDY)
-	bit	7, d
-	jr	z, .abs_s2
-	xor	a, a
-	sub	a, e
-	ld	e, a
-	sbc	a, a
-	sub	a, d
-	ld	d, a
-.abs_s2:
-	ld	hl, (iy+VX_FDVDX)
-	bit	7, h
-	jr	z, .abs_s3
-	xor	a, a
-	sub	a, l
-	ld	l, a
-	sbc	a, a
-	sub	a, h
-	ld	h, a
-.abs_s3:
-	ex.s	de, hl
-; both abs() are de and hl, compare them
-	or	a, a
-	sbc	hl, de
-	add	hl, de
-; if hl > de : nc, else c
-	jp	p, .cc1
-	ex	de, hl
-.cc1:
-	pop	de
-; compare now de and hl
-; keep the lowest
-	or	a, a
-	sbc	hl, de
-	add	hl, de
-	jp	p, .cc2
-	ex	de, hl
-.cc2:
-; hl is the lowest
-; take log2 of hl (8.8)
-	ld	a, h
-	ld	hl, VX_LOG_LUT
-	ld	l, a
-; we got the mipmap level
-	ld	a, (hl)
-	add	a, 2
-; based on mipmap level : we need to scale the delta's to be closer to 1 and scale the starting u & v > LUT table
-	ld	(vxShaderUniform0+1), a
-.adjust:
-	bit	7, (iy+VX_FDVDY+1)
-	jr	z, .adj0
-	ld	hl, (iy+VX_FDUDY)
-	dec.s	hl
-	ld	(iy+VX_FDUDY), hl
-.adj0:
-	bit	7, (iy+VX_FDVDX+1)
-	ret	z
-	ld	hl, (iy+VX_FDUDX)
-	dec.s	hl
-	ld	(iy+VX_FDUDX), hl
-	ret
-
 
 align 256
 VX_LOG_LUT:
  db 0
  db 0
+ db 0
+ db 0
+ db 1
+ db 1
+ db 1
+ db 1
+ db 1
+ db 1
+ db 1
+ db 1
  db 1
  db 1
  db 2
  db 2
  db 2
  db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
+ db 2
  db 3
  db 3
  db 3
@@ -463,6 +448,160 @@ VX_LOG_LUT:
  db 3
  db 3
  db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
+ db 3
  db 4
  db 4
  db 4
@@ -479,230 +618,33 @@ VX_LOG_LUT:
  db 4
  db 4
  db 4
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
- db 5
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+
+
+
  
  rb	64
  TMP:
