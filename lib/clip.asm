@@ -211,7 +211,6 @@ vxPrimitiveClipPlane:
 .HNeg:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_RY), hl
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_SY), a
-	push	bc
 	ld	hl, (VX_PATCH_VERTEX+VX_VERTEX_RX)
 	ld	a, (VX_PATCH_VERTEX+VX_VERTEX_RZ+2)
 	rla
@@ -289,7 +288,6 @@ vxPrimitiveClipPlane:
 .parametricCCompute:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_CODE), a
 ; now, other vertex parameters
-	pop	bc
 	ld	hl, VX_PATCH_VERTEX + VX_VERTEX_GPR0
 ; parameter 0
 	ld	a, (iy+VX_VERTEX_GPR0)	; a = p1
@@ -392,23 +390,20 @@ vxPrimitiveClipPlane:
 ; here, rx = -z or +z (based on plane, right plane = +)
 	pop	af
 	and	a, 10000000b
-	push	bc
-	ld	bc, $000140	;=VX_SCREEN_WIDTH_CENTER+(VX_SCREEN_WIDTH/2)
+	ld	de, VX_SCREEN_WIDTH_CENTER+(VX_SCREEN_WIDTH/2)
 	jr	nz, .VNeg
 	ex	de, hl
 	sbc	hl, hl
 	sbc	hl, de
-	dec	b
-	ld	c,b	;=VX_SCREEN_WIDTH_CENTER-(VX_SCREEN_WIDTH/2)
+	ld	de, VX_SCREEN_WIDTH_CENTER-(VX_SCREEN_WIDTH/2)
 .VNeg:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_RX), hl
-	ld	(VX_PATCH_VERTEX+VX_VERTEX_SX), bc
 	ld	hl, (VX_PATCH_VERTEX+VX_VERTEX_RY)
-	ld	bc, (VX_PATCH_VERTEX+VX_VERTEX_RZ)
 ; beware, RZ can be negative here. If so, it block stuff up, so, set code accordingly
 	ld	a, (VX_PATCH_VERTEX+VX_VERTEX_RZ+2)
 	rla
 	jr	c, .parametric_zclip_ry
+	ld	(VX_PATCH_VERTEX+VX_VERTEX_SX), de
 .parametric_divide_ry:
 	xor	a, a
 	add	hl, hl
@@ -419,9 +414,10 @@ vxPrimitiveClipPlane:
 	sbc	hl, de
 	or	a, a
 .parametric_absolute_ry:
-	sbc	hl, bc
+	ld	de, (VX_PATCH_VERTEX+VX_VERTEX_RZ)
+	sbc	hl, de
 	jr	c, .parametric_iterate_ry
-	sbc	hl, bc
+	sbc	hl, de
 	ccf
 	jr	nc, .parametric_iterate_ry
 ; clip code compute for ry
@@ -433,34 +429,34 @@ vxPrimitiveClipPlane:
 	jp	.parametricCCompute
 .parametric_iterate_ry:
 	adc	a, a
-	add	hl, bc
+	add	hl, de
 	add	hl, hl
-	sbc	hl, bc
+	sbc	hl, de
 	jr	nc, $+3
-	add	hl, bc
+	add	hl, de
 	adc	a, a
 	add	hl, hl
-	sbc	hl, bc
+	sbc	hl, de
 	jr	nc, $+3
-	add	hl, bc
+	add	hl, de
 	adc	a, a
 	add	hl, hl
-	sbc	hl, bc
+	sbc	hl, de
 	jr	nc, $+3
-	add	hl, bc
+	add	hl, de
 	adc	a, a
 	add	hl, hl
-	sbc	hl, bc
+	sbc	hl, de
 	jr	nc, $+3
-	add	hl, bc
+	add	hl, de
 	adc	a, a
 	add	hl, hl
-	sbc	hl, bc
+	sbc	hl, de
 	jr	nc, $+3
-	add	hl, bc
+	add	hl, de
 	adc	a, a
 	add	hl, hl
-	sbc	hl, bc
+	sbc	hl, de
 	adc	a, a
 	add	a, a
 	cpl
@@ -477,18 +473,19 @@ vxPrimitiveClipPlane:
 
 .parametric_zclip_ry:
 	xor	a, a
-	sbc	hl, bc
+	ld	de, (VX_PATCH_VERTEX+VX_VERTEX_RZ)
+	sbc	hl, de
 	jp	m, .parametric_zclip_ry_0
 	or	a, 00100000b
 .parametric_zclip_ry_0:
-	add	hl, bc
-	add	hl, bc
+	add	hl, de
+	add	hl, de
 	add	hl, hl
 	jr	nc, .parametric_zclip_ry_1
 	or	a, 00010000b
 .parametric_zclip_ry_1:
 	ld	hl, (VX_PATCH_VERTEX+VX_VERTEX_RX)
-	add	hl, bc
+	add	hl, de
 	add	hl, hl
 	jp	nc, .parametricCCompute
 	or	a, 01000000b

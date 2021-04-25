@@ -156,9 +156,9 @@ vxPrimitiveTextureRaster:
 	adc.s	hl, de
 .triangleNull_dudy:
 ; now adapt because of the layout in memory : [lDVDY][hDVDY][lDUDY][hDUDY]
-	bit	7, (iy+VX_FDVDY+1)	; if dvdy is < 0 then adding will always propagate a carry inside dudy, which is a no-no
-	jr	z, $+4
-	dec.s	hl
+; 	bit	7, (iy+VX_FDVDY+1)	; if dvdy is < 0 then adding will always propagate a carry inside dudy, which is a no-no
+; 	jr	z, $+4
+; 	dec.s	hl
 	ld	(iy+VX_FDUDY), hl
 ; compute us at longest span
 	ld	a, (iy+VX_REGISTER_Y1)
@@ -463,13 +463,13 @@ vxShaderAdress2Write=$+1
 	ld	d, a
 	add.s	hl, de
 .triangleNull_dudx:
-	bit	7, c
-	jr	z, $+4
-	dec.s	hl
+; 	bit	7, c
+; 	jr	z, $+4
+; 	dec.s	hl
 	ld	(iy+VX_FDUDX), hl
-; .triangleMipmap:
-;	ld	sp, TMP
-;	call	vxMipmap.vrs
+.triangleMipmap:
+	ld	sp, TMP
+	call	vxMipmap.gradient
 .triangleGradient:
 	ld	a, (iy+VX_REGISTER_Y2)
 	sub	a, (iy+VX_REGISTER_Y0)
@@ -500,10 +500,14 @@ vxShaderAdress2Write=$+1
 .triangleGradientLoop:
 	ld	(ix+VX_REGISTER2), hl
 	ld	(ix+VX_REGISTER3), a
+.SMC0:=$+3
+	ld	(ix+VX_REGISTER3+2), $D3
 	add	hl, de
 	adc	a, c
 	ld	(ix+VX_REGISTER2+VX_REGISTER_SIZE), hl
 	ld	(ix+VX_REGISTER3+VX_REGISTER_SIZE), a
+.SMC1:=$+3
+	ld	(ix+VX_REGISTER3+VX_REGISTER_SIZE+2), $D3
 	add	hl, de
 	adc	a, c
 	lea	ix, ix+(VX_REGISTER_SIZE*2)

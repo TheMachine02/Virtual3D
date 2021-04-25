@@ -142,9 +142,7 @@ vxMipmap:
 ; }
 ; we'll do this, only take 8 bits of the derivative
 ; 0,5*log2(max( (dFdxU*dFdxU) + (dFdxV*dFdxV) , (dFdyU*dFdyU)+(dFdyV*dFdyV)))	
-	
 	ld	bc, (iy+VX_FDUDX)
-; d*d*256 + e*d*2 + e*e/256
 	bit	7, b
 	jr	z, .gradient_abs_dudx
 	xor	a, a
@@ -154,6 +152,7 @@ vxMipmap:
 	sub	a, b
 	ld	b, a
 .gradient_abs_dudx:
+	ld	a, c
 	ld	h, b
 	ld	l, b
 	mlt	hl
@@ -165,19 +164,187 @@ vxMipmap:
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
-	ld	e, c
-	ld	d, b
-	mlt	de
+	mlt	bc
+	add	hl, bc
+	add	hl, bc
+	ld	b, a
+	ld	c, a
+	mlt	bc
+	ld	c, b
+	ld	b, 0
+	add	hl, bc
+	ex	de, hl
+	ld	bc, (iy+VX_FDVDX)
+	bit	7, b
+	jr	z, .gradient_abs_dvdx
+	xor	a, a
+	sub	a, c
+	ld	c, a
+	sbc	a, a
+	sub	a, b
+	ld	b, a
+.gradient_abs_dvdx:
+	ld	a, c
+	ld	h, b
+	ld	l, b
+	mlt	hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	mlt	bc
+	add	hl, bc
+	add	hl, bc
+	ld	b, a
+	ld	c, a
+	mlt	bc
+	ld	c, b
+	ld	b, 0
+	add	hl, bc
 	add	hl, de
-	add	hl, de
-	ld	e, c
-	ld	d, c
-	mlt	de
-	ld	e, d
-	ld	d, 0
-	add	hl, de
+	push	hl
 	
+	ld	bc, (iy+VX_FDUDY)
+	bit	7, b
+	jr	z, .gradient_abs_dudy
+	xor	a, a
+	sub	a, c
+	ld	c, a
+	sbc	a, a
+	sub	a, b
+	ld	b, a
+.gradient_abs_dudy:
+	ld	a, c
+	ld	h, b
+	ld	l, b
+	mlt	hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	mlt	bc
+	add	hl, bc
+	add	hl, bc
+	ld	b, a
+	ld	c, a
+	mlt	bc
+	ld	c, b
+	ld	b, 0
+	add	hl, bc
+	ex	de, hl
+	ld	bc, (iy+VX_FDVDY)
+	bit	7, b
+	jr	z, .gradient_abs_dvdy
+	xor	a, a
+	sub	a, c
+	ld	c, a
+	sbc	a, a
+	sub	a, b
+	ld	b, a
+.gradient_abs_dvdy:
+	ld	a, c
+	ld	h, b
+	ld	l, b
+	mlt	hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	mlt	bc
+	add	hl, bc
+	add	hl, bc
+	ld	b, a
+	ld	c, a
+	mlt	bc
+	ld	c, b
+	ld	b, 0
+	add	hl, bc
+	add	hl, de
+	pop	de
+	or	a, a
+	sbc	hl, de
+	add	hl, de
+	jr	c, $+3
+	ex	de, hl
+; hl is max(dot,dot)
+	ld	a, h
+	ld	hl, VX_LOG_LUT
+	ld	l, a
+	ld	a, (hl)
+	srl	a
+	ld	b, a
+	jr	z, .mipmap_skip_lut
+; a is the mipmap level
+; get u&v offseting table
+; we'll after it need to offset the delta's
+	ld	hl, VX_MIPMAP_LUT
+	dec	a
+	add	a, a
+	add	a, h
+	ld	h, a
+	ld	l, (iy+VX_REGISTER_U0)
+	ld	a, (hl)
+	ld	(iy+VX_REGISTER_U0), a
+	inc	h
+	ld	l, (iy+VX_REGISTER_V0)
+	ld	a, (hl)
+	ld	(iy+VX_REGISTER_V0), a
+.mipmap_skip_lut:
+	ld	a, b
+	or	a, a
+	ld	a, $D3
+	jr	z, $+4
+	ld	a, $D2
+	ld	(vxPrimitiveTextureRaster.SMC0), a
+	ld	(vxPrimitiveTextureRaster.SMC1), a
+	ld	a, b
+	ld	de, (iy+VX_FDUDX)
+	ld	hl, (iy+VX_FDVDX)
+	or	a, a
+	jr	z, .mipmap_scale_0_skip
+.mipmap_scale_0:
+	sra	h
+	rr	l
+	sra	d
+	rr	e
+	djnz	.mipmap_scale_0
+.mipmap_scale_0_skip:
+	ld	(iy+VX_FDVDX), hl
+	bit	7, h
+	jr	z, $+4
+	dec.s	de	
+	ld	(iy+VX_FDUDX), de
 	
+	ld	de, (iy+VX_FDUDY)
+	ld	hl, (iy+VX_FDVDY)
+	or	a, a
+	jr	z, .mipmap_scale_1_skip
+	ld	b, a
+.mipmap_scale_1:
+	sra	h
+	rr	l
+	sra	d
+	rr	e
+	djnz	.mipmap_scale_1
+.mipmap_scale_1_skip:
+	ld	(iy+VX_FDVDY), hl
+	bit	7, h
+	jr	z, $+4
+	dec.s	de	
+	ld	(iy+VX_FDUDY), de
+	ret
 	
 vxMipmapLevel:
 ; about 400 cycles more
