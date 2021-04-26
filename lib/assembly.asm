@@ -131,8 +131,7 @@ vxPrimitiveAssembly:
 	add	hl, bc
 	ld	hl, (hl)
 	add	hl, de
-	add	hl, hl
-	add	hl, hl
+; NOTE : we already have a x3 factor here, so actual scaling to get the two precision bit of 2.6 isn't truly needed
 .DEO=$+1
 	ld	de, VX_DEPTH_OFFSET
 	add	hl, de
@@ -143,6 +142,7 @@ vxPrimitiveAssembly:
 	ld	e, l
 ; write both the ID in the lower 8 bits and the depth in the upper 16 bits, we'll sort on the full 24 bit pair so similar material will be 'packed' together at best without breaking sorting
 	ld	(ix+VX_GEOMETRY_DEPTH), de
+; TODO : material never change per the whole loop, so add up the triangle_count*GEOMETRY_SIZE on time outside the loop
 	ld	a, (hl)
 	add	a, VX_GEOMETRY_SIZE
 	ld	(hl), a
