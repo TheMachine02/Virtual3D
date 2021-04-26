@@ -48,7 +48,8 @@ vxPrimitiveAssembly:
 ;  458 cc bfc reject
 ;  212 cc clip reject
 .setup:
-; input : iy=data, also expect so global variable to be correctly set
+; input : iy = stream, also expect so global variable to be correctly set
+	lea	iy, iy+VX_STREAM_HEADER_SIZE
 ; lut setup
 .mlt_generate:
 ; now the view vector
@@ -142,7 +143,6 @@ vxPrimitiveAssembly:
 	ld	e, l
 ; write both the ID in the lower 8 bits and the depth in the upper 16 bits, we'll sort on the full 24 bit pair so similar material will be 'packed' together at best without breaking sorting
 	ld	(ix+VX_GEOMETRY_DEPTH), de
-; TODO : material never change per the whole loop, so add up the triangle_count*GEOMETRY_SIZE on time outside the loop
 	ld	a, (hl)
 	add	a, VX_GEOMETRY_SIZE
 	ld	(hl), a

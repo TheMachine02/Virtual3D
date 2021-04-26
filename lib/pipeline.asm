@@ -186,7 +186,6 @@ vxPrimitiveStream:
 	call	vxVertexCache.setup		; stream vertex data to cache
 	pop	iy			; polygon list
 	ret	nz			; quit the stream if nz set (bounding box test failed)
-	lea	iy, iy+VX_STREAM_HEADER_SIZE
 	cce	ge_pri_assembly
 ; copy primitive assembly within fast area
 	ld	hl, VX_PRIMITIVE_ASM_COPY

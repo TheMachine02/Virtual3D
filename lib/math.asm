@@ -193,3 +193,92 @@ assert	VX_LUT_SIN mod 2 = 0
 	cpl
 	ld	e, a
 	ret 
+
+_mulf16:
+; hl = hl * de fixed point 8.8 multiplication (hl is 8.8 fixed point)
+	bit	7, h
+	ld	b, h
+	ld	c, l
+	ld	l, d
+	mlt	hl
+	jr	z, $+5
+	or	a, a
+	sbc	hl, de
+	bit	7, d
+	jr	z, $+5
+	or	a, a
+	sbc	hl, bc
+	ld	h, l
+	ld	l, 0
+	ld	a, c
+	ld	c, e
+	mlt	bc
+	add	hl, bc
+	ld	c, a
+	ld	b, d
+	mlt	bc
+	add	hl, bc
+	ld	c, a
+	ld	b, e
+	mlt	bc
+	ld	c, b
+	ld	b, 0
+	add	hl, bc
+	ret
+
+; sqrt24:
+; ;;Expects ADL mode
+; ;;Inputs: HL
+; ;;Outputs: DE is the integer square root
+; ;;         HL is the difference inputHL-DE^2
+; ;;         c flag reset
+;     xor a \ ld b,l \ push bc \ ld b,a \ ld d,a \ ld c,a \ ld l,a \ ld e,a
+; ;Iteration 1
+;     add hl,hl \ rl c \ add hl,hl \ rl c
+;     sub c \ jr nc,$+6 \ inc e \ inc e \ cpl \ ld c,a
+; ;Iteration 2
+;     add hl,hl \ rl c \ add hl,hl \ rl c \ rl e \ ld a,e
+;     sub c \ jr nc,$+6 \ inc e \ inc e \ cpl \ ld c,a
+; ;Iteration 3
+;     add hl,hl \ rl c \ add hl,hl \ rl c \ rl e \ ld a,e
+;     sub c \ jr nc,$+6 \ inc e \ inc e \ cpl \ ld c,a
+; ;Iteration 4
+;     add hl,hl \ rl c \ add hl,hl \ rl c \ rl e \ ld a,e
+;     sub c \ jr nc,$+6 \ inc e \ inc e \ cpl \ ld c,a
+; ;Iteration 5
+;     add hl,hl \ rl c \ add hl,hl \ rl c \ rl e \ ld a,e
+;     sub c \ jr nc,$+6 \ inc e \ inc e \ cpl \ ld c,a
+; ;Iteration 6
+;     add hl,hl \ rl c \ add hl,hl \ rl c \ rl e \ ld a,e
+;     sub c \ jr nc,$+6 \ inc e \ inc e \ cpl \ ld c,a
+; 
+; ;Iteration 7
+;     add hl,hl \ rl c \ add hl,hl \ rl c \ rl b
+;     ex de,hl \ add hl,hl \ push hl \ sbc hl,bc \ jr nc,$+8
+;     ld a,h \ cpl \ ld b,a
+;     ld a,l \ cpl \ ld c,a
+;     pop hl
+;     jr nc,$+4 \ inc hl \ inc hl
+;     ex de,hl
+; ;Iteration 8
+;     add hl,hl \ ld l,c \ ld h,b \ adc hl,hl \ adc hl,hl
+;     ex de,hl \ add hl,hl \ sbc hl,de \ add hl,de \ ex de,hl
+;     jr nc,$+6 \ sbc hl,de \ inc de \ inc de
+; ;Iteration 9
+;     pop af
+;     rla \ adc hl,hl \ rla \ adc hl,hl
+;     ex de,hl \ add hl,hl \ sbc hl,de \ add hl,de \ ex de,hl
+;     jr nc,$+6 \ sbc hl,de \ inc de \ inc de
+; ;Iteration 10
+;     rla \ adc hl,hl \ rla \ adc hl,hl
+;     ex de,hl \ add hl,hl \ sbc hl,de \ add hl,de \ ex de,hl
+;     jr nc,$+6 \ sbc hl,de \ inc de \ inc de
+; ;Iteration 11
+;     rla \ adc hl,hl \ rla \ adc hl,hl
+;     ex de,hl \ add hl,hl \ sbc hl,de \ add hl,de \ ex de,hl
+;     jr nc,$+6 \ sbc hl,de \ inc de \ inc de
+; ;Iteration 11
+;     rla \ adc hl,hl \ rla \ adc hl,hl
+;     ex de,hl \ add hl,hl \ sbc hl,de \ add hl,de \ ex de,hl
+;     jr nc,$+6 \ sbc hl,de \ inc de \ inc de
+;     rr d \ rr e \ ret
