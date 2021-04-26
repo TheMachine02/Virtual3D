@@ -110,90 +110,82 @@ vxMipmap:
 	rb	14
 .djnz_dual:
 	djnz	.dummy_2
+
 	
-.generate:
-; generate LUT table for mipmapping ?
-; 256x256 : lvl 0
+
+.gradient:
+; float mipmap_level(in vec2 texture_coordinate)
+; {
+;     // The OpenGL Graphics System: A Specification 4.2
+;     //  - chapter 3.9.11, equation 3.21
+;     vec2  dx_vtc        = dFdx(texture_coordinate);
+;     vec2  dy_vtc        = dFdy(texture_coordinate);
+;     float delta_max_sqr = max(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
+;     return 0.5 * log2(delta_max_sqr);
+; }
+; we'll do this, only take 8 bits of the derivative
+; mipmap level :
+; 256x256 : lvl 0, 256K
 ; 128x128 : lvl 1, 16K
 ; 64x64   : lvl 2, 4K
 ; 32x32   : lvl 3, 1K
 ; 16x16   : lvl 4, 256
-; each texel is the average of the four texel of the precedent level
-; we also need to offset the v coordinate by the necessary value
-; LUT table does : U >> lvl + U offset and V >> lvl + V offset
-	ret
-
-.gradient:
-; apply LUT table
-; scale delta's (y & x)
-
-; float
-; mip_map_level(in vec2 texture_coordinate)
-; {
-;     // The OpenGL Graphics System: A Specification 4.2
-;     //  - chapter 3.9.11, equation 3.21
-;  
-;     vec2  dx_vtc        = dFdx(texture_coordinate);
-;     vec2  dy_vtc        = dFdy(texture_coordinate);
-;     float delta_max_sqr = max(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
-;  
-;     //return max(0.0, 0.5 * log2(delta_max_sqr) - 1.0);
-;     return 0.5 * log2(delta_max_sqr);
-; }
-; we'll do this, only take 8 bits of the derivative
-; 0,5*log2(max( (dFdxU*dFdxU) + (dFdxV*dFdxV) , (dFdyU*dFdyU)+(dFdyV*dFdyV)))
-
- 	ld	a, (iy+VX_FDUDX+1)
- 	bit	7, a
- 	jr	z, $+3
- 	cpl
- 	ld	b, a
- 	ld	c, a
- 	mlt	bc
- 	
- 	ld	a, (iy+VX_FDVDX+1)
- 	bit	7, a
- 	jr	z, $+3
- 	cpl
- 	ld	h, a
- 	ld	l, a
- 	mlt	hl
- 	add	hl, bc
- 	ex	de, hl
- 	
- 	ld	a, (iy+VX_FDUDY+1)
- 	bit	7, a
- 	jr	z, $+3
- 	cpl
- 	ld	b, a
- 	ld	c, a
- 	mlt	bc
- 	
- 	ld	a, (iy+VX_FDVDY+1)
- 	bit	7, a
- 	jr	z, $+3
- 	cpl
- 	ld	h, a
- 	ld	l, a
- 	mlt	hl
- 	add	hl, bc
-
+	ld	a, (iy+VX_FDUDX+1)
+	bit	7, a
+	jr	z, $+3
+	cpl
+	ld	b, a
+	ld	c, a
+	mlt	bc
+	ld	a, (iy+VX_FDVDX+1)
+	bit	7, a
+	jr	z, $+3
+	cpl
+	ld	h, a
+	ld	l, a
+	mlt	hl
+	add	hl, bc
+	ex	de, hl
+	ld	a, (iy+VX_FDUDY+1)
+	bit	7, a
+	jr	z, $+3
+	cpl
+	ld	b, a
+	ld	c, a
+	mlt	bc
+	ld	a, (iy+VX_FDVDY+1)
+	bit	7, a
+	jr	z, $+3
+	cpl
+	ld	h, a
+	ld	l, a
+	mlt	hl
+	add	hl, bc
+; hl = max(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
+; MAX_FILTER, unused (a bit too much agressive)
 ; 	sbc	hl, de
 ; 	add	hl, de
 ; 	jr	c, $+3
 ; 	ex	de, hl
-
+; hl = mix(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
 	add	hl, de
-	sra	h
+	srl	h
 	rr	l
 	ex	de, hl
 ; hl is max(dot,dot)
 	ld	hl, VX_LOG_LUT
 	ld	l, e
 	ld	a, (hl)
-	ld	b, a
 	or	a, a
-	jr	z, .mipmap_skip_lut
+	jr	nz, .mipmap_level_lod
+.mipmap_level_zero:
+; if dvdy is < 0 then adding will always propagate a carry inside dudy, which is a no-no
+	ld	a, $D3
+	ld	(vxPrimitiveTextureRaster.SMC0), a
+	ld	(vxPrimitiveTextureRaster.SMC1), a
+	ret
+.mipmap_level_lod:
+	ld	b, a
 ; a is the mipmap level
 ; get u&v offseting table
 ; we'll after it need to offset the delta's
@@ -203,54 +195,50 @@ vxMipmap:
 	add	a, h
 	ld	h, a
 	ld	l, (iy+VX_REGISTER_U0)
-	ld	a, (hl)
-	ld	(iy+VX_REGISTER_U0), a
+	ld	e, (hl)
 	inc	h
 	ld	l, (iy+VX_REGISTER_V0)
-	ld	a, (hl)
-	ld	(iy+VX_REGISTER_V0), a
-.mipmap_skip_lut:
-	ld	a, b
-	or	a, a
-	ld	a, $D3
-	jr	z, $+4
+	ld	d, (hl)
+; NOTE : this overwrite Y1, but it is uneeded at this point
+	ld	(iy+VX_REGISTER_U0), de
+; set the smc for texture map
 	ld	a, $D2
 	ld	(vxPrimitiveTextureRaster.SMC0), a
 	ld	(vxPrimitiveTextureRaster.SMC1), a
+; scale the delta's
 	ld	a, b
 	ld	de, (iy+VX_FDUDX)
 	ld	hl, (iy+VX_FDVDX)
-	or	a, a
-	jr	z, .mipmap_scale_0_skip
-.mipmap_scale_0:
+	bit	7, h
+	jr	z, $+3
+	inc	de
+.mipmap_level_scale_dx:
 	sra	h
 	rr	l
 	sra	d
 	rr	e
-	djnz	.mipmap_scale_0
-.mipmap_scale_0_skip:
+	djnz	.mipmap_level_scale_dx
 	ld	(iy+VX_FDVDX), hl
 	bit	7, h
 	jr	z, $+4
 	dec.s	de
 	ld	(iy+VX_FDUDX), de
-	
 	ld	de, (iy+VX_FDUDY)
 	ld	hl, (iy+VX_FDVDY)
-	or	a, a
-	jr	z, .mipmap_scale_1_skip
+	bit	7, h
+	jr	z, $+3
+	inc	de
 	ld	b, a
-.mipmap_scale_1:
+.mipmap_level_scale_dy:
 	sra	h
 	rr	l
 	sra	d
 	rr	e
-	djnz	.mipmap_scale_1
-.mipmap_scale_1_skip:
+	djnz	.mipmap_level_scale_dy
 	ld	(iy+VX_FDVDY), hl
 	bit	7, h
 	jr	z, $+4
-	dec.s	de	
+	dec.s	de
 	ld	(iy+VX_FDUDY), de
 	ret
 
@@ -649,3 +637,14 @@ VX_LOG_LUT:
 ;  	add	hl, bc
 ;  	add	hl, de
 ;  	pop	de
+
+; 	ld	hl, (iy+VX_FDUDY)
+; 	bit	7, (iy+VX_FDVDY+1)
+; 	jr	z, $+4
+; 	dec.s	hl
+; 	ld	(iy+VX_FDUDY), hl
+; 	ld	hl, (iy+VX_FDUDX)
+; 	bit	7, (iy+VX_FDVDX+1)
+; 	jr	z, $+4
+; 	dec.s	hl
+; 	ld	(iy+VX_FDUDX), hl

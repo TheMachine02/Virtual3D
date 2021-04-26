@@ -27,6 +27,11 @@ Main:
 	ret	c
 	ld	(Model.texture_source), hl
 	
+	ld	hl, Model.mipmap_appv
+	call	Model.load_ressource
+	ret	c
+	ld	(Model.mipmap_source), hl
+	
 ; init the virtual 3d library
 	call	vxEngine.init
 	ret	c		; quit if error at init
@@ -34,6 +39,11 @@ Main:
 	ld	hl, (Model.texture_source)
 	ld	a, VX_IMAGE_ZX7_COMPRESSED
 	ld	de, $D30000
+	call	vxImage.copy
+	
+	ld	hl, (Model.mipmap_source)
+	ld	a, VX_IMAGE_ZX7_COMPRESSED
+	ld	de, VX_TEXTURE_MIPMAP
 	call	vxImage.copy
 
 ; setup global variable for rendering, euler angle and the translation of World.matrix
@@ -364,7 +374,11 @@ Model:
 .texture_appv:
 	db	ti.AppVarObj, "MATEUST", 0
 .texture_source:
-	dl	0	
+	dl	0
+.mipmap_appv:
+	db	ti.AppVarObj, "MATEUSM", 0
+.mipmap_source:
+	dl	0
 .matrix:
 	db	64,0,0
 	db	0,64,0

@@ -134,6 +134,10 @@ echo "Converting BunnyFFXII.png"
 echo "Converting MateusFFXII.png"
 ./tools/texconv -dithering -compress -o=MATEUST example/file/MateusFFXII.png
 
+echo "Converting MateusFFXII_mip.png"
+./tools/texconv -compress -o=MATEUSM example/file/MateusFFXII_mip.png
+fasmg example/file/MateusFFXII_mip.inc bin/MATEUSM.8xv 
+
 echo "Converting VieraSceneFFXII.png"
 ./tools/texconv -dithering -compress -o=VIERAT example/file/VieraSceneFFXII.png
 
