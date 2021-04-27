@@ -24,7 +24,7 @@
 
 ; Quaternions utility functions
 
-define VX_QUATERNION_SIZE			$0C
+define VX_QUATERNION_SIZE		$0C
 define VX_QUATERNION_QW             	$0
 define VX_QUATERNION_QX          	$3
 define VX_QUATERNION_QY       		$6

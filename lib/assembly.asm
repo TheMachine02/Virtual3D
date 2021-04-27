@@ -132,7 +132,7 @@ vxPrimitiveAssembly:
 	add	hl, bc
 	ld	hl, (hl)
 	add	hl, de
-; NOTE : we already have a x3 factor here, so actual scaling to get the two precision bit of 2.6 isn't truly needed
+; NOTE : we already have a x3 factor here, so actual scaling to get the two precision bit of 16 + 2.6 or extra bit of 16 + 1.7 isn't truly needed
 .DEO=$+1
 	ld	de, VX_DEPTH_OFFSET
 	add	hl, de

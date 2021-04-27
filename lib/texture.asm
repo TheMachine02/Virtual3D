@@ -161,6 +161,8 @@ vxPrimitiveTextureRaster:
 	jr	z, $+4
 	dec.s	hl
 	ld	(iy+VX_FDUDY), hl
+	jr	z, $+3
+	inc	hl	
 ; compute us at longest span
 	ld	a, (iy+VX_REGISTER_Y1)
 	sub	(iy+VX_REGISTER_Y0)

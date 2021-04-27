@@ -10,6 +10,7 @@
 5. Cliping
 6. Animation
 7. Automatic bounding box
+8. Mipmap
 
 # Todo list
 
@@ -20,11 +21,10 @@ Feel free to ask for a new feature
 
 # Planned feature
 
-1. Mipmap
-2. Antialiasing
-3. Per material shader
-4. 2D shaderized sprite engine
-5. Better lightning
+1. Antialiasing
+2. Per material shader
+3. 2D shaderized sprite engine
+4. Better lightning
 
 # Screen
 
