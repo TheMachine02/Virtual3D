@@ -114,15 +114,17 @@ vxPrimitiveClipPlane:
 	ld	a, (de)
 	and	a, (hl)
 	and	a, c
-	jr	nz, .noEdge
+	jr	nz, .clip_cull_edge
 	ld	a, (de)
+	and	a, c
+	jr	nz, .clip_edge_reentrant
+	ld	(ix+VX_PATCH_I0), de
+	lea	ix, ix+VX_PATCH_INDEX_SIZE
+.clip_edge_reentrant:
 	or	a, (hl)
 	and	a, c
-	jr	nz, .clipEdge
-	ld	(ix+VX_PATCH_I0), de
-.incEdge:
-	lea	ix, ix+VX_PATCH_INDEX_SIZE
-.noEdge:
+	jr	nz, .clip_edge
+.clip_cull_edge:
 	lea	iy, iy+VX_PATCH_INDEX_SIZE
 	djnz	.clipSutherHodgmanLoop
 	pop	iy
@@ -138,25 +140,25 @@ vxPrimitiveClipPlane:
 	ld	b, a
 	pop	ix
 	ret
+
 ; all works is here ;
-.clipEdge:
+.clip_edge:
 	push	bc
-	ld	a, (de)
-	and	a, c
-	push	af
+	ld	de, (vxPatchVertexCache)
+	ld	(ix+VX_PATCH_I0), de
+	pea	ix+VX_PATCH_INDEX_SIZE
+	push	iy
+	ld	ix, (iy+VX_PATCH_I0)
+	ld	iy, (iy+VX_PATCH_I1)
 ; compute distance based of mask a
 	ld	a, c
 	tst	a, 11000000b
 ; nz = vertical
 	jp	nz, .clipVerticalPlane
 .clipHorizontalPlane:
-	ld	bc, VX_VERTEX_RY
-	add	hl, bc
-	ld	bc, (hl)
-	inc	hl
-	inc	hl
-	inc	hl
-	ld	hl, (hl)
+	ld	bc, (iy+VX_VERTEX_RY)
+	ld	hl, (iy+VX_VERTEX_RZ)
+	or	a, a
 	sbc	hl, bc
 	tst	a, 00100000b
 	jr	nz, .hinv0
@@ -164,13 +166,9 @@ vxPrimitiveClipPlane:
 	add	hl, bc
 .hinv0:
 	ex	de, hl
-	ld	bc, VX_VERTEX_RY
-	add	hl, bc
-	ld	bc, (hl)
-	inc	hl
-	inc	hl
-	inc	hl
-	ld	hl, (hl)
+	ld	bc, (ix+VX_VERTEX_RY)
+	ld	hl, (ix+VX_VERTEX_RZ)
+	or	a, a
 	sbc	hl, bc
 	tst	a, 00100000b
 	jr	nz, .hinv1
@@ -179,13 +177,9 @@ vxPrimitiveClipPlane:
 .hinv1:
 ; parametric compute for horizontal plane ;
 .parametricHCompute:
-	push	ix
-	push	iy
 ; save plane mask for later
 	push	af
 	call	vxParametric.factor
-	ld	ix, (iy+VX_PATCH_I0)
-	ld	iy, (iy+VX_PATCH_I1)
 ; ix = iy+0 (p0) , iy = iy+3 (p1)
 ; compute (p1-p0)*t+p0, for 24 bits vertex
 ; t = bc, p0 = ix, p1 = iy, output = clip_vertex0
@@ -201,7 +195,7 @@ vxPrimitiveClipPlane:
 	ld	(VX_PATCH_VERTEX+VX_VERTEX_RZ), hl
 ; vertex coordinate ry
 	pop	af
-	and	a, 00100000b
+;	and	a, 00100000b
 	ld	a, VX_SCREEN_HEIGHT_CENTER-(VX_SCREEN_HEIGHT/2)
 	jr	nz, .HNeg
 	ex	de, hl
@@ -314,36 +308,21 @@ vxPrimitiveClipPlane:
 	mlt	de
 	add	a, d
 	ld	(hl), a
+; cleanup
 	pop	iy
 	pop	ix
-; do specific edge shift here
-	pop	af
-	jr	nz, .edgeRentring
-; edge leaving
-	ld	hl, (iy+VX_PATCH_I0)
-	ld	(ix+VX_PATCH_I0), hl
-	lea	ix, ix+VX_PATCH_INDEX_SIZE
-.edgeRentring:
 	ld	hl, VX_PATCH_VERTEX
 	ld	de, (vxPatchVertexCache)
-	ld	(ix+VX_PATCH_I0), de
 	ld	bc, VX_VERTEX_SIZE
 	ldir
 	ld	(vxPatchVertexCache), de
 	pop	bc
-	jp	.incEdge
+	jp	.clip_cull_edge
 ; parametric compute for horizontal plane ;
 .clipVerticalPlane:
-	ld	bc, VX_VERTEX_RX
-	add	hl, bc
-	ld	bc, (hl)
-	inc	hl
-	inc	hl
-	inc	hl
-	inc	hl
-	inc	hl
-	inc	hl
-	ld	hl, (hl)
+	ld	bc, (iy+VX_VERTEX_RX)
+	ld	hl, (iy+VX_VERTEX_RZ)
+	or	a, a
 	sbc	hl, bc
 	tst	a, 10000000b
 	jr	nz, .vinv0
@@ -351,28 +330,17 @@ vxPrimitiveClipPlane:
 	add	hl, bc
 .vinv0:
 	ex	de, hl
-	ld	bc, VX_VERTEX_RX
-	add	hl, bc
-	ld	bc, (hl)
-	inc	hl
-	inc	hl
-	inc	hl
-	inc	hl
-	inc	hl
-	inc	hl
-	ld	hl, (hl)
+	ld	bc, (ix+VX_VERTEX_RX)
+	ld	hl, (ix+VX_VERTEX_RZ)
+	or	a, a
 	sbc	hl, bc
 	tst	a, 10000000b
 	jr	nz, .parametricVCompute
 	add	hl, bc
 	add	hl, bc
 .parametricVCompute:
-	push	ix
-	push	iy
 	push	af	; push flag plane
 	call	vxParametric.factor
-	ld	ix, (iy+VX_PATCH_I0)
-	ld	iy, (iy+VX_PATCH_I1)
 ; ix = iy+0 (p0) , iy = iy+3 (p1)
 ; compute (p1-p0)*t+p0, for 24 bits vertex
 ; t = bc, p0 = ix, p1 = iy, output = clip_vertex0
@@ -389,7 +357,7 @@ vxPrimitiveClipPlane:
 ; vertex coordinate rx
 ; here, rx = -z or +z (based on plane, right plane = +)
 	pop	af
-	and	a, 10000000b
+;	and	a, 10000000b
 	ld	de, VX_SCREEN_WIDTH_CENTER+(VX_SCREEN_WIDTH/2)
 	jr	nz, .VNeg
 	ex	de, hl
@@ -652,205 +620,3 @@ vxParametric:
 	cpl
 	ld	c, a
 	ret
-
-
-;vxPrimitiveClipPlane:
-
-; count : b
-; project all vertex from the new primitive patch
-; no-modified vertex are skipped
-.clipplane_perspective:
-	ld	a, (ix+VX_VERTEX_CODE)
-	and	a, VX_CLIPPLANE_3D_MASK
-	jr	z, .clipplane_null
-.clipplane_dispatch:
-; based on value of outcode plane, stored in uniform (new vertex create inherit some clip plane propriety)
-	ld	a, (ix+VX_VERTEX_GPR2)
-	rrca
-	rrca
-	ld	hl, .clipplane_table
-	ld	l, a
-	jp	(hl)
-.clipplane_null:
-	lea	ix, ix+VX_VERTEX_SIZE
-	djnz	.clipplane_perspective
-	ret
-
-.clipplane_code_error:
-	di
-	halt
-	jr	.clipplane_null
-.clipplane_code_0101:
-	ld	(ix+VX_VERTEX_SY), VX_SCREEN_HEIGHT_CENTER + (VX_SCREEN_HEIGHT shr 1)
-	ld	hl, VX_SCREEN_WIDTH_CENTER - (VX_SCREEN_WIDTH shr 1)
-	ld	(ix+VX_VERTEX_SX), hl
-	jr	.clipplane_null
-.clipplane_code_0110:
-	ld	(ix+VX_VERTEX_SY), VX_SCREEN_HEIGHT_CENTER - (VX_SCREEN_HEIGHT shr 1)
-	ld	hl, VX_SCREEN_WIDTH_CENTER - (VX_SCREEN_WIDTH shr 1)
-	ld	(ix+VX_VERTEX_SX), hl
-	jr	.clipplane_null
-.clipplane_code_1001:
-	ld	(ix+VX_VERTEX_SY), VX_SCREEN_HEIGHT_CENTER + (VX_SCREEN_HEIGHT shr 1)
-	ld	hl, VX_SCREEN_WIDTH_CENTER + (VX_SCREEN_WIDTH shr 1)
-	ld	(ix+VX_VERTEX_SX), hl
-	jr	.clipplane_null
-.clipplane_code_1010:
-	ld	(ix+VX_VERTEX_SY), VX_SCREEN_HEIGHT_CENTER - (VX_SCREEN_HEIGHT shr 1)
-	ld	hl, VX_SCREEN_WIDTH_CENTER + (VX_SCREEN_WIDTH shr 1)
-	ld	(ix+VX_VERTEX_SX), hl
-	jr	.clipplane_null	
-.clipplane_code_0001:
-	ld	(ix+VX_VERTEX_SY), VX_SCREEN_HEIGHT_CENTER + (VX_SCREEN_HEIGHT shr 1)
-	jr	.clipplane_divide_rx
-.clipplane_code_0010:
-	ld	(ix+VX_VERTEX_SY), VX_SCREEN_HEIGHT_CENTER - (VX_SCREEN_HEIGHT shr 1)
-	jr	.clipplane_divide_rx
-.clipplane_code_0100:
-	ld	hl, VX_SCREEN_WIDTH_CENTER - (VX_SCREEN_WIDTH shr 1)
-	ld	(ix+VX_VERTEX_SX), hl
-	jr	.clipplane_divide_ry
-.clipplane_code_1000:
-	ld	hl, VX_SCREEN_WIDTH_CENTER + (VX_SCREEN_WIDTH shr 1)
-	ld	(ix+VX_VERTEX_SX), hl
-
-.clipplane_divide_ry:
-	ld	hl, (ix+VX_VERTEX_RY)
-	xor	a, a
-	add	hl, hl
-	jr	nc, .clipplane_absolute_ry
-	rla
-	ex	de, hl
-	sbc	hl, hl
-	sbc	hl, de
-	or	a, a
-.clipplane_absolute_ry:
-	ld	de, (ix+VX_VERTEX_RZ)
-	sbc	hl, de
-	jr	nc, $+3
-	add	hl, de
-	adc	a, a
-	add	hl, hl
-	sbc	hl, de
-	jr	nc, $+3
-	add	hl, de
-	adc	a, a
-	add	hl, hl
-	sbc	hl, de
-	jr	nc, $+3
-	add	hl, de
-	adc	a, a
-	add	hl, hl
-	sbc	hl, de
-	jr	nc, $+3
-	add	hl, de
-	adc	a, a
-	add	hl, hl
-	sbc	hl, de
-	jr	nc, $+3
-	add	hl, de
-	adc	a, a
-	add	hl, hl
-	sbc	hl, de
-	jr	nc, $+3
-	add	hl, de
-	adc	a, a
-	add	hl, hl
-	sbc	hl, de
-	adc	a, a
-	cpl
-	add	a, a
-	ld	l, VX_SCREEN_HEIGHT shr 1
-	ld	h, a
-	mlt	hl
-	ld	a, h
-	jr	nc, $+3
-	cpl
-	adc	a, VX_SCREEN_HEIGHT_CENTER
-	ld	(ix+VX_VERTEX_SY), a
-	jp	.clipplane_null
-
-.clipplane_divide_rx:
-	ld	hl, (ix+VX_VERTEX_RX)
-	xor	a, a
-	add	hl, hl
-	jr	nc, .clipplane_absolute_rx
-	rla
-	ex	de, hl
-	sbc	hl, hl
-	sbc	hl, de
-	or	a, a
-.clipplane_absolute_rx:
-	ld	de, (ix+VX_VERTEX_RZ)
-	sbc	hl, de
-	jr	nc, $+3
-	add	hl, de
-	adc	a, a
-	add	hl, hl
-	sbc	hl, de
-	jr	nc, $+3
-	add	hl, de
-	adc	a, a
-	add	hl, hl
-	sbc	hl, de
-	jr	nc, $+3
-	add	hl, de
-	adc	a, a
-	add	hl, hl
-	sbc	hl, de
-	jr	nc, $+3
-	add	hl, de
-	adc	a, a
-	add	hl, hl
-	sbc	hl, de
-	jr	nc, $+3
-	add	hl, de
-	adc	a, a
-	add	hl, hl
-	sbc	hl, de
-	jr	nc, $+3
-	add	hl, de
-	adc	a, a
-	add	hl, hl
-	sbc	hl, de
-	jr	nc, $+3
-	add	hl, de
-	adc	a, a
-	add	hl, hl
-	sbc	hl, de
-	adc	a, a
-	cpl
-	ld	l, a
-	ld	h, VX_SCREEN_WIDTH shr 1
-	mlt	hl
-	ld	a, h
-	sbc	hl, hl
-	jr	nc, $+3
-	cpl
-	ld	l, a
-	ld	de, VX_SCREEN_WIDTH_CENTER
-	adc	hl, de
-	ld	(ix+VX_VERTEX_SX), hl
-	jp	.clipplane_null
-	
-; 10000000b	; vertical right edge (x=320)
-; 01000000b	; vertical left edge (x=0)
-; 00100000b	; horizontal upper edge (y=0)
-; 00010000b	; horizontal lower edge (y=240)
-align 256
-.clipplane_table:
- dd	.clipplane_code_error	; 0000b	; none, should have been skipped
- dd	.clipplane_code_0001	; 0001b
- dd	.clipplane_code_0010	; 0010b
- dd	.clipplane_code_error	; 0011b	; impossible
- dd	.clipplane_code_0100	; 0100b
- dd	.clipplane_code_0101	; 0101b
- dd	.clipplane_code_0110	; 0110b
- dd	.clipplane_code_error	; 0111b	; impossible
- dd	.clipplane_code_1000	; 1000b
- dd	.clipplane_code_1001	; 1001b
- dd	.clipplane_code_1010	; 1010b
-; dd	.clipplane_code_error	; 1011b	; impossible
-; dd	.clipplane_code_error	; 1100b	; impossible
-; dd	.clipplane_code_error	; 1101b	; impossible
-; dd	.clipplane_code_error	; 1111b	; impossible

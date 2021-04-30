@@ -4,7 +4,7 @@ vxPixelShader:
 	ret
 
 .fragment:
-relocate	VX_VRAM_CACHE
+relocate VX_VRAM_CACHE
 .fragment_inner:
 ; fixed v = v + dv, with on upper byte fixed u = u + du
 ; then copy integer v into a for passing it through the shadow swap
@@ -47,14 +47,15 @@ relocate	VX_VRAM_CACHE
 	ld	bc, $CC
 	add	ix, bc
 	lea	hl, ix+0
+	exx
 ; a is the u integer part, copy it to hl'
 .DUDY:=$+1
 	adc	a, $CC
-	exx
 ; NOTE : we need to reset the v integer part to zero, else if previous v was < 255
 ; we might overflow into $dx and completely destroy our poor texture sampler
+; reset both the upper byte which is the texture with mbase and h with zero
+	ld	hl, i
 	ld	l, a
-	ld	h, 0
 	exa
 ; screen adress
 	ld	de, (iy+VX_REGISTER_VRAM)
@@ -63,6 +64,6 @@ relocate	VX_VRAM_CACHE
 ; correct the low byte (u position)
 	ld	b, (iy+VX_REGISTER_LENGTH)
 	jp	(iy)
-.fragment_size:= $ -VX_VRAM_CACHE
-assert .fragment_size <= VX_VRAM_CACHE_SIZE
-end relocate
+.fragment_size:= $-VX_VRAM_CACHE
+assert	.fragment_size <= VX_VRAM_CACHE_SIZE
+end	relocate

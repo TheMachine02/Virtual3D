@@ -7,6 +7,7 @@ define	VX_DEBUG_CC_INSTRUCTION
 format	ti executable archived 'V3DALPHA'
 
 Main:
+
 .init:
 	ld	hl, VertexName
 	call	find

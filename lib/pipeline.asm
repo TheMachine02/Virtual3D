@@ -56,11 +56,11 @@ vxModelWorld:
  db	0,0,0
 vxModelWorld_t:
  dl	0,0,0
-vxTModelWorld:
+vxModelWorldReverse:
  db	0,0,0
  db	0,0,0
  db	0,0,0
-vxTModelWorld_t:
+vxModelWorldReverse_t:
  dl	0,0,0
 vxLightUniform:
  db	0,0,0
@@ -226,25 +226,28 @@ vxVertexCache:
 	ld	hl, vxVertexShader.iterate
 	ld	de, VX_VRAM_CACHE
 	ld	c, VX_VRAM_CACHE_SIZE
+	ldir
+	lea	hl, iy+0
+	ld	de, vxModelWorldReverse
+	ld	bc, VX_MATRIX_SIZE
 	ldir	
 ; transform the worldview with the modelworld matrix to have the global modelview matrix
-; modelviewcache = modelworld0 * worldview0
-	ld	hl, vxModelViewCache
+; modelview = modelworld0 * worldview0
+	ld	hl, vxModelView
 	call	vxMatrixTransform		; (hl) = (iy)*(ix)
-; modelview=modelviewcache
-	ld	de, vxModelView
-	ld	bc, VX_MATRIX_SIZE
-	ldir
 ; modelViewReverseTranslate = -modelViewTranslate * transpose(modelview)
 ; equivalent to eye position in modelspace
-	push	iy
 	ld	hl, vxModelView
 	ld	de, vxModelViewReverse
 	ld	bc, VX_MATRIX_SIZE
 	ldir
+	ld	iy, vxModelView
+	ld	ix, vxProjectionMatrix
+	ld	hl, vxModelView
+	call	vxMatrixTransform
 	ld	ix, vxModelViewReverse
-	ld	iy, vxView_t
 	call	vxMatrixTranspose
+	ld	iy, vxView_t
 	lea	hl, ix+VX_MATRIX_TX
 	lea	de, iy+0
 	ld	bc, 9
@@ -255,30 +258,14 @@ vxVertexCache:
 	call	vxfTransformDouble
 	lea	de, iy+0
 	call	vxfPositionExtract
-	pop	hl
-; modelworld=modelworld0
-; tmodelworld=transpose(modelworld)
-	ld	de, vxModelWorld
-	ld	bc, VX_MATRIX_SIZE
-	ldir
-	ld	c, VX_MATRIX_SIZE
-	or	a, a
-	sbc	hl, bc
-	ldir
-	ld	ix, vxTModelWorld
+; modelworldreverse=transpose(modelworld)
+	ld	ix, vxModelWorldReverse
 	call	vxMatrixTranspose
 ; light=lightuniform*transpose(modelworld)
 ; do light*matrix (hl) = (iy)*(ix)
 	ld	hl, vxLight
 	ld	iy, vxLightUniform
 	call	vxMatrixLightning
-	ld	iy, vxModelView
-	ld	ix, vxProjectionMatrix
-	ld	hl, vxModelView
-	call	vxMatrixTransform
-;	ld	iy, vxModelView
-;	ld	hl, vxModelView
-;	call	vxfMatrixPerspective
 ; load up shader data
 	ld	ix, (vxPrimitiveMaterial)
 	ld	hl, (ix+VX_MATERIAL_VERTEX_UNIFORM)

@@ -94,12 +94,7 @@ vxMipmap:
 	ld	c, 2
 	ldir	
 .vrs_adjust:
-	bit	7, (iy+VX_FDVDX+1)
-	ret	z
-	ld	hl, (iy+VX_FDUDX)
-	dec.s	hl
-	ld	(iy+VX_FDUDX), hl
-	ret
+	jr	.gradient
 
 .dummy:
 	rb	20
@@ -179,7 +174,6 @@ vxMipmap:
 	or	a, a
 	jr	nz, .mipmap_level_lod
 .mipmap_level_zero:
-; if dvdy is < 0 then adding will always propagate a carry inside dudy, which is a no-no
 	ld	a, $D3
 	ld	(vxPrimitiveTextureRaster.SMC0), a
 	ld	(vxPrimitiveTextureRaster.SMC1), a

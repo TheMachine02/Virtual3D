@@ -76,24 +76,6 @@ vxPrimitiveTextureRaster:
 	ld	c, 2
 	ldir	
 .triangleSetup:
-; debug_mark_gouraud:
-;	ld	a, (iy+VX_REGISTER_C0)
-;	ld	(iy+VX_REGISTER_V0), a
-;	ld	a, (iy+VX_REGISTER_C1)
-;	ld	(iy+VX_REGISTER_V1), a
-;	ld	a, (iy+VX_REGISTER_C2)
-;	ld	(iy+VX_REGISTER_V2), a
-; debug_mark_endpoint:
-;	ld	hl, $D30000
-;	ld	h, (iy+VX_REGISTER_V0)
-;	ld	l, (iy+VX_REGISTER_U0)
-;	ld	(hl), $E0
-;	ld	h, (iy+VX_REGISTER_V1)
-;	ld	l, (iy+VX_REGISTER_U1)
-;	ld	(hl), $E0
-;	ld	h, (iy+VX_REGISTER_V2)
-;	ld	l, (iy+VX_REGISTER_U2)
-;	ld	(hl), $E0
 .triangleInv_dy:
 ; ~ 500 cc
 ; inv = 65536/(y2-y0);

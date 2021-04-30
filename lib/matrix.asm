@@ -32,6 +32,7 @@ vxLookAtMatrix:
  dl	0,0,0
 
 ; TODO : clean this file, remove useless function, optimize other (matrix multiplication could benefit from full unroll) 
+; TODO : Use 8.8 and 16.8 for matrix instead of stranger format
  
 vxMatrixLoadIdentity:
 ; input : hl matrix
