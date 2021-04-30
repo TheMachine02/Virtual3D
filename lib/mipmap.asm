@@ -86,7 +86,7 @@ vxMipmap:
 	ld	hl, VIRTUAL_NULL_RAM
 	ld	c, 6
 	ldir	
-	jr	.vrs_adjust
+	jr	.gradient
 .vrs_write_zero:
 	ld	hl, VX_PIXEL_SHADER_CODE
 	ld	de, VX_PIXEL_SHADER_CODE+10
@@ -188,8 +188,7 @@ vxMipmap:
 ; a is the mipmap level
 ; get u&v offseting table
 ; we'll after it need to offset the delta's
-	ld	hl, VX_MIPMAP_LUT
-	dec	a
+	ld	hl, VX_MIPMAP_LUT-512
 	add	a, a
 	add	a, h
 	ld	h, a
