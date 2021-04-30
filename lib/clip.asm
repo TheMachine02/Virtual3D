@@ -324,7 +324,7 @@ vxPrimitiveClipPlane:
 	ld	hl, (iy+VX_VERTEX_RZ)
 	or	a, a
 	sbc	hl, bc
-	tst	a, 10000000b
+	bit	7, a
 	jr	nz, .vinv0
 	add	hl, bc
 	add	hl, bc
@@ -334,7 +334,7 @@ vxPrimitiveClipPlane:
 	ld	hl, (ix+VX_VERTEX_RZ)
 	or	a, a
 	sbc	hl, bc
-	tst	a, 10000000b
+	bit	7, a
 	jr	nz, .parametricVCompute
 	add	hl, bc
 	add	hl, bc
