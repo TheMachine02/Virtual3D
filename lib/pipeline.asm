@@ -99,8 +99,8 @@ vxIdentityMatrix:
  dl	0,0,0
 ; projection matrix is (1/tan(fov/2)) / aspect and the (1/tan(fov/2))
 vxProjectionMatrix:
- db	48,0,0
- db	0,64,0
+ db	64,0,0
+ db	0,85,0
  db	0,0,64
 vxProjectionMatrix_t:
  dl	0,0,0

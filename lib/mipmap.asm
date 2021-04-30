@@ -24,6 +24,8 @@
 
 ; mipmapping :
 
+define	VX_MIPMAP_BIAS	-1
+
 vxMipmap:
 ; this work as a POC, the actual speed gain is NOT here due to the nop, we need to adjust jump table
 .vrs:
@@ -125,6 +127,7 @@ vxMipmap:
 ; 64x64   : lvl 2, 4K
 ; 32x32   : lvl 3, 1K
 ; 16x16   : lvl 4, 256
+; FIXME : well, we take the -1 into account
 	ld	a, (iy+VX_FDUDX+1)
 	bit	7, a
 	jr	z, $+3
@@ -164,19 +167,21 @@ vxMipmap:
 ; 	ex	de, hl
 ; hl = mix(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
 	add	hl, de
+	ld	a, l
 	srl	h
-	rr	l
-	ex	de, hl
+	rra
 ; hl is max(dot,dot)
 	ld	hl, VX_LOG_LUT
-	ld	l, e
+	adc	a, l
+	ld	l, a
+	ld	bc, VX_MIPMAP_BIAS
+	add	hl, bc
 	ld	a, (hl)
 	or	a, a
 	jr	nz, .mipmap_level_lod
 .mipmap_level_zero:
 	ld	a, $D3
 	ld	(vxPrimitiveTextureRaster.SMC0), a
-	ld	(vxPrimitiveTextureRaster.SMC1), a
 	ret
 .mipmap_level_lod:
 	ld	b, a
@@ -198,14 +203,10 @@ vxMipmap:
 ; set the smc for texture map
 	ld	a, $D2
 	ld	(vxPrimitiveTextureRaster.SMC0), a
-	ld	(vxPrimitiveTextureRaster.SMC1), a
 ; scale the delta's
 	ld	a, b
 	ld	de, (iy+VX_FDUDX)
 	ld	hl, (iy+VX_FDVDX)
-	bit	7, h
-	jr	z, $+3
-	inc	de
 .mipmap_level_scale_dx:
 	sra	h
 	rr	l
@@ -213,15 +214,9 @@ vxMipmap:
 	rr	e
 	djnz	.mipmap_level_scale_dx
 	ld	(iy+VX_FDVDX), hl
-	bit	7, h
-	jr	z, $+4
-	dec.s	de
 	ld	(iy+VX_FDUDX), de
 	ld	de, (iy+VX_FDUDY)
 	ld	hl, (iy+VX_FDVDY)
-	bit	7, h
-	jr	z, $+3
-	inc	de
 	ld	b, a
 .mipmap_level_scale_dy:
 	sra	h
@@ -230,28 +225,22 @@ vxMipmap:
 	rr	e
 	djnz	.mipmap_level_scale_dy
 	ld	(iy+VX_FDVDY), hl
-	bit	7, h
-	jr	z, $+4
-	dec.s	de
 	ld	(iy+VX_FDUDY), de
 	ret
 
+; up to -2 negative bias
+ db 0
+ db 0
 align 256
 VX_LOG_LUT:
  db 0
  db 0
- db 0
- db 0
  db 1
  db 1
  db 1
  db 1
  db 1
  db 1
- db 1
- db 1
- db 1
- db 1
  db 2
  db 2
  db 2
@@ -276,95 +265,6 @@ VX_LOG_LUT:
  db 2
  db 2
  db 2
- db 2
- db 2
- db 2
- db 2
- db 2
- db 2
- db 2
- db 2
- db 2
- db 2
- db 2
- db 2
- db 2
- db 2
- db 2
- db 2
- db 2
- db 2
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
- db 3
  db 3
  db 3
  db 3
@@ -494,6 +394,102 @@ VX_LOG_LUT:
  db 4
  db 4
  db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+ db 4
+
  
  rb	64
  TMP:

@@ -135,16 +135,11 @@ vxPrimitiveTextureRaster:
 	rl	e
 	ld	e, d
 	ld	d, 0
-	adc.s	hl, de
+	adc	hl, de
 .triangleNull_dudy:
 ; now adapt because of the layout in memory : [lDVDY][hDVDY][lDUDY][hDUDY]
 ; if dvdy is < 0 then adding will always propagate a carry inside dudy, which is a no-no
-	bit	7, (iy+VX_FDVDY+1)	
-	jr	z, $+4
-	dec.s	hl
 	ld	(iy+VX_FDUDY), hl
-	jr	z, $+3
-	inc	hl	
 ; compute us at longest span
 	ld	a, (iy+VX_REGISTER_Y1)
 	sub	(iy+VX_REGISTER_Y0)
@@ -430,7 +425,6 @@ vxShaderAdress2Write=$+1
 	add	hl, bc
 .triangleNull_dvdx:
 	ld	(iy+VX_FDVDX), hl
-	ld	c, h
 .triangleCompute_dudx:
 	ld	a, (iy+VX_REGISTER_U1)
 	sub	a, (iy+VX_REGISTER_US)
@@ -446,11 +440,8 @@ vxShaderAdress2Write=$+1
 	ld	e, d
 	xor	a, a
 	ld	d, a
-	add.s	hl, de
+	add	hl, de
 .triangleNull_dudx:
-	bit	7, c
-	jr	z, $+4
-	dec.s	hl
 	ld	(iy+VX_FDUDX), hl
 .triangleMipmap:
 	ld	sp, TMP
@@ -458,8 +449,6 @@ vxShaderAdress2Write=$+1
 .triangleGradient:
 	ld	a, (iy+VX_REGISTER_Y2)
 	sub	a, (iy+VX_REGISTER_Y0)
-	rra
-	adc	a, 0
 	ld	b, a
 	ld	hl, (iy+VX_FDVDY)
 	ld	de, (iy+VX_FDVDX)
@@ -478,9 +467,16 @@ vxShaderAdress2Write=$+1
 	ld	(iy+VX_REGISTER_TMP+2), l
 	ld	a, (iy+VX_REGISTER_U0)
 	add	a, h
-	ld	hl, (iy+VX_REGISTER_TMP)
+	ld	hl, (iy+VX_REGISTER_TMP)	
+	ld	de, (iy+VX_FDUDY)
+	bit	7, (iy+VX_FDVDY)
+	jr	z, .gpr_merge_dy
+	dec.s	de
+	ld	(iy+VX_FDUDY), de
+.gpr_merge_dy:
+	ld	c, d
 	ld	de, (iy+VX_FDVDY)
-	ld	c, (iy+VX_FDUDY+1)
+	
 	lea	ix, iy+0
 .triangleGradientLoop:
 	ld	(ix+VX_REGISTER2), hl
@@ -489,13 +485,7 @@ vxShaderAdress2Write=$+1
 	ld	(ix+VX_REGISTER3+2), $D3
 	add	hl, de
 	adc	a, c
-	ld	(ix+VX_REGISTER2+VX_REGISTER_SIZE), hl
-	ld	(ix+VX_REGISTER3+VX_REGISTER_SIZE), a
-.SMC1:=$+3
-	ld	(ix+VX_REGISTER3+VX_REGISTER_SIZE+2), $D3
-	add	hl, de
-	adc	a, c
-	lea	ix, ix+(VX_REGISTER_SIZE*2)
+	lea	ix, ix+VX_REGISTER_SIZE
 	djnz	.triangleGradientLoop
 .triangleGradientEnd:
 	ccr	ge_pxl_raster
@@ -509,9 +499,17 @@ vxShaderAdress2Write=$+1
 ; hl = accumulator for dux					LOADED
 ; de = screen adress						LOADED
 ; bc = djnz size							LOADED
-	ld	de, (iy+VX_FDVDX)
-	ld	hl, (iy+VX_FDUDX+1)
+	ld	de, (iy+VX_FDUDX)
+	bit	7, (iy+VX_FDVDX)
+	jr	z, .gpr_merge_dx
+	dec.s	de
+	ld	(iy+VX_FDUDX), de
+.gpr_merge_dx:
+	or	a, a
+	sbc	hl, hl
+	ld	l, d
 	ld	sp, hl
+	ld	de, (iy+VX_FDVDX)
 	exx
 vxShaderUniform0=$+1
 	ld	bc, VX_PIXEL_SHADER_DATA
@@ -523,3 +521,4 @@ VX_SMC_STACK_REGISTER=$+1
 	ld	sp, $000000
 	ccr	ge_pxl_shading
 	ret
+	
