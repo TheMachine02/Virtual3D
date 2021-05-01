@@ -110,18 +110,19 @@ vxPrimitiveClipPlane:
 ; b : count, c : planemask
 .clipSutherHodgmanLoop:
 	ld	hl, (iy+VX_PATCH_I1)
+	ld	h, (hl)
 	ld	de, (iy+VX_PATCH_I0)
 	ld	a, (de)
-	and	a, (hl)
 	and	a, c
+	ld	l, a
+	and	a, h
 	jr	nz, .clip_cull_edge
-	ld	a, (de)
-	and	a, c
+	or	a, l
 	jr	nz, .clip_edge_reentrant
 	ld	(ix+VX_PATCH_I0), de
 	lea	ix, ix+VX_PATCH_INDEX_SIZE
 .clip_edge_reentrant:
-	or	a, (hl)
+	or	a, h
 	and	a, c
 	jr	nz, .clip_edge
 .clip_cull_edge:
