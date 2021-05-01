@@ -94,15 +94,15 @@ vxPrimitiveTextureRaster:
 	ld	l, a
 	mlt	hl
 	jr	z, .triangleNull_dvdy
+	ld	c, a
 	jr	nc, $+5
-	or	a, a
+	xor	a, a
 	sbc	hl, de
 	ld	b, e
-	ld	c, a
 	mlt	bc
 	rl	c
 	ld	c, b
-	ld	b, 0
+	ld	b, a
 	adc	hl, bc
 .triangleNull_dvdy:
 	ld	(iy+VX_FDVDY), hl
