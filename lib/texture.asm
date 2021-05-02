@@ -142,7 +142,7 @@ vxPrimitiveTextureRaster:
 	ld	(iy+VX_FDUDY), hl
 ; compute us at longest span
 	ld	a, (iy+VX_REGISTER_Y1)
-	sub	(iy+VX_REGISTER_Y0)
+	sub	a, (iy+VX_REGISTER_Y0)
 	ld	b, a
 	ld	c, h
 	ld	h, a
@@ -444,13 +444,15 @@ vxShaderAdress2Write=$+1
 .triangleNull_dudx:
 	ld	(iy+VX_FDUDX), hl
 .triangleMipmap:
-	ld	sp, TMP
-	call	vxMipmap.gradient
+; 	ld	sp, TMP
+; 	call	vxMipmap.vrs
 .triangleGradient:
 	ld	a, (iy+VX_REGISTER_Y2)
 	sub	a, (iy+VX_REGISTER_Y0)
 	ld	b, a
-	ld	hl, (iy+VX_FDVDY)
+	sbc	hl, hl
+	ld	de, (iy+VX_FDVDY)
+	sbc	hl, de
 	ld	de, (iy+VX_FDVDX)
 	sbc	hl, de
 	sra	h
@@ -459,7 +461,10 @@ vxShaderAdress2Write=$+1
 	add	a, h
 	ld	h, a
 	ld	(iy+VX_REGISTER_TMP), hl
-	ld	hl, (iy+VX_FDUDY)
+	or	a, a
+	sbc	hl, hl
+	ld	de, (iy+VX_FDUDY)
+	sbc	hl, de
 	ld	de, (iy+VX_FDUDX)
 	sbc	hl, de
 	sra	h
@@ -467,7 +472,7 @@ vxShaderAdress2Write=$+1
 	ld	(iy+VX_REGISTER_TMP+2), l
 	ld	a, (iy+VX_REGISTER_U0)
 	add	a, h
-	ld	hl, (iy+VX_REGISTER_TMP)	
+	ld	hl, (iy+VX_REGISTER_TMP)
 	ld	de, (iy+VX_FDUDY)
 	bit	7, (iy+VX_FDVDY)
 	jr	z, .gpr_merge_dy
@@ -476,15 +481,14 @@ vxShaderAdress2Write=$+1
 .gpr_merge_dy:
 	ld	c, d
 	ld	de, (iy+VX_FDVDY)
-	
 	lea	ix, iy+0
 .triangleGradientLoop:
+	add	hl, de
+	adc	a, c
 	ld	(ix+VX_REGISTER2), hl
 	ld	(ix+VX_REGISTER3), a
 .SMC0:=$+3
 	ld	(ix+VX_REGISTER3+2), $D3
-	add	hl, de
-	adc	a, c
 	lea	ix, ix+VX_REGISTER_SIZE
 	djnz	.triangleGradientLoop
 .triangleGradientEnd:

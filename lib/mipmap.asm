@@ -24,7 +24,7 @@
 
 ; mipmapping :
 
-define	VX_MIPMAP_BIAS	-1
+define	VX_MIPMAP_BIAS	0
 
 vxMipmap:
 ; this work as a POC, the actual speed gain is NOT here due to the nop, we need to adjust jump table
@@ -86,7 +86,7 @@ vxMipmap:
 	ld	hl, VIRTUAL_NULL_RAM
 	ld	c, 6
 	ldir	
-	jr	.vrs_adjust
+	ret
 .vrs_write_zero:
 	ld	hl, VX_PIXEL_SHADER_CODE
 	ld	de, VX_PIXEL_SHADER_CODE+10
@@ -95,8 +95,8 @@ vxMipmap:
 	ld	hl, .djnz_single
 	ld	c, 2
 	ldir	
-.vrs_adjust:
-	jr	.gradient
+	ret
+; jr .gradient
 
 .dummy:
 	rb	20
@@ -111,6 +111,7 @@ vxMipmap:
 	
 
 .gradient:
+; FIXME : we dont truly have the correct gradient on Y, since it is gradient along longest edge
 ; float mipmap_level(in vec2 texture_coordinate)
 ; {
 ;     // The OpenGL Graphics System: A Specification 4.2
@@ -127,7 +128,6 @@ vxMipmap:
 ; 64x64   : lvl 2, 4K
 ; 32x32   : lvl 3, 1K
 ; 16x16   : lvl 4, 256
-; FIXME : well, we take the -1 into account
 	ld	a, (iy+VX_FDUDX+1)
 	bit	7, a
 	jr	z, $+3
@@ -159,16 +159,29 @@ vxMipmap:
 	ld	l, a
 	mlt	hl
 	add	hl, bc
+; min(512,hl)
 ; hl = max(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
 ; MAX_FILTER, unused (a bit too much agressive)
+; 	or	a, a
 ; 	sbc	hl, de
 ; 	add	hl, de
 ; 	jr	c, $+3
 ; 	ex	de, hl
+; 	ld	a, d
+; 	or	a, a
+; 	ld	a, e
+; 	jr	z, $+4
+; 	ld	a, $FF
 ; hl = mix(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
 	add	hl, de
-	ld	a, l
+	ld	de, 510
+	or	a, a
+	sbc	hl, de
+	add	hl, de
+	jr	c, $+3
+	ex	de, hl
 	srl	h
+	ld	a, l
 	rra
 ; hl is max(dot,dot)
 	ld	hl, VX_LOG_LUT

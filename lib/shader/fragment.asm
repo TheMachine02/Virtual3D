@@ -15,7 +15,7 @@ relocate VX_VRAM_CACHE
 	adc	hl, sp
 	ld	h, a
 ; fetch texture at $DXVVUU and blit it to screen, then advance
-	ld	a, (hl) 
+	ld	a, (hl)
 	ld	(de), a
 .IC0:=$+1
 	inc	de
@@ -57,6 +57,10 @@ relocate VX_VRAM_CACHE
 	ld	hl, i
 	ld	l, a
 	exa
+; case vrs=1 : we need the first texel value in span to be loaded in register a (since we will exx / ld (de),a / inc de / exx and possibly on the first pixel (also if size = 1, directly write ?)
+; 	ld	a, ixh
+; 	ld	h, a
+; 	ld	a, (hl)
 ; screen adress
 	ld	de, (iy+VX_REGISTER_VRAM)
 	exx

@@ -1,10 +1,10 @@
 mkdir bin
 
 echo "Converting Tomb Raider III test models..."
-./tools/import  example/file/CavesOfKaliyaTRIII.obj -T -N -S -B -X -o=KALIYA
+./tools/import  example/file/CavesOfKaliyaFTRIII.obj -T -N -S -B -X -o=KALIYA
 
-fasmg example/file/CavesOfKaliyaTRIII0.inc bin/KALIYAV.8xv
-fasmg example/file/CavesOfKaliyaTRIII1.inc bin/KALIYAF.8xv
+fasmg example/file/CavesOfKaliyaFTRIII0.inc bin/KALIYAV.8xv
+fasmg example/file/CavesOfKaliyaFTRIII1.inc bin/KALIYAF.8xv
 
 ./tools/import example/file/CityTRIII.obj -T -N -S -B -X -o=CITY
 fasmg example/file/CityTRIII0.inc bin/CITYV.8xv
@@ -101,7 +101,7 @@ fasmg example/file/NabooruZelda1.inc bin/NABOORUF.8xv
 # fasmg example/file/XML1.ez80 bin/LARAF.8xv 
 
 echo "Converting CavesOfKaliyaTRIII.png"
-./tools/texconv -compress -dithering -o=KALIYAT example/file/CavesOfKaliyaTRIII.png
+./tools/texconv -compress -o=KALIYAT example/file/CavesOfKaliyaTRIII.png
 fasmg example/file/CavesOfKaliyaTRIII.inc bin/KALIYAT.8xv 
 echo "Converting CavesOfKaliyaTRIII_mip.png"
 ./tools/texconv -compress -o=KALIYAM example/file/CavesOfKaliyaTRIII_mip.png

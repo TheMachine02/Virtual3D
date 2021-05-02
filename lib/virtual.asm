@@ -55,7 +55,7 @@ vxEngine:
 	call	lz4.decompress
 	ld	hl, VIRTUAL_NULL_RAM
 	ld	de, VX_DEPTH_BUCKET_L
-	ld	bc, 512*3
+	ld	bc, 1536
 	ldir
 	ld	de, VX_VERTEX_BUFFER
 	ld	bc, VX_MAX_VERTEX * VX_VERTEX_SIZE
@@ -63,7 +63,7 @@ vxEngine:
 ; various other data
 	ld	hl, VX_FRAMEBUFFER_AUX1
 	ld	(vxPrimitiveQueue), hl
-	ld	(vxGeometrySize), bc
+	ld	(vxPrimitiveQueueSize), bc
 	ld	hl, $D30000
 	ld	(vxTexturePage), hl
 ; load shader

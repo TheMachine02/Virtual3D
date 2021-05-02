@@ -68,6 +68,7 @@ define	VX_VERTEX_RX			7
 define	VX_VERTEX_RY			10
 define	VX_VERTEX_RZ			13
 
+; NOTE : we use VX_VERTEX_CODE to know if we need to transform or not
 define	VX_VERTEX_RESET			00000000b
 define	VX_VERTEX_SET			11111111b
 
@@ -164,9 +165,8 @@ define	VX_FORMAT_COLOR			16
 
 ; stream header ;
 
-define	VX_STREAM_HEADER_SIZE 		3
+define	VX_STREAM_HEADER_SIZE 		1
 define	VX_STREAM_HEADER_OPTION		0	; stream options
-define	VX_STREAM_HEADER_COUNT		1	; 2 bytes, count of vertex
 
 define	VX_STREAM_HEADER_BBOX		8
 ;define	VX_STREAM_HEADER_FORMAT_MASK	00011111b
