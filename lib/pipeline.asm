@@ -30,6 +30,10 @@ define	VX_PRIMITIVE_SORT_CODE		$E30800
 define	VX_MAX_TRIANGLE			4096
 define	VX_MAX_VERTEX			2048
 
+; poison bit to mark vertex as to be not transformed
+; it should be reset if we should transform it
+define	VX_VERTEX_POISON		1 shl VX_VERTEX_POISON_BIT
+define	VX_VERTEX_POISON_BIT		7
 
 ; TODO : create geometry shader in submission
 ; Better vertex shader with decoupled projection
@@ -368,22 +372,31 @@ vxVertexCache:
 	ret
 .uniform:
 	jp	(hl)
-.reset:
+.reset_poison:
 ; hl - base adress, bc - vertex count
+; TODO : optimize it
 	ld      a, c
 	dec     bc
 	inc     b
 	ld      c, b
 	ld      b, a
-	ld      a, VX_VERTEX_RESET
+	xor	a, a
 	ld      de, VX_VERTEX_SIZE
-.reset_loop:
+.reset_kernel:
 	ld      (hl), a
 	add     hl, de
-	djnz    .reset_loop
+	djnz    .reset_kernel
 	dec     c
-	jr      nz, .reset_loop
+	jr      nz, .reset_kernel
 	ret
+.set_poison:
+	ld      a, c
+	dec     bc
+	inc     b
+	ld      c, b
+	ld      b, a
+	ld	a, VX_VERTEX_POISON
+	jr	.reset_kernel
 	
 vxScissor:
 	

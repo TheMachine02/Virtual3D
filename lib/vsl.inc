@@ -68,10 +68,6 @@ define	VX_VERTEX_RX			7
 define	VX_VERTEX_RY			10
 define	VX_VERTEX_RZ			13
 
-; NOTE : we use VX_VERTEX_CODE to know if we need to transform or not
-define	VX_VERTEX_RESET			00000000b
-define	VX_VERTEX_SET			11111111b
-
 ; vertex input register (iy) ;
 
 define	VX_VERTEX_DATA_SIZE		10
