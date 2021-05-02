@@ -2,7 +2,7 @@ include	"include/fasmg/ez80.inc"
 include	"include/fasmg/tiformat.inc"
 include	"include/ti84pceg.inc"
 
-define	VX_DEBUG_CC_INSTRUCTION
+;define	VX_DEBUG_CC_INSTRUCTION
 
 format	ti executable archived 'V3DALPHA'
 
@@ -74,7 +74,7 @@ Main:
 ;	call	vxShaderLoad
 
 	ld	hl, material
-	ld	a, VX_MATERIAL0
+	ld	a, VX_MATERIAL1
 	call	vxMaterialLoad
 
 MainLoop:
@@ -96,7 +96,7 @@ MainLoop:
 	ld	iy, ModelMatrix
 	ld	hl, (Vertex)
 	ld	de, (Triangle)
-	ld	a, VX_MATERIAL0
+	ld	a, VX_MATERIAL1
 	call	vxPrimitiveStream
 
 ;	ld	a, VX_GEOMETRY_TI9
@@ -115,12 +115,10 @@ MainLoop:
 ;	ld	de, TRIDATA1
 ;	call	vxGeometryQueue
 
-	ld	hl, (vxGeometrySize)
+	ld	hl, (vxPrimitiveQueueSize)
 	ld	(debug.visible_count), hl
-	ld	hl, (Triangle)
-	inc	hl
-	ld	hl, (hl)
 	ld	(debug.triangle_count), hl
+
 	call	vxPrimitiveDepthSort
 	
 ;	ld	c, 11100000b
@@ -132,7 +130,7 @@ MainLoop:
 	
 	call	vxPrimitiveSubmit
 
-	call	debug.display_panel
+	call	debug.display_frame
 
 ; apply filter
 	ld	a, (posY+1)

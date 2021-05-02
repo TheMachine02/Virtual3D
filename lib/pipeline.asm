@@ -30,15 +30,17 @@ define	VX_PRIMITIVE_SORT_CODE		$E30800
 define	VX_MAX_TRIANGLE			4096
 define	VX_MAX_VERTEX			2048
 
+
 ; TODO : create geometry shader in submission
 ; Better vertex shader with decoupled projection
 ; Put all the code in fast ram, use sha256
 
 VIRTUAL_PIPELINE_STATE:
+ db	0
 ; pipeline state
 vxPrimitiveQueue:
  dl	0
-vxGeometrySize:
+vxPrimitiveQueueSize:
  dl	0
 vxPrimitiveMaterial:
  dl	0
@@ -98,6 +100,7 @@ vxIdentityMatrix:
  db	0,0,64
  dl	0,0,0
 ; projection matrix is (1/tan(fov/2)) / aspect and the (1/tan(fov/2))
+; note we loose precision because 0.6 isn't quite enough (move to 8.8 ?)
 vxProjectionMatrix:
  db	64,0,0
  db	0,85,0
@@ -107,12 +110,12 @@ vxProjectionMatrix_t:
  
 vxPrimitiveSubmit:
 .reset:
-; various reset blahblah
+; various reset
 	ld	hl, (VX_LCD_BUFFER)
 	ld	(vxPrimitiveQueue), hl
 	ld	hl, VIRTUAL_NULL_RAM
 	ld	de, VX_DEPTH_BUCKET_L
-	ld	bc, 256 * 6
+	ld	bc, 1536
 	ldir
 .setup_pixel:
 	ld	hl, VX_PRIMITIVE_INTERPOLATION_COPY
@@ -134,7 +137,7 @@ vxPrimitiveSubmit:
 	ld	(vxShaderAdress2Write), hl
 .setup:
 ; check primitive count and reset it
-	ld	hl, (vxGeometrySize)
+	ld	hl, (vxPrimitiveQueueSize)
 	ld	a, h
 	or	a, l
 	ret	z
@@ -145,7 +148,7 @@ vxPrimitiveSubmit:
 	add	hl, de
 	ld	(hl), VX_STREAM_END
 ; note, bc should be zero here
-	ld	(vxGeometrySize), bc
+	ld	(vxPrimitiveQueueSize), bc
 	jr	.index
 ; TODO : reallocate .deferred into fast RAM, use jr .index as long jump
 ; TODO : remove the call vxPrimitiveRenderTriangle
@@ -163,7 +166,7 @@ vxPrimitiveSubmit:
 	ld	b, l
 	djnz	.deferred
 	ret
-	
+
 vxPrimitiveStream:
 ; send a primitive stream for submission
 ; handle calling the vertex shader & 
@@ -194,20 +197,14 @@ vxPrimitiveStream:
 	ldir
 ;would be nice to encode the format within
 	call	vxPrimitiveAssembly
-	ccr	ge_pri_assembly
 ; need to update count & queue position
-; simple : new-previous / 8
-	ld	de, (vxPrimitiveQueue)
-	lea	hl, ix+0
-	ld	(vxPrimitiveQueue), hl
-	or	a, a
-	sbc	hl, de
-	ex	de, hl
+; simple : new-previous (de)/6
 	ld	bc, VX_GEOMETRY_SIZE
 	call	vxMath.udiv
-	ld	hl, (vxGeometrySize)
+	ld	hl, (vxPrimitiveQueueSize)
 	add	hl, de
-	ld	(vxGeometrySize), hl
+	ld	(vxPrimitiveQueueSize), hl
+	ccr	ge_pri_assembly
 	ret
 
 vxVertexCache:
@@ -222,10 +219,6 @@ vxVertexCache:
 ; load shader first
 	ld	de, VX_VERTEX_SHADER_CODE
 	ld	bc, VX_VERTEX_SHADER_SIZE
-	ldir
-	ld	hl, vxVertexShader.iterate
-	ld	de, VX_VRAM_CACHE
-	ld	c, VX_VRAM_CACHE_SIZE
 	ldir
 	lea	hl, iy+0
 	ld	de, vxModelWorldReverse
@@ -270,10 +263,16 @@ vxVertexCache:
 	ld	ix, (vxPrimitiveMaterial)
 	ld	hl, (ix+VX_MATERIAL_VERTEX_UNIFORM)
 	call	.uniform
+; reset vertex here
+; reset VRAM_CACHE
+	ld	hl, vxVertexShader.iterate
+	ld	de, VX_VRAM_CACHE
+	ld	bc, VX_VRAM_CACHE_SIZE
+	ldir
 	pop	iy
 ; iy = source, ix = matrix
 	ld	a, (iy+VX_STREAM_HEADER_OPTION)
-	lea	iy, iy+VX_STREAM_HEADER_SIZE
+	inc	iy
 ; iy+0 are options, so check those. Here, only bounding box is interesting.
 	and	a, VX_STREAM_HEADER_BBOX
 	call	nz, .bounding_box
@@ -371,21 +370,21 @@ vxVertexCache:
 	jp	(hl)
 .reset:
 ; hl - base adress, bc - vertex count
-	ld	a, c
-	dec	bc
-	inc	b
-	ld	c, b
-	ld	b, a
-	ld	a, VX_VERTEX_RESET
-	ld	de, VX_VERTEX_SIZE
+	ld      a, c
+	dec     bc
+	inc     b
+	ld      c, b
+	ld      b, a
+	ld      a, VX_VERTEX_RESET
+	ld      de, VX_VERTEX_SIZE
 .reset_loop:
-	ld	(hl), a
-	add	hl, de
-	djnz	.reset_loop
-	dec	c
-	jr	nz, .reset_loop
+	ld      (hl), a
+	add     hl, de
+	djnz    .reset_loop
+	dec     c
+	jr      nz, .reset_loop
 	ret
-
+	
 vxScissor:
 	
 .rect2D:
@@ -415,11 +414,11 @@ vxPrimitiveDepthSort:
 	ld	de, VX_PRIMITIVE_SORT_CODE
 	ld	bc, VX_PRIMITIVE_SORT_SIZE
 	ldir
+	ld	bc, .restore_rel_size
 	ld	hl, .restore_rel
 	ld	de, VX_VRAM_CACHE
-	ld	bc, .restore_rel_size
 	ldir
-	ld	bc, (vxGeometrySize)
+	ld	bc, (vxPrimitiveQueueSize)
 	ld	a, b
 	or	a, c
 	call	nz, .helper

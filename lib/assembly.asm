@@ -49,7 +49,7 @@ vxPrimitiveAssembly:
 ;  212 cc clip reject
 .setup:
 ; input : iy = stream, also expect so global variable to be correctly set
-	lea	iy, iy+VX_STREAM_HEADER_SIZE
+	inc	iy
 ; lut setup
 .mlt_generate:
 ; now the view vector
@@ -83,6 +83,7 @@ vxPrimitiveAssembly:
 	ld	(.STR), a
 	ld	a, l
 	ld	(.MTR), a
+	ld	(.MTRU), a
 	inc	hl
 ; this is the VBO
 	ld	(.SP_RET0), sp
@@ -139,17 +140,10 @@ vxPrimitiveAssembly:
 ; we'll also set the depth into de
 	ex	de, hl
 .MTR:=$+1
-	ld	hl, VX_DEPTH_BUCKET_L or $CC
+	ld	hl, VX_DEPTH_BUCKET_H or $CC
 	ld	e, l
 ; write both the ID in the lower 8 bits and the depth in the upper 16 bits, we'll sort on the full 24 bit pair so similar material will be 'packed' together at best without breaking sorting
 	ld	(ix+VX_GEOMETRY_DEPTH), de
-	ld	a, (hl)
-	add	a, VX_GEOMETRY_SIZE
-	ld	(hl), a
-	inc	h
-	jr	c, .overflow_l
-.continue_l:
-	inc	h
 	ld	l, d
 	ld	a, (hl)
 	add	a, VX_GEOMETRY_SIZE
@@ -175,12 +169,25 @@ vxPrimitiveAssembly:
 	jr	nz, .pack
 .SP_RET0:=$+1
 	ld	sp, $CCCCCC
+	ld	de, (vxPrimitiveQueue)
+	lea	hl, ix+0
+	ld	(vxPrimitiveQueue), hl
+	or	a, a
+	sbc	hl, de
+	ex	de, hl
+.MTRU:=$+1
+	ld	hl, VX_DEPTH_BUCKET_L or $CC
+	ld	a, (hl)
+	add	a, e
+	ld	(hl), a
+	inc	h
+	ld	a, (hl)
+	adc	a, d
+	ld	(hl), a
+; return de : number of triangle * GEOMETRY_SIZE
 	ret
 ; out of bound in bucket handle
 ; those occurs only every ~42 triangles within each bucket size
-.overflow_l:
-	inc	(hl)
-	jr	.continue_l
 .overflow_h:
 	inc	(hl)
 	jr	.continue_h
