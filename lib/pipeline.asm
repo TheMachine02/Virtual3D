@@ -275,14 +275,12 @@ vxVertexCache:
 	pop	iy
 ; iy = source, ix = matrix
 ; reset poison
-	ld	bc, (iy+VX_STREAM_HEADER_COUNT)
-	push	bc
 	ld	a, (iy+VX_STREAM_HEADER_OPTION)
 ; iy+0 are options, so check those. Here, only bounding box is interesting.
 	lea	iy, iy+VX_STREAM_HEADER_SIZE
 	and	a, VX_STREAM_HEADER_BBOX
 	call	nz, .bounding_box
-	pop	bc
+	ld	bc, (iy+VX_STREAM_HEADER_COUNT-VX_STREAM_HEADER_SIZE)
 	pop	ix
 	ret	nz
 ; actual stream start
