@@ -267,7 +267,6 @@ vxVertexCache:
 	ld	ix, (vxPrimitiveMaterial)
 	ld	hl, (ix+VX_MATERIAL_VERTEX_UNIFORM)
 	call	.uniform
-; reset vertex here
 ; reset VRAM_CACHE
 	ld	hl, vxVertexShader.iterate
 	ld	de, VX_VRAM_CACHE
@@ -275,14 +274,20 @@ vxVertexCache:
 	ldir
 	pop	iy
 ; iy = source, ix = matrix
+; reset poison
+	ld	bc, (iy+VX_STREAM_HEADER_COUNT)
+	push	bc
 	ld	a, (iy+VX_STREAM_HEADER_OPTION)
-	inc	iy
 ; iy+0 are options, so check those. Here, only bounding box is interesting.
+	lea	iy, iy+VX_STREAM_HEADER_SIZE
 	and	a, VX_STREAM_HEADER_BBOX
 	call	nz, .bounding_box
+	pop	bc
 	pop	ix
 	ret	nz
 ; actual stream start
+	lea	hl, ix+0
+	call	.reset_poison
 	cce	ge_vtx_transform
 	call	vxVertexShader.ftransform_stream
 	ccr	ge_vtx_transform
@@ -348,7 +353,11 @@ vxVertexCache:
 .bounding_box:
 ; check the bounding box
 ; stream the bounding box as standard vertex stream into the stream routine
+; TODO : reset poison
 	ld	ix, VX_PATCH_VERTEX_POOL
+	lea	hl, ix+0
+	ld	bc, 8
+	call	.reset_poison
 	cce	ge_vtx_transform
 	call	vxVertexShader.ftransform_stream
 	ccr	ge_vtx_transform
@@ -397,7 +406,7 @@ vxVertexCache:
 	ld      b, a
 	ld	a, VX_VERTEX_POISON
 	jr	.reset_kernel
-	
+
 vxScissor:
 	
 .rect2D:

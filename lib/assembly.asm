@@ -49,7 +49,7 @@ vxPrimitiveAssembly:
 ;  212 cc clip reject
 .setup:
 ; input : iy = stream, also expect so global variable to be correctly set
-	inc	iy
+	lea	iy, iy+VX_STREAM_HEADER_SIZE
 ; lut setup
 .mlt_generate:
 ; now the view vector

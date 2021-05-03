@@ -161,7 +161,8 @@ define	VX_FORMAT_COLOR			16
 
 ; stream header ;
 
-define	VX_STREAM_HEADER_SIZE 		1
+define	VX_STREAM_HEADER_SIZE 		4
+define	VX_STREAM_HEADER_COUNT		1
 define	VX_STREAM_HEADER_OPTION		0	; stream options
 
 define	VX_STREAM_HEADER_BBOX		8

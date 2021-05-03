@@ -406,8 +406,8 @@ bool load_obj(const char * path, const char * name, unsigned short option)
 
 //    out << "include \"vxModel.inc\"" << '\n';
     out << "VERTEX_STREAM:" << '\n';
-    // (vertexTable.size()*256)
     out << "db " << option << '\n';
+    out << "dl " << vertexTable.size() << '\n';
 	int sm=0;
     
     if(option&BOUNDING_BOX)
@@ -472,8 +472,8 @@ bool load_obj(const char * path, const char * name, unsigned short option)
     }
 
     out << "INDEX_STREAM:" << '\n';
-    // (face_index.size()/10)*256+
     out << "db " << option << '\n';
+    out << "dl " << face_index.size()/10 << '\n';
 
     for(i=0; i<face_index.size()/10; i++)
     {

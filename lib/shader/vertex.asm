@@ -124,6 +124,8 @@ relocate VX_VRAM
 	ret	z
 	ld	(.SP_RET), sp
 .ftransform_trampoline:
+	bit	VX_VERTEX_POISON_BIT, (ix+VX_VERTEX_CODE)
+	jp	nz, .ftransform_ret
 	ld	sp, .trampoline_stack
 ; compute the Z coordinate from matrix register with FMA engine
 	inc	a
@@ -246,7 +248,7 @@ relocate VX_VRAM
 	bit	7, (ix+VX_VERTEX_RZ+2)
 	jr	nz, .perspective_zclip
 .perspective_divide_ry:
-	ld	(ix+VX_VERTEX_CODE), a
+; 	ld	(ix+VX_VERTEX_CODE), a
 	add	hl, hl
 	jr	nc, .perspective_absolute_ry
 	rla
