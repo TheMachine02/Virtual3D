@@ -83,8 +83,8 @@ vxMipmap:
 	ld	c, 2
 	ldir
 ; then put some zero nop here
-	ld	hl, VIRTUAL_NULL_RAM
-	ld	c, 6
+	ld	hl, VIRTUAL_NULL_RAM+6
+	ld	c, l
 	ldir	
 	ret
 .vrs_write_zero:
@@ -201,8 +201,7 @@ vxMipmap:
 ; a is the mipmap level
 ; get u&v offseting table
 ; we'll after it need to offset the delta's
-	ld	hl, VX_MIPMAP_LUT
-	dec	a
+	ld	hl, VX_MIPMAP_LUT-512
 	add	a, a
 	add	a, h
 	ld	h, a
