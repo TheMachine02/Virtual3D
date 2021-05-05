@@ -29,15 +29,43 @@ define	VX_VERTEX_BUFFER		$D08000	; 16*2048 (32K)
 define	VX_PRIMITIVE_SORT_CODE		$E30800
 define	VX_MAX_TRIANGLE			4096
 define	VX_MAX_VERTEX			2048
-
 ; poison bit to mark vertex as to be not transformed
 ; it should be reset if we should transform it
 define	VX_VERTEX_POISON		1 shl VX_VERTEX_POISON_BIT
 define	VX_VERTEX_POISON_BIT		7
 
-; TODO : create geometry shader in submission
-; Better vertex shader with decoupled projection
-; Put all the code in fast ram, use sha256
+define	VX_REGISTER_US	-36-11
+define	VX_REGISTER_VS	-36-10
+define	VX_REGISTER_STARTPOINT -36-9
+define	VX_REGISTER_OFFSET -36-6
+define	VX_REGISTER_MIDPOINT -36-3
+define	VX_REGISTER_TMP	-36+0
+define	VX_REGISTER_Y0	-32+0
+define	VX_REGISTER_X0	-32+1
+define	VX_REGISTER_C0	-32+3
+define	VX_REGISTER_U0	-32+4
+define	VX_REGISTER_V0	-32+5
+define	VX_REGISTER_Y1	-26+0
+define	VX_REGISTER_X1	-26+1
+define	VX_REGISTER_C1	-26+3
+define	VX_REGISTER_U1	-26+4
+define	VX_REGISTER_V1	-26+5
+define	VX_REGISTER_Y2	-20+0
+define	VX_REGISTER_X2	-20+1
+define	VX_REGISTER_C2	-20+3
+define	VX_REGISTER_U2	-20+4
+define	VX_REGISTER_V2	-20+5
+
+define	VX_FDVDY	-12
+define	VX_FDUDY	-10
+define	VX_FDVDX	-6
+define	VX_FDUDX	-4
+
+define	VX_PRIMITIVE_INTERPOLATION_SIZE	1024
+
+ rb	64
+VX_REGISTER_DATA:
+ db	3072	dup	$D3
 
 VIRTUAL_PIPELINE_STATE:
  db	0
@@ -123,7 +151,7 @@ vxPrimitiveSubmit:
 	ldir
 .setup_pixel:
 	ld	hl, VX_PRIMITIVE_INTERPOLATION_COPY
-	ld	de, VX_PRIMITIVE_INTERPOLATION_CODE
+	ld	de, VX_VRAM
 	ld	bc, VX_PRIMITIVE_INTERPOLATION_SIZE
 	ldir
 	ld	hl, vxPixelShader.code
@@ -190,37 +218,13 @@ vxPrimitiveStream:
 	inc	hl
 	inc	hl
 	ld	hl, (hl)
-	call	.setup_matrix		; stream vertex data to cache
-	pop	iy			; polygon list
-	ret	nz			; quit the stream if nz set (bounding box test failed)
-	cce	ge_pri_assembly
-; copy primitive assembly within fast area
-	ld	hl, VX_PRIMITIVE_ASM_COPY
-	ld	de, VX_PRIMITIVE_ASM_CODE
-	ld	bc, VX_PRIMITIVE_ASM_SIZE
-	ldir
-;would be nice to encode the format within
-	call	vxPrimitiveAssembly
-; need to update count & queue position
-; simple : new-previous (de)/6
-	ld	bc, VX_GEOMETRY_SIZE
-	call	vxMath.udiv
-	ld	hl, (vxPrimitiveQueueSize)
-	add	hl, de
-	ld	(vxPrimitiveQueueSize), hl
-	ccr	ge_pri_assembly
-	ret
-
+; let's transform the vertex stream
 .setup_matrix:
-; de - vertex source, bc - vertex cache, ix worldview0 matrix, iy modelworld0 matrix (should be an model matrix)
-; hl is the vertex shader program
-; NOTE : expect material to be set
 ; vertex source have size at the begining
-; support animation
 	push	bc
 	push	de
 ; load shader first
-	ld	de, VX_VERTEX_SHADER_CODE
+	ld	de, VX_VRAM
 	ld	bc, VX_VERTEX_SHADER_SIZE
 	ldir
 	lea	hl, iy+0
@@ -278,86 +282,50 @@ vxPrimitiveStream:
 	push	bc
 	ld	a, (iy+VX_STREAM_HEADER_OPTION)
 ; iy+0 are options, so check those. Here, only bounding box is interesting.
+.setup_obb:
 	lea	iy, iy+VX_STREAM_HEADER_SIZE
 	and	a, VX_STREAM_HEADER_BBOX
 	call	nz, .bounding_box
+	jp	nz, .stream_cull
 	pop	bc
 	pop	ix
-	ret	nz
+	cce	ge_vtx_transform
 ; actual stream start
 	lea	hl, ix+0
-	call	.reset_poison
-	cce	ge_vtx_transform
+	call	vxVertexCache.reset_poison
 	call	vxVertexShader.ftransform_stream
 	ccr	ge_vtx_transform
-	xor	a, a
+	pop	iy			; polygon list
+	cce	ge_pri_assembly
+; copy primitive assembly within fast area
+	ld	hl, VX_PRIMITIVE_ASM_COPY
+	ld	de, VX_VRAM
+	ld	bc, VX_PRIMITIVE_ASM_SIZE
+	ldir
+;would be nice to encode the format within
+	call	vxPrimitiveAssembly
+; need to update count & queue position
+; simple : new-previous (de)/6
+	ld	bc, VX_GEOMETRY_SIZE
+	call	vxMath.udiv
+	ld	hl, (vxPrimitiveQueueSize)
+	add	hl, de
+	ld	(vxPrimitiveQueueSize), hl
+	ccr	ge_pri_assembly
 	ret
-; .stream:
-; 	cce	ge_vtx_transform
-; 	ld	(.SP_RET), sp
-; ; ix = cache, iy = source, ix = matrix, bc = size
-; 	jr	.stream_return
-; .stream_compute:
-; ; 54 cycles can be saved here, (even a bit more in fact)
-; 	ld	sp, vxVertexShader.stack
-; 	call	vxVertexShader.ftransform_trampoline
-; 	lea	ix, ix+VX_VERTEX_SIZE
-; 	lea	iy, iy+VX_VERTEX_DATA_SIZE
-; .stream_return:
-; 	ld	a, (iy+VX_VERTEX_SIGN)
-; ; 	cp	a, VX_ANIMATION_BONE
-; ; 	jr	z, .stream_load_bone
-; 	cp	a, VX_STREAM_END
-; 	jr	nz, .stream_compute
-; .stream_end:
-; 	ccr	ge_vtx_transform
-; .SP_RET=$+1
-; 	ld	sp, $CCCCCC
-; 	xor	a, a
-; 	ret
-; .stream_load_bone:
-; ; more complex stuff here. Need to restore initial matrix & do a multiplication with the correct bone key matrix
-; ; once done, only advance in the source, not the cache
-; 	push	ix
-; 	lea	iy, iy+VX_ANIMATION_HEADER_SIZE
-; 	push	iy
-; 	ld	ix, vxModelViewCache
-; 	ld	e, (ix+vxAnimationKey-vxModelViewCache)
-; 	ld	d, VX_ANIMATION_MATRIX_SIZE
-; 	mlt	de
-; 	add	iy, de	; correct animation matrix
-; ; modelview = bonemodel*modelview
-; 	ld	hl, vxModelView
-; 	call	vxMatrixTransform	; (hl)=(iy)*(ix)
-; ; I have the correct modelview matrix in shader cache area
-; ; next one is reduced matrix without translation, since it will only be a direction vector mlt. However, the light vector position also need to be transformed by the transposed matrix
-; 	call	vxVertexShader.uniform
-; ; light = lightuniform*transpose(bonemodel*modelworld)
-; 	ld	ix, vxModelWorld
-; 	lea	hl, ix+VX_MATRIX_SIZE
-; 	call	vxMatrixMlt
-; 	lea	ix, ix+VX_MATRIX_SIZE
-; 	call	vxMatrixTranspose
-; 	ld	hl, vxLight
-; 	ld	iy, vxLightUniform
-; 	call	vxMatrixLightning
-; 	pop	iy
-; 	ld	e, (iy-1)
-; 	ld	d, VX_ANIMATION_MATRIX_SIZE
-; 	mlt	de
-; 	add	iy, de
-; 	pop	ix
-; 	pop	bc
-; 	jp	.stream_return
+.stream_cull:
+	ld	hl, 9
+	add	hl, sp
+	ld	sp, hl
+	ret
 .bounding_box:
 ; check the bounding box
 ; stream the bounding box as standard vertex stream into the stream routine
-; TODO : reset poison
+	cce	ge_vtx_transform
 	ld	ix, VX_PATCH_VERTEX_POOL
 	lea	hl, ix+0
 	ld	bc, 8
-	call	.reset_poison
-	cce	ge_vtx_transform
+	call	vxVertexCache.reset_poison
 	call	vxVertexShader.ftransform_stream
 	ccr	ge_vtx_transform
 ; account for end marker
@@ -380,6 +348,10 @@ vxPrimitiveStream:
 	ret
 .uniform:
 	jp	(hl)
+
+; vertex cache handling routine
+vxVertexCache:
+
 .reset_poison:
 ; hl - base adress, bc - vertex count
 ; TODO : optimize it
@@ -397,6 +369,7 @@ vxPrimitiveStream:
 	dec     c
 	jr      nz, .reset_kernel
 	ret
+
 .set_poison:
 	ld      a, c
 	dec     bc

@@ -22,40 +22,6 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
 
-define	VX_REGISTER_US	-36-11
-define	VX_REGISTER_VS	-36-10
-define	VX_REGISTER_STARTPOINT -36-9
-define	VX_REGISTER_OFFSET -36-6
-define	VX_REGISTER_MIDPOINT -36-3
-define	VX_REGISTER_TMP	-36+0
-define	VX_REGISTER_Y0	-32+0
-define	VX_REGISTER_X0	-32+1
-define	VX_REGISTER_C0	-32+3
-define	VX_REGISTER_U0	-32+4
-define	VX_REGISTER_V0	-32+5
-define	VX_REGISTER_Y1	-26+0
-define	VX_REGISTER_X1	-26+1
-define	VX_REGISTER_C1	-26+3
-define	VX_REGISTER_U1	-26+4
-define	VX_REGISTER_V1	-26+5
-define	VX_REGISTER_Y2	-20+0
-define	VX_REGISTER_X2	-20+1
-define	VX_REGISTER_C2	-20+3
-define	VX_REGISTER_U2	-20+4
-define	VX_REGISTER_V2	-20+5
-
-define	VX_FDVDY	-12
-define	VX_FDUDY	-10
-define	VX_FDVDX	-6
-define	VX_FDUDX	-4
-
-define	VX_PRIMITIVE_INTERPOLATION_CODE	$E30800
-define	VX_PRIMITIVE_INTERPOLATION_SIZE	1024
-
- rb	64
-VX_REGISTER_DATA:
- db	3072	dup	$D3
-
 vxPrimitiveRender:
 
 ; the render target for a flat shaded triangle
@@ -126,7 +92,7 @@ vxPrimitiveRender:
 include "color.asm"
 
 VX_PRIMITIVE_INTERPOLATION_COPY:=$
-relocate VX_PRIMITIVE_INTERPOLATION_CODE
+relocate VX_VRAM
 
 .target_triangle_gouraud:
 ; interpolated, no u&v unpack, unpack color

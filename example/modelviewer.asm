@@ -122,7 +122,7 @@ Main:
 	ld	a, VX_MATERIAL0
 	call	vxPrimitiveStream
 
-	ld	hl, (vxGeometrySize)
+	ld	hl, (vxPrimitiveQueueSize)
 	ld	(debug.visible_count), hl
 	ld	hl, (Model.triangle_source)
 	inc	hl
