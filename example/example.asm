@@ -46,8 +46,8 @@ Main:
 	ld	hl, (Mipmap)
 	ld	a, VX_IMAGE_ZX7_COMPRESSED
 	ld	de, VX_TEXTURE_MIPMAP
-	call	vxImage.copy
-
+	call	vxImage.copy	
+	
 	call	Filter.generate
 	
 ; about vertex coordinate :
@@ -117,6 +117,8 @@ MainLoop:
 
 	ld	hl, (vxPrimitiveQueueSize)
 	ld	(debug.visible_count), hl
+	ld	iy, (Triangle)
+	ld	hl, (iy+VX_STREAM_HEADER_COUNT)
 	ld	(debug.triangle_count), hl
 
 	call	vxPrimitiveDepthSort

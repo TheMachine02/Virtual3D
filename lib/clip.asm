@@ -620,3 +620,17 @@ vxParametric:
 	cpl
 	ld	c, a
 	ret
+
+vxScissor:
+	
+.rect2D:
+; set the scissor to given rect2D
+	ret
+
+.compose:
+; set the scissor given rect2D adapated to the current scissor
+	ret
+	
+.query:
+; get the current scissor state
+	ret

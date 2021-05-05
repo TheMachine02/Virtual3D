@@ -153,6 +153,7 @@ vxMemoryDestroyDevice:
 
 ; core of the library
 include	"assembly.asm"
+include	"depth.asm"
 include	"framebuffer.asm"
 include	"quaternion.asm"
 include	"material.asm"
