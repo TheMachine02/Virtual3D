@@ -179,25 +179,23 @@ vxMatrixTransform:
 	ld	de, vxPosition
 	ex	de, hl
 	ldir
-	dec	bc
-	ld	c, -VX_MATRIX_SIZE
-	ex	de, hl
-	add	hl, bc
+	ld	hl, -VX_MATRIX_SIZE	; is it
+	add	hl, de			; needed ?
 	ret
 
 vxMatrixTranspose:
-	ld	c, (ix+VX_MATRIX_C3)
-	ld	a, (ix+VX_MATRIX_C1)
-	ld	(ix+VX_MATRIX_C3), a
-	ld	(ix+VX_MATRIX_C1), c
-	ld	c, (ix+VX_MATRIX_C6)
-	ld	a, (ix+VX_MATRIX_C2)
-	ld	(ix+VX_MATRIX_C6), a
-	ld	(ix+VX_MATRIX_C2), c
-	ld	c, (ix+VX_MATRIX_C7)
-	ld	a, (ix+VX_MATRIX_C5)
-	ld	(ix+VX_MATRIX_C7), a
-	ld	(ix+VX_MATRIX_C5), c
+	ld	d, (ix+VX_MATRIX_C3)
+	ld	e, (ix+VX_MATRIX_C1)
+	ld	(ix+VX_MATRIX_C3), e
+	ld	(ix+VX_MATRIX_C1), d
+	ld	d, (ix+VX_MATRIX_C6)
+	ld	e, (ix+VX_MATRIX_C2)
+	ld	(ix+VX_MATRIX_C6), e
+	ld	(ix+VX_MATRIX_C2), d
+	ld	d, (ix+VX_MATRIX_C7)
+	ld	e, (ix+VX_MATRIX_C5)
+	ld	(ix+VX_MATRIX_C7), e
+	ld	(ix+VX_MATRIX_C5), d
 	ld	de, (ix+VX_MATRIX_TX)
 	or	a, a
 	sbc	hl, hl
@@ -426,7 +424,7 @@ vxfMatrixPerspective:
 vxfTransformDouble:
 	lea	hl, iy+0
 	ld	de, vxPosition
-	ld	bc, 9
+	ld	c, 9	; bc was 0 ( thanks to a recent LDIR)
 	ldir
 	lea	de, iy+0
 	call	vxfPositionExtract
