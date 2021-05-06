@@ -239,7 +239,7 @@ vxPrimitiveStream:
 ; equivalent to eye position in modelspace
 	ld	hl, vxModelView
 	ld	de, vxModelViewReverse
-	ld	bc, VX_MATRIX_SIZE
+	ld	c, VX_MATRIX_SIZE
 	ldir
 	ld	iy, vxModelView
 	ld	ix, vxProjectionMatrix
@@ -250,7 +250,7 @@ vxPrimitiveStream:
 	ld	iy, vxView_t
 	lea	hl, ix+VX_MATRIX_TX
 	lea	de, iy+0
-	ld	bc, 9
+	ld	c, 9
 	ldir	
 	ld	(ix+VX_MATRIX_TZ), bc
 	ld	(ix+VX_MATRIX_TY), bc
