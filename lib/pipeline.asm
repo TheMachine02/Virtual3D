@@ -152,7 +152,7 @@ vxPrimitiveSubmit:
 .setup_pixel:
 	ld	hl, VX_PRIMITIVE_INTERPOLATION_COPY
 	ld	de, VX_VRAM
-	ld	bc, VX_PRIMITIVE_INTERPOLATION_SIZE
+	ld	b, 4	; as VX_PRIMITIVE_INTERPOLATION_SIZE=1024
 	ldir
 	ld	hl, vxPixelShader.code
 	ld	de, VX_PIXEL_SHADER_CODE
@@ -229,7 +229,7 @@ vxPrimitiveStream:
 	ldir
 	lea	hl, iy+0
 	ld	de, vxModelWorldReverse
-	ld	bc, VX_MATRIX_SIZE
+	ld	c, VX_MATRIX_SIZE
 	ldir	
 ; transform the worldview with the modelworld matrix to have the global modelview matrix
 ; modelview = modelworld0 * worldview0
