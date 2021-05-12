@@ -152,7 +152,7 @@ vxPrimitiveSubmit:
 .setup_pixel:
 	ld	hl, VX_PRIMITIVE_INTERPOLATION_COPY
 	ld	de, VX_VRAM
-	ld	bc, VX_PRIMITIVE_INTERPOLATION_SIZE
+	ld	bc, VX_VRAM_SIZE
 	ldir
 	ld	hl, vxPixelShader.code
 	ld	de, VX_PIXEL_SHADER_CODE
@@ -225,7 +225,7 @@ vxPrimitiveStream:
 	push	de
 ; load shader first
 	ld	de, VX_VRAM
-	ld	bc, VX_VERTEX_SHADER_SIZE
+	ld	bc, VX_VRAM_SIZE
 	ldir
 	lea	hl, iy+0
 	ld	de, vxModelWorldReverse
@@ -288,9 +288,9 @@ vxPrimitiveStream:
 	call	nz, .bounding_box
 	jp	nz, .stream_cull
 	pop	bc
-	pop	ix
 	cce	ge_vtx_transform
 ; actual stream start
+	pop	ix
 	lea	hl, ix+0
 	call	vxVertexCache.reset_poison
 	call	vxVertexShader.ftransform_stream
@@ -351,6 +351,33 @@ vxPrimitiveStream:
 
 ; vertex cache handling routine
 vxVertexCache:
+
+; .unpack:
+; ; de - base adress
+; ; bc - vertex count
+; ; hl - vertex stream
+; 	ld	a, c
+; 	dec	bc
+; 	inc	b
+; 	ld	c, b
+; 	ld	b, a
+; 	exx
+; 	ld	(.SP_RET), sp
+; 	ld	sp, VX_VERTEX_SIZE - 10
+; .unpack_copy:
+; 	exx
+; 	ld	(hl), c
+; 	inc	hl
+; 	ld	c, 10
+; 	ldir
+; 	add	hl, sp
+; 	exx
+; 	djnz    .unpack_copy
+; 	dec     c
+; 	jr      nz, .unpack_copy
+; .SP_RET:=$+1
+; 	ld	sp, $CCCCCC
+; 	ret
 
 .reset_poison:
 ; hl - base adress, bc - vertex count

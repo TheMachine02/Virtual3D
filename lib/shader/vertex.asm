@@ -248,7 +248,6 @@ relocate VX_VRAM
 	bit	7, (ix+VX_VERTEX_RZ+2)
 	jr	nz, .perspective_zclip
 .perspective_divide_ry:
-; 	ld	(ix+VX_VERTEX_CODE), a
 	add	hl, hl
 	jr	nc, .perspective_absolute_ry
 	rla

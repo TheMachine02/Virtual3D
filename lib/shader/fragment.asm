@@ -63,9 +63,11 @@ relocate VX_VRAM_CACHE
 ; 	ld	a, (hl)
 ; screen adress
 	ld	de, (iy+VX_REGISTER_VRAM)
+; offseting to account interpolating from left or right (later inside setup code)
+.SOF:=$+1
+	nop
 	exx
 ; iy point to an in LUT jp to the correct area
-; correct the low byte (u position)
 	ld	b, (iy+VX_REGISTER_LENGTH)
 	jp	(iy)
 .fragment_size:= $-VX_VRAM_CACHE
