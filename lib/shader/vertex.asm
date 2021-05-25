@@ -383,7 +383,6 @@ relocate VX_VRAM
 .SP_RET=$+1
 	ld	sp, $CCCCCC
 	ret
-	
 ; free space between alignement
 
 ; NOTE : some of these engine have a +-1 or +-2 off error, but that's okay since the output is actually a 18.6 fixed value
@@ -409,6 +408,10 @@ align 512
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
+	jr	.engine_000_low
+align 32
+	sbc	hl, hl
+.engine_000_low:
 	ld	b, (iy+VX_VERTEX_VX)
 	ld	c, e
 	mlt	bc
@@ -444,6 +447,10 @@ align 64
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
+	jr	.engine_001_low
+align 32
+	sbc	hl, hl
+.engine_001_low:
 	ld	b, (iy+VX_VERTEX_VX)
 	ld	c, e
 	mlt	bc
@@ -479,6 +486,10 @@ align 64
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
+	jr	.engine_010_low
+align 32
+	sbc	hl, hl
+.engine_010_low:
 	ld	b, (iy+VX_VERTEX_VX)
 	ld	c, e
 	mlt	bc
@@ -495,37 +506,43 @@ align 64
 align 64
 .engine_011:
 ; 247 cycles
-	ld	h, (iy+VX_VERTEX_VX+1)
-	ld	l, e
+	ld	h, (iy+VX_VERTEX_VZ+1)
+	ld	l, a
 	mlt	hl
 	ld	b, (iy+VX_VERTEX_VY+1)
 	ld	c, d
 	mlt	bc
-	sbc	hl, bc
-	ld	b, (iy+VX_VERTEX_VZ+1)
-	ld	c, a
-	mlt	bc
-	or	a, a
-	sbc	hl, bc
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	ld	b, (iy+VX_VERTEX_VX)
+	add	hl, bc
+	ld	b, (iy+VX_VERTEX_VX+1)
 	ld	c, e
 	mlt	bc
-	add	hl, bc
-	ld	e, (iy+VX_VERTEX_VY)
-	mlt	de
-	sbc	hl, de
+	sbc	hl, bc
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	jr	.engine_011_low
+align 32
+	sbc	hl, hl
+.engine_011_low:
 	ld	b, (iy+VX_VERTEX_VZ)
 	ld	c, a
 	mlt	bc
+	add	hl, bc
+	ld	b, (iy+VX_VERTEX_VX)
+	ld	c, e
+	mlt	bc
 	sbc	hl, bc
+	ld	e, (iy+VX_VERTEX_VY)
+	mlt	de
+	add	hl, de
+	ex	de, hl
+	sbc	hl, hl
+	sbc	hl, de
 	ret
 
 align 64
@@ -550,6 +567,10 @@ align 64
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
+	jr	.engine_100_low
+align 32
+	sbc	hl, hl
+.engine_100_low:
 	ld	b, (iy+VX_VERTEX_VX)
 	ld	c, e
 	mlt	bc
@@ -566,53 +587,16 @@ align 64
 align 64
 .engine_101:
 ; 247 cycles
-	ld	h, (iy+VX_VERTEX_VY+1)
-	ld	l, d
+	ld	h, (iy+VX_VERTEX_VX+1)
+	ld	l, e
 	mlt	hl
-	ld	b, (iy+VX_VERTEX_VX+1)
-	ld	c, e
-	mlt	bc
-	sbc	hl, bc
 	ld	b, (iy+VX_VERTEX_VZ+1)
 	ld	c, a
 	mlt	bc
-	or	a, a
-	sbc	hl, bc
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	ld	b, (iy+VX_VERTEX_VX)
-	ld	c, e
-	mlt	bc
-	sbc	hl, bc
-	ld	e, (iy+VX_VERTEX_VY)
-	mlt	de
-	add	hl, de
-	ld	b, (iy+VX_VERTEX_VZ)
-	ld	c, a
-	mlt	bc
-	sbc	hl, bc
-	ret
-
-align 64
-.engine_110:
-; 247 cycles
-	ld	h, (iy+VX_VERTEX_VZ+1)
-	ld	l, a
-	mlt	hl
-	ld	b, (iy+VX_VERTEX_VX+1)
-	ld	c, e
-	mlt	bc
-	sbc	hl, bc
+	add	hl, bc
 	ld	b, (iy+VX_VERTEX_VY+1)
 	ld	c, d
 	mlt	bc
-	or	a, a
 	sbc	hl, bc
 	add	hl, hl
 	add	hl, hl
@@ -622,10 +606,14 @@ align 64
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
+	jr	.engine_101_low
+align 32
+	sbc	hl, hl
+.engine_101_low:
 	ld	b, (iy+VX_VERTEX_VX)
 	ld	c, e
 	mlt	bc
-	sbc	hl, bc
+	add	hl, bc
 	ld	e, (iy+VX_VERTEX_VY)
 	mlt	de
 	sbc	hl, de
@@ -633,6 +621,51 @@ align 64
 	ld	c, a
 	mlt	bc
 	add	hl, bc
+	ex	de, hl
+	sbc	hl, hl
+	sbc	hl, de
+	ret
+
+align 64
+.engine_110:
+; 247 cycles
+	ld	h, (iy+VX_VERTEX_VX+1)
+	ld	l, e
+	mlt	hl
+	ld	b, (iy+VX_VERTEX_VY+1)
+	ld	c, d
+	mlt	bc
+	add	hl, bc
+	ld	b, (iy+VX_VERTEX_VZ+1)
+	ld	c, a
+	mlt	bc
+	sbc	hl, bc
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	jr	.engine_110_low
+align 32
+	sbc	hl, hl
+.engine_110_low:
+	ld	b, (iy+VX_VERTEX_VX)
+	ld	c, e
+	mlt	bc
+	add	hl, bc
+	ld	e, (iy+VX_VERTEX_VY)
+	mlt	de
+	add	hl, de
+	ld	b, (iy+VX_VERTEX_VZ)
+	ld	c, a
+	mlt	bc
+	sbc	hl, bc
+	ex	de, hl
+	sbc	hl, hl
+	sbc	hl, de
 	ret
 
 align 64
@@ -657,6 +690,10 @@ align 64
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
+	jr	.engine_111_low
+align 32
+	sbc	hl, hl
+.engine_111_low:
 	ld	b, (iy+VX_VERTEX_VX)
 	ld	c, e
 	mlt	bc

@@ -437,6 +437,10 @@ bool load_obj(const char * path, const char * name, unsigned short option)
     for(i=0; i<vertexTable.size(); i++)
     {
         sm = sgn(round(vertexTable[i][0]*256.0)) << 7 | ( sgn(round(vertexTable[i][1]*256.0)) << 6) | (sgn(round(vertexTable[i][2]*256.0)) << 5);
+	
+	if((abs(round(vertexTable[i][0]*256.0))<256) && (abs(round(vertexTable[i][1]*256.0))<256) && (abs(round(vertexTable[i][2]*256.0))<256)) {
+	    sm |= 16;    
+	}
         out << "db "<< sm << "\n";
         out << "dw ";
         out << abs(round(vertexTable[i][0]*256.0)) << ",";
