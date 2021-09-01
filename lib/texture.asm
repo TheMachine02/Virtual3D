@@ -229,6 +229,11 @@ VX_SMC_EDGE0_INC=$
 	ld	de, (ix+VX_REGISTER_X2)
 	add	hl, de
 	ld	(iy+VX_REGISTER0), hl
+	ex	de, hl
+	ld	hl, vxPixelShaderExitLUT/4
+	or	a, a
+	sbc	hl, de
+	ld	(iy+VX_REGISTER1), hl
 .edge1Setup:
 ;	ld	iy, VX_REGISTER_DATA	; load up shader data register
 	lea	iy, ix+0
@@ -366,12 +371,6 @@ VX_SMC_EDGE2_INC=$
 	jr	nz, .edge2loop
 	lea	iy, iy-VX_REGISTER1
 .edge2Null:
-.edge2Magic:
-	ld	de, (iy+VX_REGISTER0)
-	ld	hl, vxPixelShaderExitLUT/4
-	or	a, a
-	sbc	hl, de
-	ld	(iy+VX_REGISTER1), hl
 
 .triangleInv_dx:
 	ld	iy, VX_REGISTER_DATA	; load up shader data register

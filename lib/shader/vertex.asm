@@ -182,65 +182,6 @@ relocate VX_VRAM
 	ld	de, $CCCCCC
 	add	hl, de
 	ld	(ix+VX_VERTEX_RY), hl
-; lightning model is here, infinite directionnal light, no pow
-	xor	a, a
-	ld	c, (iy+VX_VERTEX_NX)
-.LV0=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-	ld	c, (iy+VX_VERTEX_NY)
-.LV1=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-	ld	c, (iy+VX_VERTEX_NZ)
-.LV2=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-; max(a,0)
-	jp	p, .light_scale
-	xor	a, a
-	jr	.light_ambient
-.light_scale:
-	add	a, a
-	add	a, a
-	ld	c, a
-; LE have a 64 scaling
-.LE=$+1
-	ld	b, $CC
-	mlt	bc
-	ld	a, b
-	rl	c
-.light_ambient:
-.LA=$+1
-	adc	a, $CC
-; min(a,15)
-	cp	a, 32
-	jr	c, $+4
-	ld	a, 31
-	ld	(ix+VX_VERTEX_GPR2), a
-; use this target for gouraud shading, this is v register
-	ld	(ix+VX_VERTEX_GPR1), a
 .perspective_divide:
 ;	ld	hl, (ix+VX_VERTEX_RY)
 	ld	bc, (ix+VX_VERTEX_RZ)
@@ -374,6 +315,67 @@ relocate VX_VRAM
 	sbc	hl, de
 	jr	nc, .perspective_low_x
 .ftransform_ret:
+; lightning model is here, infinite directionnal light, no pow
+; TODO : could be made faster, either constant time multiplie (constant*normal) or other trick : 4.4 fixed point ?
+.lightning:
+	xor	a, a
+	ld	c, (iy+VX_VERTEX_NX)
+.LV0=$+1
+	ld	b, $CC
+	bit	7, c
+	jr	z, $+3
+	sub	a, b
+	bit	7, b
+	jr	z, $+3
+	sub	a, c
+	mlt	bc
+	add	a, b
+	ld	c, (iy+VX_VERTEX_NY)
+.LV1=$+1
+	ld	b, $CC
+	bit	7, c
+	jr	z, $+3
+	sub	a, b
+	bit	7, b
+	jr	z, $+3
+	sub	a, c
+	mlt	bc
+	add	a, b
+	ld	c, (iy+VX_VERTEX_NZ)
+.LV2=$+1
+	ld	b, $CC
+	bit	7, c
+	jr	z, $+3
+	sub	a, b
+	bit	7, b
+	jr	z, $+3
+	sub	a, c
+	mlt	bc
+	add	a, b
+; max(a,0)
+	jp	p, .light_scale
+	xor	a, a
+	jr	.light_ambient
+.light_scale:
+	add	a, a
+	add	a, a
+	ld	c, a
+; LE have a 64 scaling
+.LE=$+1
+	ld	b, $CC
+	mlt	bc
+	ld	a, b
+	rl	c
+.light_ambient:
+.LA=$+1
+	adc	a, $CC
+; min(a,15)
+	cp	a, 32
+	jr	c, $+4
+	ld	a, 31
+	ld	(ix+VX_VERTEX_GPR2), a
+; use this target for gouraud shading, this is v register
+	ld	(ix+VX_VERTEX_GPR1), a
 	lea	ix, ix+VX_VERTEX_SIZE
 	lea	iy, iy+VX_VERTEX_DATA_SIZE
 	ld	a, (iy+VX_VERTEX_SIGN)

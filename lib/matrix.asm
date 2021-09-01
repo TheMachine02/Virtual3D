@@ -33,8 +33,9 @@ vxLookAtMatrix:
 
 ; TODO : clean this file, remove useless function, optimize other (matrix multiplication could benefit from full unroll) 
 ; TODO : Use 8.8 and 16.8 for matrix instead of stranger format
- 
+
 vxMatrixLoadIdentity:
+vxMatrix.loadIdentity:
 ; input : hl matrix
 	ex	de, hl
 	ld	hl, vxIdentityMatrix
@@ -46,7 +47,7 @@ vxMatrixLoadIdentity:
 	add	hl, bc
 	ret
 
-vxMatrixRotationX:
+.rotateX:
 	push	hl
 	call	vxMath.sin
 	ld	a, h
@@ -63,7 +64,7 @@ vxMatrixRotationX:
 	ld	(ix+VX_MATRIX_C8), h
 	ret
 
-vxMatrixRotationZ:
+.rotateZ:
 	push	hl
 	call	vxMath.sin
 	ld	a, h
@@ -81,7 +82,7 @@ vxMatrixRotationZ:
 	ld	(ix+VX_MATRIX_C8), 64
 	ret
 
-vxMatrixRotationY:
+.rotateY:
 	push	hl
 	call	vxMath.sin
 	ld	a, h
@@ -99,6 +100,7 @@ vxMatrixRotationY:
 	ret
 
 vxMatrixMlt:
+vxMatrix.mlt3:
 ; (hl) = (iy) * (ix)
 ; WARNING : hl can't be equal to ix
 ; 116 bytes, ~3800 TStates
@@ -164,6 +166,7 @@ vxMatrixRowLoop:
 	ret
 	
 vxMatrixTransform:
+vxMatrix.mlt4:
 ; (hl) = (iy)*(ix) with translation
 ; iy is a matrix, ix is a matrix, hl is matrix
 	push	hl
@@ -185,7 +188,15 @@ vxMatrixTransform:
 	add	hl, bc
 	ret
 
+vxMatrix.fixed_vector_transform:
+; input : iy vector, ix matrix
+; [ix+0]*[iy]+[ix+2]*[iy+2]+[ix+2]*[iy+4]+[ix+9]=x
+; [ix+3]*[iy]+[ix+4]*[iy+2]+{ix+5]*[iy+4]+[ix+12]=y
+; [ix+6]*[iy]+[ix+7]*[iy+2]+[ix+8]*[iy+4]+[ix+15]=z
+	
+	
 vxMatrixTranspose:
+vxMatrix.transpose:
 	ld	c, (ix+VX_MATRIX_C3)
 	ld	a, (ix+VX_MATRIX_C1)
 	ld	(ix+VX_MATRIX_C3), a
@@ -213,6 +224,21 @@ vxMatrixTranspose:
 	or	a, a
 	sbc	hl, de
 	ld	(ix+VX_MATRIX_TZ), hl
+	ret
+
+vxMatrix.scale3:
+; scale the matrix by a 3 wide 8.8 vector
+; (iy) is the matrix, (ix) is the vector
+; first line is multiplied by (ix), second by (ix+1) and third by (ix+2)
+
+
+vxMatrix.scale4:
+; scale a matrix by a 3 wide 8.8 vector
+; also scale the translation part of the matrix
+; (iy) is the matrix, (ix) is the vector
+; first line is multiplied by (ix), second by (ix+1) and third by (ix+2)
+; for translation, x is scaled by (ix), y is scaled by (ix+1) and z is scaled by (ix+2)
+
 	ret
 
 vxMatrixLightning:

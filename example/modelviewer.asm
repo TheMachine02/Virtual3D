@@ -2,8 +2,8 @@ include	"include/fasmg/ez80.inc"
 include	"include/fasmg/tiformat.inc"
 include	"include/ti84pceg.inc"
 
-define	DELTA_PER_MS	2048*256/128
-define	ANGLE_PER_MS	4*256/128
+define	DELTA_PER_MS	8192		; fixed point 8.8
+define	ANGLE_PER_MS	16		; fixed point 8.8
 define	VIEW_OPTION_PANEL	1 shl 0
 
 define	VX_DEBUG_CC_INSTRUCTION
@@ -22,15 +22,15 @@ Main:
 	ret	c
 	ld	(Model.triangle_source), hl
 
-	ld	hl, Model.texture_appv
-	call	Model.load_ressource
-	ret	c
-	ld	(Model.texture_source), hl
-	
-	ld	hl, Model.mipmap_appv
-	call	Model.load_ressource
-	ret	c
-	ld	(Model.mipmap_source), hl
+; 	ld	hl, Model.texture_appv
+; 	call	Model.load_ressource
+; 	ret	c
+; 	ld	(Model.texture_source), hl
+; 	
+; 	ld	hl, Model.mipmap_appv
+; 	call	Model.load_ressource
+; 	ret	c
+; 	ld	(Model.mipmap_source), hl
 	
 ; init the virtual 3d library
 	call	vxEngine.init
@@ -72,8 +72,8 @@ Main:
 ; set option
 	ld	(Viewframe.option), a
 ; setup pixel shader
-;	ld	ix, gouraudShader
-	ld	ix, lightShader
+	ld	ix, gouraudShader
+;	ld	ix, lightShader
 ;	ld	ix, alphaShader
 	call	vxShaderLoad
 
@@ -362,13 +362,13 @@ World:
 	
 Model:
 .vertex_appv:
-	db	ti.AppVarObj, "MATEUSV",0
-;	db	ti.AppVarObj, "SUZANV",0
+;	db	ti.AppVarObj, "MATEUSV",0
+	db	ti.AppVarObj, "SUZANV",0
 .vertex_source:
 	dl	0
 .triangle_appv:
-	db	ti.AppVarObj, "MATEUSF", 0
-;	db	ti.AppVarObj, "SUZANF",0
+;	db	ti.AppVarObj, "MATEUSF", 0
+	db	ti.AppVarObj, "SUZANF",0
 .triangle_source:
 	dl	0
 .texture_appv:
@@ -385,7 +385,7 @@ Model:
 	db	0,0,64
 	dl	0,0,0
 .material:
-	db	VX_FORMAT_TEXTURE	;VX_FORMAT_GOURAUD
+	db	VX_FORMAT_GOURAUD	; VX_FORMAT_TEXTURE	;
 	dl	VX_VERTEX_BUFFER
 	dl	vxVertexShader.ftransform
 	dl	vxVertexShader.uniform

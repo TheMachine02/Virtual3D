@@ -234,7 +234,7 @@ vxPrimitiveStream:
 ; transform the worldview with the modelworld matrix to have the global modelview matrix
 ; modelview = modelworld0 * worldview0
 	ld	hl, vxModelView
-	call	vxMatrixTransform		; (hl) = (iy)*(ix)
+	call	vxMatrix.mlt4		; (hl) = (iy)*(ix)
 ; modelViewReverseTranslate = -modelViewTranslate * transpose(modelview)
 ; equivalent to eye position in modelspace
 	ld	hl, vxModelView
@@ -244,9 +244,9 @@ vxPrimitiveStream:
 	ld	iy, vxModelView
 	ld	ix, vxProjectionMatrix
 	ld	hl, vxModelView
-	call	vxMatrixTransform
+	call	vxMatrix.mlt4
 	ld	ix, vxModelViewReverse
-	call	vxMatrixTranspose
+	call	vxMatrix.transpose
 	ld	iy, vxView_t
 	lea	hl, ix+VX_MATRIX_TX
 	lea	de, iy+0
@@ -256,11 +256,36 @@ vxPrimitiveStream:
 	ld	(ix+VX_MATRIX_TY), bc
 	ld	(ix+VX_MATRIX_TX), bc
 	call	vxfTransformDouble
+; later this will be a simple extend 16.8 -> 24.0
+; extend on x
+;	ld	a, (iy+2)
+;	rlca
+;	sbc	hl, hl
+;	rrca
+;	ld	h, a
+;	ld	l, (iy+1)
+;	ld	(iy+0), hl
+; extend on y
+;	ld	a, (iy+5)
+;	rlca
+;	sbc	hl, hl
+;	rrca
+;	ld	h, a
+;	ld	l, (iy+4)
+;	ld	(iy+3), hl
+; extend on z
+;	ld	a, (iy+8)
+;	rlca
+;	sbc	hl, hl
+;	rrca
+;	ld	h, a
+;	ld	l, (iy+7)
+;	ld	(iy+6), hl
 	lea	de, iy+0
 	call	vxfPositionExtract
 ; modelworldreverse=transpose(modelworld)
 	ld	ix, vxModelWorldReverse
-	call	vxMatrixTranspose
+	call	vxMatrix.transpose
 ; light=lightuniform*transpose(modelworld)
 ; do light*matrix (hl) = (iy)*(ix)
 	ld	hl, vxLight
@@ -387,8 +412,8 @@ vxVertexCache:
 	inc     b
 	ld      c, b
 	ld      b, a
-	xor	a, a
 	ld      de, VX_VERTEX_SIZE
+	xor	a, a
 .reset_kernel:
 	ld      (hl), a
 	add     hl, de

@@ -175,6 +175,7 @@ vxPrimitiveAssembly:
 	or	a, a
 	sbc	hl, de
 	ex	de, hl
+; write the material value to the bucket list
 .MTRU:=$+1
 	ld	hl, VX_DEPTH_BUCKET_L or $CC
 	ld	a, (hl)
