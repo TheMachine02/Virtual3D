@@ -209,6 +209,8 @@ relocate VX_VRAM
 	jr	nc, $+3
 	rrca
 	ld	(ix+VX_VERTEX_CODE), a
+; restore the correct stack adress
+	pop	hl
 	jr	.perspective_divide_rx
 ; scissor code
 .perspective_high_y:
