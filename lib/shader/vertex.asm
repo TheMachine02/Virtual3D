@@ -2,6 +2,15 @@ vxVertexShader:
 
 ; this is non-critical code, called only one time per vertex stream execution
 .uniform:
+	ld	hl, .vram
+	ld	de, VX_VRAM
+	ld	bc, VX_VRAM_SIZE
+	ldir
+	ld	hl, .vram_cache
+	ld	de, VX_VRAM_CACHE
+	ld	bc, VX_VRAM_CACHE_SIZE
+	ldir
+.uniform_matrix:
 ; matrix write
 	ld	hl, vxModelView
 	ld	de, VX_LONG_STRIDE
@@ -110,15 +119,14 @@ vxVertexShader:
 	ld	(.SLX), hl
 	ret
 
+.vram:
 ; NOTE : the vertex shader ftransform should be relocated to VRAM at the begining of the routine (after the label, since the label is used in material as copying, for 1024 bytes of data / code)
 ; This load occurs at begin of stream instruction, to ensure maximum vertex throughput. About 1800 cycles per vertex are needed.
 ; iy = vertex data register [VX,VY,VZ,VN[0-2]]
 ; ix = output data register [RC,SY,SX,RI[0-1],RX,RY,RZ]
 ; SMC registers are set with uniform routine
-.ftransform:
-
 relocate VX_VRAM
-.ftransform_stream:
+.ftransform:
 	ld	a, (iy+VX_VERTEX_SIGN)
 	dec	a
 	ret	z
@@ -717,7 +725,7 @@ align 32
 assert ($-VX_VRAM) <= VX_VRAM_SIZE
 end relocate
 
-.iterate:
+.vram_cache:
 relocate VX_VRAM_CACHE
 ; 64 bytes for the perspective iterate routines
 .perspective_iterate:

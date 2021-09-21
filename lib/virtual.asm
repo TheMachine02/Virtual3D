@@ -24,21 +24,29 @@
 
 include	"vsl.inc"
 
-define	VX_MEMORY_HINT_TRIS_TEXTURE	1 shl 0
-define	VX_MEMORY_HINT_TRIS_FLAT	1 shl 1
-define	VX_MEMORY_HINT_QUADS_TEXTURE	1 slh 2
-define	VX_MEMORY_HINT_QUADS_FLAT	1 slh 3
-define	VX_MEMORY_HINT_FAST_FLASH	1 slh 4 or VX_MEMORY_HINT_NO_SHA256 or VX_MEMORY_HINT_NO_VRAM
-define	VX_MEMORY_HINT_NO_SHA256	1 slh 5
-define	VX_MEMORY_HINT_NO_VRAM		1 slh 6
+define	VX_MEMORY_HINT_TRIS_TEXTURE	0
+define	VX_MEMORY_HINT_TRIS_FLAT	1
+define	VX_MEMORY_HINT_QUADS_TEXTURE	2
+define	VX_MEMORY_HINT_QUADS_FLAT	4
+define	VX_MEMORY_HINT_FLASH		8
+define	VX_MEMORY_HINT_VRAM		16
+define	VX_MEMORY_HINT_AUTO		32
 
 ; NOTE : memory map of the LUT and various data is here
 virtual at VIRTUAL_BASE_RAM
 	include 'bss.asm'
 end virtual
 
-; functions
+macro	hint?	value
+	ld	a, (VIRTUAL_PIPELINE_STATE)
+	and	a, value
+end	macro
 
+macro	exa
+	ex	af, af'
+end	macro
+
+; functions
 vxMemory:
 
 .layout:
@@ -156,6 +164,14 @@ file	'ram'
 
 .hint:
 ; hint for memory auto-opt
+	ld	c, a
+	ld	a, (VIRTUAL_PIPELINE_STATE)
+	or	a, c
+; check auto mod
+	ld	(VIRTUAL_PIPELINE_STATE), a
+	and	a, VX_MEMORY_HINT_AUTO
+	ret	z
+; compute auto and write it
 	ret
 	
 .open_port:=port_setup

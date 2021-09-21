@@ -217,19 +217,11 @@ vxPrimitiveStream:
 	ld	(vxPrimitiveMaterial), hl
 	inc	hl
 	ld	bc, (hl)
-	inc	hl
-	inc	hl
-	inc	hl
-	ld	hl, (hl)
 ; let's transform the vertex stream
 .setup_matrix:
 ; vertex source have size at the begining
 	push	bc
 	push	de
-; load shader first
-	ld	de, VX_VRAM
-	ld	bc, VX_VRAM_SIZE
-	ldir
 	lea	hl, iy+0
 	ld	de, vxModelWorldReverse
 	ld	bc, VX_MATRIX_SIZE
@@ -298,11 +290,6 @@ vxPrimitiveStream:
 	ld	ix, (vxPrimitiveMaterial)
 	ld	hl, (ix+VX_MATERIAL_VERTEX_UNIFORM)
 	call	.uniform
-; reset VRAM_CACHE
-	ld	hl, vxVertexShader.iterate
-	ld	de, VX_VRAM_CACHE
-	ld	bc, VX_VRAM_CACHE_SIZE
-	ldir
 	pop	iy
 ; iy = source, ix = matrix
 ; reset poison
@@ -321,7 +308,7 @@ vxPrimitiveStream:
 	pop	ix
 	lea	hl, ix+0
 	call	vxVertexCache.reset_poison
-	call	vxVertexShader.ftransform_stream
+	call	.ftransform
 	ccr	ge_vtx_transform
 	pop	iy			; polygon list
 	cce	ge_pri_assembly
@@ -354,7 +341,7 @@ vxPrimitiveStream:
 	lea	hl, ix+0
 	ld	bc, 8
 	call	vxVertexCache.reset_poison
-	call	vxVertexShader.ftransform_stream
+	call	.ftransform
 	ccr	ge_vtx_transform
 ; account for end marker
 	inc	iy
@@ -374,6 +361,13 @@ vxPrimitiveStream:
 	and	a, (ix-128)
 ; z = inside / clip, nz = outside
 	ret
+.ftransform:
+	ld	hl, (vxPrimitiveMaterial)
+	inc	hl
+	inc	hl
+	inc	hl
+	inc	hl
+	ld	hl, (hl)
 .uniform:
 	jp	(hl)
 
