@@ -288,6 +288,16 @@ VX_SMC_EDGE1_INC=$
 	add	hl, bc
 	jr	c, .edge1Propagate
 .edge1End:
+; add 78 cycles per span
+; 	exx
+; 	lea	hl, ix+0
+; 	ld	de, (iy+VX_REGISTER_VRAM)
+; 	add	hl, de
+; 	add	hl, hl
+; 	add	hl, hl
+; 	ld	hl, (hl)
+; 	ld	(iy+VX_REGISTER_LENGTH), hl
+; 	exx
 	ld	(iy+VX_REGISTER0), ix
 	add	ix, sp
 	lea	iy, iy+VX_REGISTER_SIZE
@@ -388,6 +398,7 @@ VX_SMC_EDGE2_INC=$
 	sbc	hl, hl
 	sbc	hl, de
 .triangleAbs:
+; 	ld	(iy+VX_SHADER_INTERPOLATE_VEC), a
 ; write inc/dec
 vxShaderAdress0Write=$+1
 	ld	($D00000), a
@@ -399,7 +410,6 @@ vxShaderAdress1Write=$+1
 	or	a, $13
 vxShaderAdress2Write=$+1
 	ld	($D00000), a
-
 	add	hl, hl
 	ld	de, VX_LUT_INVERSE + 2
 	add	hl, de
@@ -444,7 +454,20 @@ vxShaderAdress2Write=$+1
 	ld	(iy+VX_FDUDX), hl
 .triangleMipmap:
 ; 	ld	sp, TMP
-; 	call	vxMipmap.vrs
+; 	call	vxVariableShading.rate
+; fixup adress
+; 	ld	a, (iy+VX_SHADER_INTERPOLATE_VEC)
+; ; write inc/dec
+; vxShaderAdress0Write=$+1
+; 	ld	($D00000), a
+; vxShaderAdress1Write=$+1
+; 	ld	($D00000), a
+; ; if a = 1B, write 1B ; else write 0
+; 	xor	a, $13
+; 	jr	z, $+4
+; 	or	a, $13
+; vxShaderAdress2Write=$+1
+; 	ld	($D00000), a
 .triangleGradient:
 	ld	a, (iy+VX_REGISTER_Y2)
 	sub	a, (iy+VX_REGISTER_Y0)
@@ -524,4 +547,3 @@ VX_SMC_STACK_REGISTER=$+1
 	ld	sp, $000000
 	ccr	ge_pxl_shading
 	ret
-	

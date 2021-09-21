@@ -34,6 +34,9 @@ define	VX_MAX_VERTEX			2048
 define	VX_VERTEX_POISON		1 shl VX_VERTEX_POISON_BIT
 define	VX_VERTEX_POISON_BIT		7
 
+define	VX_SHADER_INTERPOLATE_STATE	-64	; define the current pixel shader loaded into SHA256
+define	VX_SHADER_INTERPOLATE_VEC	-63	; the actual direction of shader interpolation
+
 define	VX_REGISTER_US	-36-11
 define	VX_REGISTER_VS	-36-10
 define	VX_REGISTER_STARTPOINT -36-9

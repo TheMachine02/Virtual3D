@@ -24,7 +24,7 @@ Main:
 	ld	(Texture), hl
 	
 ; init the virtual 3d library
-	call	vxEngine.init
+	call	vxMemory.layout
 	ret	c		; quit if error at init
 
 	ld	hl, (Texture)

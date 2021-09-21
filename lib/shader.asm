@@ -38,6 +38,8 @@ vxShaderAdress2:
  dl	0		; sub adress to change inc/dec
 
 vxShaderLoad:
+	xor	a, a
+	ld	(VX_REGISTER_DATA+VX_SHADER_INTERPOLATE_STATE), a
 	ld	hl, vxPixelShaderExit
 	ld	(vxPixelShaderExitLUT+1), hl
 	ld	bc, (ix+VX_SHADER_SIZE)	; load size

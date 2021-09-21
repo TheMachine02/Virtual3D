@@ -24,6 +24,14 @@
 
 include	"vsl.inc"
 
+define	VX_MEMORY_HINT_TRIS_TEXTURE	1 shl 0
+define	VX_MEMORY_HINT_TRIS_FLAT	1 shl 1
+define	VX_MEMORY_HINT_QUADS_TEXTURE	1 slh 2
+define	VX_MEMORY_HINT_QUADS_FLAT	1 slh 3
+define	VX_MEMORY_HINT_FAST_FLASH	1 slh 4 or VX_MEMORY_HINT_NO_SHA256 or VX_MEMORY_HINT_NO_VRAM
+define	VX_MEMORY_HINT_NO_SHA256	1 slh 5
+define	VX_MEMORY_HINT_NO_VRAM		1 slh 6
+
 ; NOTE : memory map of the LUT and various data is here
 virtual at VIRTUAL_BASE_RAM
 	include 'bss.asm'
@@ -31,9 +39,9 @@ end virtual
 
 ; functions
 
-vxEngine:
+vxMemory:
 
-.init:
+.layout:
 ; get indic off
 	call	ti.RunIndicOff
 	call	ti.boot.ClearVRAM
@@ -41,14 +49,36 @@ vxEngine:
 	di
 	ld	a, $D0
 	ld	MB, a
+; memory setup
 	ld	hl, $E00005
 ; Set flash wait states to 5 + 3 = 8 (total access time = 9)
 	ld	(hl), 3
-	call	port_setup
-	call	vxMemoryCreateDevice
+	call	.open_port
+	di
+	ld	hl, $D00000
+	ld	(hl), $5A
+	inc	hl
+	ld	(hl), $A5
+	dec	hl
+; dangerous, but needed
+	call	.unlock_flash
+	ld	a, $3F
+	call	.safe_erase
+	ld	a, $3E
+	call	.safe_erase
+	ld	a, $3D
+	call	.safe_erase
+	ld	a, $3C
+	call	.safe_erase
+	ld	hl, VIRTUAL_BASE_RAM
+	ld	de, $3C0000
+	ld	bc, $40000
+	call	ti.WriteFlash
+	call	.lock_flash
+; we have locked flash here, so now unlock sha256
 ; unlock SHA256 (port setup is still valid)
-	call	port_privilege_unlock
-; memory initialisation	
+	call	.unlock_sha256
+; memory initialisation
 	call	vxFramebufferSetup
 	ld	de, VIRTUAL_BASE_RAM
 	ld	hl, .arch_image
@@ -72,20 +102,37 @@ vxEngine:
 ; init timer
 	call	vxTimer.init
 ; insert stack position
-	ld	hl, .quit
+	ld	hl, .restore
 	ex	(sp), hl
 	jp	(hl)
+
+.safe_erase:
+	di
+	ld	bc,$0000F8
+	push	bc
+	jp	ti.EraseFlashSector
 
 .arch_image:
 file	'ram'
 
-.quit:
+.restore:
 	ld	iy, _OS_FLAGS
 	call	vxFramebufferRestore
-	call	vxMemoryDestroyDevice
-;	call	port_setup
+; restore the OS
+	di
+; restore RAM state
+	ld	hl, $3C0000
+	ld	de, $D00000
+	ld	bc, $01887C
+	ldir
+; sps, spl stack aren't copied obviously
+	ld	hl, $3DA881
+	ld	de, $D1A881
+	ld	bc, $02577F
+	ldir
 ; relock SHA256, port setup has been restored by destroy device (or should be)
-	call	port_privilege_lock
+;	call	.open_port
+	call	.lock_sha256
 	ld	hl, $F50000
 	ld	(hl), h	; Mode 0
 	inc	l		; 0F50001h
@@ -107,49 +154,15 @@ file	'ram'
 	ei
 	jp	ti.DrawBatteryIndicator
 
-; memory backing function
-; port safe
-vxMemoryCreateDevice:
-	di
-	ld	hl, $D00000
-	ld	(hl), $5A
-	inc	hl
-	ld	(hl), $A5
-	dec	hl
-	call	port_unlock
-	ld	a, $3F
-	call	vxMemorySafeErase
-	ld	a, $3E
-	call	vxMemorySafeErase
-	ld	a, $3D
-	call	vxMemorySafeErase
-	ld	a, $3C
-	call	vxMemorySafeErase
-	ld	hl, VIRTUAL_BASE_RAM
-	ld	de, $3C0000
-	ld	bc, $40000
-	call	ti.WriteFlash
-	jp	port_lock
-	
-vxMemorySafeErase:
-	di
-	ld	bc,$0000F8
-	push	bc
-	jp	ti.EraseFlashSector
-
-vxMemoryDestroyDevice:
-	di
-; restore RAM state
-	ld	hl, $3C0000
-	ld	de, $D00000
-	ld	bc, $01887C
-	ldir
-; sps, spl stack aren't copied obviously
-	ld	hl, $3DA881
-	ld	de, $D1A881
-	ld	bc, $02577F
-	ldir
+.hint:
+; hint for memory auto-opt
 	ret
+	
+.open_port:=port_setup
+.lock_flash:=port_lock
+.unlock_flash:=port_unlock
+.lock_sha256:=port_privilege_lock
+.unlock_sha256:=port_privilege_unlock
 
 ; core of the library
 include	"assembly.asm"
@@ -169,5 +182,3 @@ include	"vector.asm"
 include	"ports.asm"
 include	"lz4.asm"
 include	"math.asm"
-
-vxEngineEnd:

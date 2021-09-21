@@ -26,9 +26,9 @@
 
 define	VX_MIPMAP_BIAS	0
 
-vxMipmap:
+vxVariableShading:
 ; this work as a POC, the actual speed gain is NOT here due to the nop, we need to adjust jump table
-.vrs:
+.rate:
 	ld	bc, (iy+VX_FDUDX)
 	bit	7, b
 	jr	z, .vrs_abs_du
@@ -85,7 +85,7 @@ vxMipmap:
 ; then put some zero nop here
 	ld	hl, VIRTUAL_NULL_RAM
 	ld	c, 6
-	ldir	
+	ldir
 	ret
 .vrs_write_zero:
 	ld	hl, VX_PIXEL_SHADER_CODE
@@ -108,7 +108,78 @@ vxMipmap:
 .djnz_dual:
 	djnz	.dummy_2
 
+.fragment_dual_issue:
+; we never copy the first shader write
+; 	add	hl, de
+; 	ld	a, h
+; 	exx
+; 	adc	hl, sp
+; 	ld	h, a
+; 	ld	a, (hl)
+; 	ld	(de), a
+; 	inc	de
+; 	exx
+	exx
+	ld	(de), a
+	inc	de
+	exx
+	djnz	.fragment_dual_issue
+	exx
+	ld	hl, (iy+VX_REGISTER1)
+	ld	de, (iy+VX_REGISTER0)
+	add	hl, de
+	add	hl, hl
+	add	hl, hl
+	nop
+	ld	a, (hl)
+	inc	hl
+	ld	ix, (hl)
+	ld	hl, (iy+VX_REGISTER3)
+	exx
+	ld	hl, (iy+VX_REGISTER2)
+	ld	b, a
+	lea	iy, iy+VX_REGISTER_SIZE
+	jp	(ix)
+
+.fragment_single_issue:
+; we never copy the first shader write
+; 	add	hl, de
+; 	ld	a, h
+; 	exx
+; 	adc	hl, sp
+; 	ld	h, a
+; 	ld	a, (hl)
+; 	ld	(de), a
+; 	inc	de
+; 	exx
+	add	hl, de
+	ld	a, h
+	exx
+	adc	hl, sp
+	ld	h, a
+	ld	a, (hl)
+	ld	(de), a
+	inc	de
+	exx
+	djnz	.fragment_single_issue
+	exx
+	ld	hl, (iy+VX_REGISTER1) ; lut adress
+	ld	de, (iy+VX_REGISTER0)	; screen adress
+	add	hl, de
+	add	hl, hl
+	add	hl, hl
+	nop
+	ld	a, (hl)			; fetch correct size
+	inc	hl
+	ld	ix, (hl)			; fetch jump \o/
+	ld	hl, (iy+VX_REGISTER3)
+	exx
+	ld	hl, (iy+VX_REGISTER2)	; v
+	ld	b, a
+	lea	iy, iy+VX_REGISTER_SIZE
+	jp	(ix)
 	
+vxMipmap:
 
 .gradient:
 ; FIXME : we dont truly have the correct gradient on Y, since it is gradient along longest edge

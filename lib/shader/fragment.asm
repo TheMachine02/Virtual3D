@@ -7,6 +7,7 @@ define	VX_REGISTER_VSIZE	8
 vxPixelShader:
 
 .uniform:
+; from direction vector, adapt
 	ret
 
 .fragment:
@@ -38,7 +39,7 @@ relocate VX_VRAM_CACHE
 	exx
 	djnz	.fragment_inner
 ; per-span fragment setup
-; exactly 29 bytes, 99 cycles (counting out bound jp $ and fetch within normal RAM)
+; exactly 30 bytes, 99 cycles (counting out bound jp $ and fetch within normal RAM)
 ; advance in register file
 ; register format :
 ; iy+0, jp $000000 (also end marker)
@@ -49,8 +50,11 @@ relocate VX_VRAM_CACHE
 .fragment_setup:
 	exa
 ; fixed v = v + dv, with u on upper byte
-.DVDY:=$+1
-	ld	bc, $CC
+; .DVDY:=$+1
+; 	ld	bc, $CC
+; we only need to reload b (bc load DVDY)
+.DVDY_H:=$+1
+	ld	b, $CC
 	add	ix, bc
 	lea	hl, ix+0
 	exx

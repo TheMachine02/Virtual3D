@@ -244,10 +244,10 @@ relocate VX_VRAM
 .perspective_clip_rx_1:
 	ld	(ix+VX_VERTEX_CODE), a
 	jr	.ftransform_ret
-.perspective_high_x:
+.perspective_low_x:
 	set	2, (ix+VX_VERTEX_CODE)
 	jr	.ftransform_ret
-.perspective_low_x:
+.perspective_high_x:
 	set	3, (ix+VX_VERTEX_CODE)
 	jr	.ftransform_ret
 .perspective_screen_ry:
@@ -311,11 +311,11 @@ relocate VX_VRAM
 	or	a, a
 	sbc	hl, de
 	add	hl, de
-	jr	c, .perspective_high_x
+	jr	c, .perspective_low_x
 .SHX=$+1
 	ld	de, $CCCCCC
 	sbc	hl, de
-	jr	nc, .perspective_low_x
+	jr	nc, .perspective_high_x
 .ftransform_ret:
 ; lightning model is here, infinite directionnal light, no pow
 ; TODO : could be made faster, either constant time multiplie (constant*normal) or other trick : 4.4 fixed point ?
@@ -392,7 +392,7 @@ relocate VX_VRAM
 ; NOTE : some of these engine have a +-1 or +-2 off error, but that's okay since the output is actually a 18.6 fixed value
 align 512
 .engine_000:
-; 232 cycles
+; 244 cycles
 	ld	h, (iy+VX_VERTEX_VX+1)
 	ld	l, e
 	mlt	hl
@@ -470,7 +470,7 @@ align 32
  
 align 64
 .engine_010:
-; 238 cycles
+; 250 cycles
 	ld	h, (iy+VX_VERTEX_VX+1)
 	ld	l, e
 	mlt	hl

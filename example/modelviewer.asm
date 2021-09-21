@@ -32,8 +32,8 @@ Main:
 ; 	ret	c
 ; 	ld	(Model.mipmap_source), hl
 	
-; init the virtual 3d library
-	call	vxEngine.init
+; init the virtual 3d library (setup memory layout)
+	call	vxMemory.layout
 	ret	c		; quit if error at init
 
 	ld	hl, (Model.texture_source)

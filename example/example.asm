@@ -35,7 +35,7 @@ Main:
 	ld	(Mipmap), hl	
 	
 ; init the virtual 3d library (please init after OS issue)
-	call	vxEngine.init
+	call	vxMemory.layout
 	ret	c		; quit if error at init
 
 	ld	hl, (Texture)
