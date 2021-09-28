@@ -175,7 +175,7 @@ vxPrimitiveSubmit:
 	ld	hl, (vxPrimitiveQueueSize)
 	ld	a, h
 	or	a, l
-	ret	z
+	jr	z, .reset_deferred
 	ld	iy, VX_GEOMETRY_QUEUE
 	lea	de, iy+VX_GEOMETRY_ID
 	add	hl, hl
@@ -200,7 +200,8 @@ vxPrimitiveSubmit:
 	ld	l, (iy+VX_GEOMETRY_ID)
 	ld	b, l
 	djnz	.deferred
-	ret
+.reset_deferred:
+	jp	vxVertexCache.reset
 
 vxPrimitiveStream:
 ; send a primitive stream for submission
@@ -292,9 +293,6 @@ vxPrimitiveStream:
 	call	.uniform
 	pop	iy
 ; iy = source, ix = matrix
-; reset poison
-	ld	bc, (iy+VX_STREAM_HEADER_COUNT)
-	push	bc
 	ld	a, (iy+VX_STREAM_HEADER_OPTION)
 ; iy+0 are options, so check those. Here, only bounding box is interesting.
 .setup_obb:
@@ -302,12 +300,9 @@ vxPrimitiveStream:
 	and	a, VX_STREAM_HEADER_BBOX
 	call	nz, .bounding_box
 	jp	nz, .stream_cull
-	pop	bc
 	cce	ge_vtx_transform
 ; actual stream start
 	pop	ix
-	lea	hl, ix+0
-	call	vxVertexCache.reset_poison
 	call	.ftransform
 	ccr	ge_vtx_transform
 	pop	iy			; polygon list
@@ -329,7 +324,7 @@ vxPrimitiveStream:
 	ccr	ge_pri_assembly
 	ret
 .stream_cull:
-	ld	hl, 9
+	ld	hl, 6
 	add	hl, sp
 	ld	sp, hl
 	ret
@@ -338,9 +333,6 @@ vxPrimitiveStream:
 ; stream the bounding box as standard vertex stream into the stream routine
 	cce	ge_vtx_transform
 	ld	ix, VX_PATCH_VERTEX_POOL
-	lea	hl, ix+0
-	ld	bc, 8
-	call	vxVertexCache.reset_poison
 	call	.ftransform
 	ccr	ge_vtx_transform
 ; account for end marker
@@ -401,29 +393,41 @@ vxVertexCache:
 ; 	ld	sp, $CCCCCC
 ; 	ret
 
-.reset_poison:
-; hl - base adress, bc - vertex count
-; TODO : optimize it
-	ld      a, c
-	dec     bc
-	inc     b
-	ld      c, b
-	ld      b, a
-	ld      de, VX_VERTEX_SIZE
+; vertex cache reset - one per frame
+; reset all the vertex to untransformed state for mesh function and bfc optimisation
+; write $FF if the vertex need to be transformed
+; can be disabled in pipeline state (VIRTUAL_PIPELINE_STATE)
+; about 14000 cycles, we need to save at least 8 vertex to be beneficial
+.reset:
+	ld	bc, .vram_cache_size
+	ld	hl, .vram_cache
+	ld	de, VX_VRAM_CACHE
+	ldir
 	xor	a, a
+	ld	hl, VX_VERTEX_BUFFER
+	ld	de, VX_VERTEX_SIZE
+	jp	.reset_kernel
+	
+.vram_cache:
+relocate VX_VRAM_CACHE
 .reset_kernel:
-	ld      (hl), a
-	add     hl, de
-	djnz    .reset_kernel
-	dec     c
-	jr      nz, .reset_kernel
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
+	add	hl, de
+	djnz	.reset_kernel
 	ret
-
-.set_poison:
-	ld      a, c
-	dec     bc
-	inc     b
-	ld      c, b
-	ld      b, a
-	ld	a, VX_VERTEX_POISON
-	jr	.reset_kernel
+.vram_cache_size:= $ - VX_VRAM_CACHE
+end	relocate

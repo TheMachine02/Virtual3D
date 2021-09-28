@@ -95,6 +95,7 @@ vxMemory:
 	ld	de, VX_DEPTH_BUCKET_L
 	ld	bc, 1536
 	ldir
+; reset vertex poison code
 	ld	de, VX_VERTEX_BUFFER
 	ld	bc, VX_MAX_VERTEX * VX_VERTEX_SIZE
 	ldir
@@ -109,7 +110,8 @@ vxMemory:
 	call	vxShaderLoad
 ; init timer
 	call	vxTimer.init
-; insert stack position
+; insert stack position; reset vertex poison code
+
 	ld	hl, .restore
 	ex	(sp), hl
 	jp	(hl)
