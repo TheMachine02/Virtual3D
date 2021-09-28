@@ -250,7 +250,7 @@ VX_SMC_EDGE0_INC=$
 	sbc	hl, de
 	ex	de, hl
 vxShaderAdress4Write:=$+2
-	ld	ix, VX_LUT_PIXEL_LENGTH/4 + 2 ; (+2 is double carry sbc)
+	ld	ix, $CCCCCC + 2 ; (+2 is double carry sbc)
 	add	ix, de
 .edge1Compute_dx:
 	ld	hl, (iy+VX_REGISTER_X0)
@@ -333,7 +333,7 @@ VX_SMC_EDGE1_INC=$
 	ex	de, hl
 	ld	hl, (ix+VX_REGISTER_X2)
 vxShaderAdress3Write:=$+2
-	ld	ix, VX_LUT_PIXEL_LENGTH/4
+	ld	ix, $CCCCCC
 	add	ix, de
 .edge2Compute_dx:
 	ld	d, b

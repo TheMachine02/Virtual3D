@@ -22,7 +22,7 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
 
-define	VX_PIXEL_SHADER_CACHE_MAX		5	; (default is 0, allowed 4 more)
+define	VX_PIXEL_SHADER_CACHE_MAX		4	; (default is 0, allowed 3 more)
 define	VX_PIXEL_SHADER_CACHE_SIZE		3072	; 2648
 ; control block
 define	VX_PIXEL_SHADER_JP			0
