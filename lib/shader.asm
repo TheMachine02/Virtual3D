@@ -148,7 +148,7 @@ include	"shader/alpha.asm"
 	ld	(iy+VX_PIXEL_SHADER_LUT_OFFSET), hl
 	ld	(iy+VX_PIXEL_SHADER_LUT_OFFSET+2), a
 	push	iy
-	ld	hl, VX_PIXEL_SHADER_CODE
+	ld	hl, VX_VRAM_CACHE
 	lea	de, iy+VX_PIXEL_SHADER_ASSEMBLY
 	ld	c, 64
 	ldir
@@ -202,7 +202,7 @@ include	"shader/alpha.asm"
 	inc	hl
 	ld	(vxShaderAdress4Write), hl
 	lea	hl, ix+VX_PIXEL_SHADER_ASSEMBLY
-	ld	de, VX_PIXEL_SHADER_CODE
+	ld	de, VX_VRAM_CACHE
 	ld	bc, 64
 	ldir
 	pop	de
