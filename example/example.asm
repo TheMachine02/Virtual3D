@@ -70,12 +70,14 @@ Main:
 	ld	a, 0
 	ld	(vxLightUniform+4), a
 
-;	ld	ix, alphaShader
-;	call	vxShaderLoad
+	ld	ix, vxShader.alpha
+	call	vxShader.compile
+	ret	c
+	ld	(material+VX_MATERIAL_PIXEL_SHADER), hl
 
 	ld	hl, material
 	ld	a, VX_MATERIAL1
-	call	vxMaterialLoad
+	call	vxMaterial.load
 
 MainLoop:
 	call	vxTimer.reset
@@ -83,14 +85,14 @@ MainLoop:
 	call	Camera
 	ret	nz
 	
-; 	ld	hl, 0*256+128
-; 	ld	de, 0*256+160
-; 	ld	bc, 32*256+32
-; 	call	vxImageSub.swap
-; 	ld	hl, 128*256+128
-; 	ld	de, 128*256+160
-; 	ld	bc, 32*256+32
-; 	call	vxImageSub.swap
+	ld	hl, 0*256+128
+	ld	de, 0*256+160
+	ld	bc, 32*256+32
+	call	vxImageSub.swap
+	ld	hl, 128*256+128
+	ld	de, 128*256+160
+	ld	bc, 32*256+32
+	call	vxImageSub.swap
  
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
@@ -330,7 +332,6 @@ material:
 	dl	vxVertexShader.ftransform
 	dl	vxVertexShader.uniform
 	dl	vxPixelShader.texture
-	dl	0
 
 posX:
 	dl	0*256-128
@@ -343,15 +344,15 @@ Temp:
 	dl	0,0
 
 VertexName:
-	db	ti.AppVarObj, "KALIYAV",0
+	db	ti.AppVarObj, "POOLV",0
 Vertex:
 	dl	0
 TriangleName:
-	db	ti.AppVarObj, "KALIYAF", 0
+	db	ti.AppVarObj, "POOLF", 0
 Triangle:
 	dl	0
 TextName:
-	db	ti.AppVarObj, "KALIYAT",0
+	db	ti.AppVarObj, "POOLT",0
 Texture:
 	dl	0
 MipName:

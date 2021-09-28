@@ -60,22 +60,22 @@ Main:
 	ld	bc, VX_LIGHT_SIZE
 	ldir
 
-; load the model material as MATERIAL0	
-	ld	hl, Model.material
-	ld	a, VX_MATERIAL0
-	call	vxMaterialLoad
-
 ; set animation key
 	xor	a, a
 	ld	(vxAnimationKey), a
 
 ; set option
 	ld	(Viewframe.option), a
-; setup pixel shader
-	ld	ix, gouraudShader
-;	ld	ix, lightShader
-;	ld	ix, alphaShader
-	call	vxShaderLoad
+; compile the shader
+	ld	ix, vxShader.gouraud
+	call	vxShader.compile
+	ret	c
+	ld	(Model.material+VX_MATERIAL_PIXEL_SHADER), hl
+	
+; load the model material as MATERIAL0
+	ld	hl, Model.material
+	ld	a, VX_MATERIAL0
+	call	vxMaterial.load
 
 .loop:
 	call	vxTimer.reset

@@ -1,11 +1,10 @@
-lightShader:
-
+.lightning:
 	db	VX_PIXEL_SHADER
-	dl	lightEnd-lightCode
+	dl	.lightning_fragment_size
 	db	2	; two pixel are written per loop
 	db	11	; total size of per pixel code
 relocate	VX_PIXEL_SHADER_CODE
-lightCode:
+.lightning_fragment:
 ; 	ld  a, h    	; a=v (integer part)
 ; 	add hl, sp  	; v=v+dv : on hlu, compute u=u+du for fractionnal part
 ; 	exx		 	; swap
@@ -36,6 +35,6 @@ lightCode:
 	ld	(de), a
 	inc	de
 	exx
-	djnz	lightCode
-lightEnd:
+	djnz	.lightning_fragment
+.lightning_fragment_size:=$-.lightning_fragment
 end relocate

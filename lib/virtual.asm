@@ -86,6 +86,10 @@ vxMemory:
 ; we have locked flash here, so now unlock sha256
 ; unlock SHA256 (port setup is still valid)
 	call	.unlock_sha256
+	ld	hl, VIRTUAL_NULL_RAM
+	ld	de, VX_VRAM_CACHE
+	ld	bc, 64
+	ldir
 ; memory initialisation
 	call	vxFramebufferSetup
 	ld	de, VIRTUAL_BASE_RAM
@@ -105,9 +109,8 @@ vxMemory:
 	ld	(vxPrimitiveQueueSize), bc
 	ld	hl, $D30000
 	ld	(vxTexturePage), hl
-; load shader
-	ld	ix, vxPixelShader
-	call	vxShaderLoad
+; init pixel shader
+	call	vxShader.init
 ; init timer
 	call	vxTimer.init
 ; insert stack position; reset vertex poison code

@@ -34,9 +34,6 @@ define	VX_MAX_VERTEX			2048
 define	VX_VERTEX_POISON		1 shl VX_VERTEX_POISON_BIT
 define	VX_VERTEX_POISON_BIT		7
 
-define	VX_SHADER_INTERPOLATE_STATE	-64	; define the current pixel shader loaded into SHA256
-define	VX_SHADER_INTERPOLATE_VEC	-63	; the actual direction of shader interpolation
-
 define	VX_REGISTER_US	-36-11
 define	VX_REGISTER_VS	-36-10
 define	VX_REGISTER_STARTPOINT -36-9
@@ -157,25 +154,15 @@ vxPrimitiveSubmit:
 	ld	de, VX_VRAM
 	ld	bc, VX_VRAM_SIZE
 	ldir
-	ld	hl, vxPixelShader.code
-	ld	de, VX_PIXEL_SHADER_CODE
-	ld	c, 64
-	ldir
-; this is ugly at best
-	ld	hl, (vxShaderJump)
-	ld	(vxShaderJumpWrite), hl
-	ld	hl, (vxShaderAdress0)
-	ld	(vxShaderAdress0Write), hl
-	ld	hl, (vxShaderAdress1)
-	ld	(vxShaderAdress1Write), hl
-	ld	hl, (vxShaderAdress2)
-	ld	(vxShaderAdress2Write), hl
+; reset material state
+	ld	a, -1
+	ld	(VX_SHADER_STATE), a
 .setup:
 ; check primitive count and reset it
 	ld	hl, (vxPrimitiveQueueSize)
 	ld	a, h
 	or	a, l
-	jr	z, .reset_deferred
+	jr	z, .deferred_reset
 	ld	iy, VX_GEOMETRY_QUEUE
 	lea	de, iy+VX_GEOMETRY_ID
 	add	hl, hl
@@ -184,25 +171,35 @@ vxPrimitiveSubmit:
 	ld	(hl), VX_STREAM_END
 ; note, bc should be zero here
 	ld	(vxPrimitiveQueueSize), bc
-	jr	.index
+	jr	.deferred_index
 ; TODO : reallocate .deferred into fast RAM, use jr .index as long jump
 ; TODO : remove the call vxPrimitiveRenderTriangle
 .deferred:
-	ld	a, (hl)
+	ld	e, (hl)
 	inc	hl
 	ld	bc, (hl)			; subcache
+	ld	a, VX_MATERIAL_PIXEL_SHADER - 1
+	add	a, l
+	ld	l, a
+	ld	ix, (hl)
+VX_SHADER_STATE:=$+1
+	ld	a, $CC
+	cp	a, ixh
+	call	nz, vxShader.load
+.deferred_render:
+	ld	a, e
 	pea	iy+VX_GEOMETRY_KEY_SIZE
 	ld	iy, (iy+VX_GEOMETRY_INDEX)	; read triangle data
 	call	vxPrimitiveRender.triangle
 	pop	iy
-.index:
+.deferred_index:
 	ld	hl, VX_MATERIAL_DATA
 	ld	l, (iy+VX_GEOMETRY_ID)
 	ld	b, l
 	djnz	.deferred
-.reset_deferred:
+.deferred_reset:
 	jp	vxVertexCache.reset
-
+	
 vxPrimitiveStream:
 ; send a primitive stream for submission
 ; handle calling the vertex shader & 
@@ -367,6 +364,7 @@ vxPrimitiveStream:
 vxVertexCache:
 
 ; .unpack:
+; less than 110 cycles ??
 ; ; de - base adress
 ; ; bc - vertex count
 ; ; hl - vertex stream
@@ -428,6 +426,22 @@ relocate VX_VRAM_CACHE
 	ld	(hl), a
 	add	hl, de
 	djnz	.reset_kernel
+	ld	hl, VX_PATCH_VERTEX_POOL
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
 	ret
 .vram_cache_size:= $ - VX_VRAM_CACHE
 end	relocate

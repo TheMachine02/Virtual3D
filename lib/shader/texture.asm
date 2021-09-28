@@ -1,10 +1,10 @@
-vxPixelShader:
+.default:
 	db	VX_PIXEL_SHADER
-	dl	.texture_end-.texture
+	dl	.fragment_size
 	db	2	; two pixel are written per loop
 	db	10	; total size of per pixel code
 relocate	VX_PIXEL_SHADER_CODE
-.texture:
+.fragment:
 	add	hl, de
 	ld	a, h
 	exx
@@ -23,6 +23,6 @@ relocate	VX_PIXEL_SHADER_CODE
 	ld	(de), a
 	inc	de
 	exx
-	djnz	.texture
-.texture_end:
+	djnz	.fragment
+.fragment_size:=$-.fragment
 end relocate

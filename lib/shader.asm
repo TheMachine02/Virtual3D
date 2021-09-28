@@ -22,1392 +22,189 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
 
+define	VX_PIXEL_SHADER_CACHE_MAX		5	; (default is 0, allowed 4 more)
+define	VX_PIXEL_SHADER_CACHE_SIZE		3072	; 2648
+; control block
+define	VX_PIXEL_SHADER_JP			0
+define	VX_PIXEL_SHADER_VEC0			3
+define	VX_PIXEL_SHADER_VEC1			6
+define	VX_PIXEL_SHADER_OFFSET			9
+define	VX_PIXEL_SHADER_LUT_OFFSET		12
+; compiled code
+define	VX_PIXEL_SHADER_ASSEMBLY		16
+; lenght LUT
+define	VX_PIXEL_SHADER_LUT			80
+define	VX_PIXEL_SHADER_LENGHT			1360 ; 16+64+1280
+
+align 4
+vxPixelShaderExitLUT:
+ db	0
+ dl	vxPixelShaderExit
+vxShaderCompileEntry:
+ dl	0
+ 
+vxShader:
 ; include standard shader
 include	"shader/texture.asm"
 include	"shader/gouraud.asm"
 include	"shader/lightning.asm"
 include	"shader/alpha.asm"
 
-vxShaderJump:
- dl	0		; actual adress where pixel shader is
-vxShaderAdress0:
- dl	0		; sub adress to change inc/dec
-vxShaderAdress1:
- dl	0		; second sub adress
-vxShaderAdress2:
- dl	0		; sub adress to change inc/dec
-
-vxShaderLoad:
-	xor	a, a
-	ld	(VX_REGISTER_DATA+VX_SHADER_INTERPOLATE_STATE), a
-	ld	hl, vxPixelShaderExit
-	ld	(vxPixelShaderExitLUT+1), hl
-	ld	bc, (ix+VX_SHADER_SIZE)	; load size
+.init:
+	ld	hl, VX_PIXEL_SHADER_CACHE
+	ld	(vxShaderCompileEntry), hl
+	ld	a, -1
+	ld	(VX_SHADER_STATE), a
+	ld	ix, .default
+; fallback
+	
+.compile:
+; ix is the shader to compile
+; return hl = compiled shader
+	ld	iy, (vxShaderCompileEntry)
+; check VX_PIXEL_SHADER_CACHE_MAX
+	ld	de,  VX_PIXEL_SHADER_CACHE + VX_PIXEL_SHADER_CACHE_MAX*VX_PIXEL_SHADER_CACHE_SIZE
+	lea	hl, iy+0
+	or	a, a
+	sbc	hl, de
+	jp	z, .error
+	ld	bc, (ix+VX_SHADER_SIZE)		; load size
 	lea	hl, ix+VX_SHADER_CODE		; load shader
-	ld	de, VX_PIXEL_SHADER_CODE
-	ldir			; copy first part
-	ld	hl, vxShaderGeneralInterpolation0
-	ld	c, 32
-	ldir			; copy constant part
-	ld	hl, VX_SMC_EDGEFIX - vxShaderGeneralInterpolation0 -32
+	ld	de, VX_VRAM_CACHE		; set VRAM cache first so we can have actual offset
+	ldir					; copy the assembly included
+	ld	hl, .fragment_copy
+	ld	c, 3
+	ldir
+; we should jump after the lea (fragment_setup)
+	ld	(iy+VX_PIXEL_SHADER_JP), de
+	push	de
+	ld	c, 25
+	ldir
+	ld	hl, -15
 	add	hl, de
-	ld	(vxShaderAdress2), hl
-
+	ld	(iy+VX_PIXEL_SHADER_OFFSET), hl
+; bc is zero here
 	ld	c, (ix+VX_SHADER_DATA1)
-; VX_CALL0_NEG
-	ld	ix, VX_PIXEL_SHADER_CODE
-	lea	iy, ix
-	add	iy, bc
-	ld	hl, VX_LUT_PIXEL_LENGTH-(319*4)-3
-	ld	de, 4
-	ld	b, 160
-vxShaderCreate0:
-	ld	(hl), ix
-	add	hl, de
-	ld	(hl), iy
-	add	hl, de
-	djnz	vxShaderCreate0
-	
-	ld	b, iyl
-	ld	a, (VX_PIXEL_SHADER_CODE mod 256) +2
-	add	a, c
-	add	a, c
-	ld	iyl, a
-	ld	(hl), iy
-	ld	(vxShaderJump), iy
-	ld	iyl, b
-	
-	ld	b, 160
-vxShaderCreate1:
-	add	hl, de
-	ld	(hl), iy
-	add	hl, de
-	ld	(hl), ix
-	djnz vxShaderCreate1
-	
-	ld	hl, VX_PIXEL_SHADER_CODE-2
+	ld	hl, VX_VRAM_CACHE - 2
 	add	hl, bc
-	ld	(vxShaderAdress0), hl
+	ld	(iy+VX_PIXEL_SHADER_VEC0), hl
 	add	hl, bc
-	ld	(vxShaderAdress1), hl
-	
+	ld	(iy+VX_PIXEL_SHADER_VEC1), hl
+; now, compute the LUT table
+	lea	iy, iy+VX_PIXEL_SHADER_LUT
+	ld	hl, VX_VRAM_CACHE
+	ld	a, l
+	add	a, c
+; c is two pixel, a is one pixel
+	ld	c, l
+	ld	b, 160
+.write_lut_negative:
+	ld	l, c
+	ld	(iy+0), b
+	ld	(iy+1), hl
+	ld	l, a
+	ld	(iy+4), b
+	ld	(iy+5), hl
+	lea	iy, iy+8
+	djnz	.write_lut_negative
+; handle null lenght
+	pop	de
+; we want the lea
+	dec	de
+	dec 	de
+	dec	de
+	ld	(iy+0), b
+	ld	(iy+1), de
+; iy divised by four is important here
+	push	iy	
+	lea	iy, iy+4
+; now the other part of the lut
+	ld	e, 0
+	ld	b, 160
+.write_lut_positive:
+	inc	e
+	ld	l, a
+	ld	(iy+0), e
+	ld	(iy+1), hl
+	ld	l, c
+	ld	(iy+4), e
+	ld	(iy+5), hl
+	lea	iy, iy+8
+	djnz	.write_lut_positive
+; copy and quit
+	pop	hl
+	ld	iy, (vxShaderCompileEntry)
+	ld	(iy+VX_PIXEL_SHADER_LUT_OFFSET), hl
+	ld	a, (iy+VX_PIXEL_SHADER_LUT_OFFSET+2)
+; divide by 4
+	srl	a
+	rr	h
+	rr	l
+	srl	a
+	rr	h
+	rr	l
+; alignement issue ?
+	jr	c, .error
+	ld	(iy+VX_PIXEL_SHADER_LUT_OFFSET), hl
+	ld	(iy+VX_PIXEL_SHADER_LUT_OFFSET+2), a
+	push	iy
 	ld	hl, VX_PIXEL_SHADER_CODE
-	ld	de, vxPixelShader.code
+	lea	de, iy+VX_PIXEL_SHADER_ASSEMBLY
 	ld	c, 64
 	ldir
+	ld	bc, VX_PIXEL_SHADER_CACHE_SIZE
+	add	iy, bc
+	ld	(vxShaderCompileEntry), iy
+	pop	hl
 	ret
-	
-vxPixelShader.code:
-	rb	64
-	
-vxShaderGeneralInterpolation0:
+.error:
+	scf
+	sbc	hl, hl
+	ret
+
+.fragment_copy:
+ 	lea	iy, iy+VX_REGISTER_SIZE
+.fragment_setup:
 	exx
-	ld	hl, (iy+VX_REGISTER1) ; lut adress
+	ld	hl, (iy+VX_REGISTER1)	; lut adress
 	ld	de, (iy+VX_REGISTER0)	; screen adress
 	add	hl, de
 	add	hl, hl
 	add	hl, hl
-VX_SMC_EDGEFIX=$
 	nop
 	ld	a, (hl)			; fetch correct size
 	inc	hl
-	ld	ix, (hl)			; fetch jump \o/
+	ld	ix, (hl)		; fetch jump \o/
 	ld	hl, (iy+VX_REGISTER3)
 	exx
 	ld	hl, (iy+VX_REGISTER2)	; v
 	ld	b, a
-	lea	iy, iy+VX_REGISTER_SIZE
 	jp	(ix)
-
-align	4
-vxPixelShaderExitLUT:
- db 0
- dl vxPixelShaderExit
-
-align	4
-VX_LUT_PIXEL_TABLE:
- db 160
- dl 0
- db 160
- dl 0
- db 159
- dl 0
- db 159
- dl 0
- db 158
- dl 0
- db 158
- dl 0
- db 157
- dl 0
- db 157
- dl 0
- db 156
- dl 0
- db 156
- dl 0
- db 155
- dl 0
- db 155
- dl 0
- db 154
- dl 0
- db 154
- dl 0
- db 153
- dl 0
- db 153
- dl 0
- db 152
- dl 0
- db 152
- dl 0
- db 151
- dl 0
- db 151
- dl 0
- db 150
- dl 0
- db 150
- dl 0
- db 149
- dl 0
- db 149
- dl 0
- db 148
- dl 0
- db 148
- dl 0
- db 147
- dl 0
- db 147
- dl 0
- db 146
- dl 0
- db 146
- dl 0
- db 145
- dl 0
- db 145
- dl 0
- db 144
- dl 0
- db 144
- dl 0
- db 143
- dl 0
- db 143
- dl 0
- db 142
- dl 0
- db 142
- dl 0
- db 141
- dl 0
- db 141
- dl 0
- db 140
- dl 0
- db 140
- dl 0
- db 139
- dl 0
- db 139
- dl 0
- db 138
- dl 0
- db 138
- dl 0
- db 137
- dl 0
- db 137
- dl 0
- db 136
- dl 0
- db 136
- dl 0
- db 135
- dl 0
- db 135
- dl 0
- db 134
- dl 0
- db 134
- dl 0
- db 133
- dl 0
- db 133
- dl 0
- db 132
- dl 0
- db 132
- dl 0
- db 131
- dl 0
- db 131
- dl 0
- db 130
- dl 0
- db 130
- dl 0
- db 129
- dl 0
- db 129
- dl 0
- db 128
- dl 0
- db 128
- dl 0
- db 127
- dl 0
- db 127
- dl 0
- db 126
- dl 0
- db 126
- dl 0
- db 125
- dl 0
- db 125
- dl 0
- db 124
- dl 0
- db 124
- dl 0
- db 123
- dl 0
- db 123
- dl 0
- db 122
- dl 0
- db 122
- dl 0
- db 121
- dl 0
- db 121
- dl 0
- db 120
- dl 0
- db 120
- dl 0
- db 119
- dl 0
- db 119
- dl 0
- db 118
- dl 0
- db 118
- dl 0
- db 117
- dl 0
- db 117
- dl 0
- db 116
- dl 0
- db 116
- dl 0
- db 115
- dl 0
- db 115
- dl 0
- db 114
- dl 0
- db 114
- dl 0
- db 113
- dl 0
- db 113
- dl 0
- db 112
- dl 0
- db 112
- dl 0
- db 111
- dl 0
- db 111
- dl 0
- db 110
- dl 0
- db 110
- dl 0
- db 109
- dl 0
- db 109
- dl 0
- db 108
- dl 0
- db 108
- dl 0
- db 107
- dl 0
- db 107
- dl 0
- db 106
- dl 0
- db 106
- dl 0
- db 105
- dl 0
- db 105
- dl 0
- db 104
- dl 0
- db 104
- dl 0
- db 103
- dl 0
- db 103
- dl 0
- db 102
- dl 0
- db 102
- dl 0
- db 101
- dl 0
- db 101
- dl 0
- db 100
- dl 0
- db 100
- dl 0
- db 99
- dl 0
- db 99
- dl 0
- db 98
- dl 0
- db 98
- dl 0
- db 97
- dl 0
- db 97
- dl 0
- db 96
- dl 0
- db 96
- dl 0
- db 95
- dl 0
- db 95
- dl 0
- db 94
- dl 0
- db 94
- dl 0
- db 93
- dl 0
- db 93
- dl 0
- db 92
- dl 0
- db 92
- dl 0
- db 91
- dl 0
- db 91
- dl 0
- db 90
- dl 0
- db 90
- dl 0
- db 89
- dl 0
- db 89
- dl 0
- db 88
- dl 0
- db 88
- dl 0
- db 87
- dl 0
- db 87
- dl 0
- db 86
- dl 0
- db 86
- dl 0
- db 85
- dl 0
- db 85
- dl 0
- db 84
- dl 0
- db 84
- dl 0
- db 83
- dl 0
- db 83
- dl 0
- db 82
- dl 0
- db 82
- dl 0
- db 81
- dl 0
- db 81
- dl 0
- db 80
- dl 0
- db 80
- dl 0
- db 79
- dl 0
- db 79
- dl 0
- db 78
- dl 0
- db 78
- dl 0
- db 77
- dl 0
- db 77
- dl 0
- db 76
- dl 0
- db 76
- dl 0
- db 75
- dl 0
- db 75
- dl 0
- db 74
- dl 0
- db 74
- dl 0
- db 73
- dl 0
- db 73
- dl 0
- db 72
- dl 0
- db 72
- dl 0
- db 71
- dl 0
- db 71
- dl 0
- db 70
- dl 0
- db 70
- dl 0
- db 69
- dl 0
- db 69
- dl 0
- db 68
- dl 0
- db 68
- dl 0
- db 67
- dl 0
- db 67
- dl 0
- db 66
- dl 0
- db 66
- dl 0
- db 65
- dl 0
- db 65
- dl 0
- db 64
- dl 0
- db 64
- dl 0
- db 63
- dl 0
- db 63
- dl 0
- db 62
- dl 0
- db 62
- dl 0
- db 61
- dl 0
- db 61
- dl 0
- db 60
- dl 0
- db 60
- dl 0
- db 59
- dl 0
- db 59
- dl 0
- db 58
- dl 0
- db 58
- dl 0
- db 57
- dl 0
- db 57
- dl 0
- db 56
- dl 0
- db 56
- dl 0
- db 55
- dl 0
- db 55
- dl 0
- db 54
- dl 0
- db 54
- dl 0
- db 53
- dl 0
- db 53
- dl 0
- db 52
- dl 0
- db 52
- dl 0
- db 51
- dl 0
- db 51
- dl 0
- db 50
- dl 0
- db 50
- dl 0
- db 49
- dl 0
- db 49
- dl 0
- db 48
- dl 0
- db 48
- dl 0
- db 47
- dl 0
- db 47
- dl 0
- db 46
- dl 0
- db 46
- dl 0
- db 45
- dl 0
- db 45
- dl 0
- db 44
- dl 0
- db 44
- dl 0
- db 43
- dl 0
- db 43
- dl 0
- db 42
- dl 0
- db 42
- dl 0
- db 41
- dl 0
- db 41
- dl 0
- db 40
- dl 0
- db 40
- dl 0
- db 39
- dl 0
- db 39
- dl 0
- db 38
- dl 0
- db 38
- dl 0
- db 37
- dl 0
- db 37
- dl 0
- db 36
- dl 0
- db 36
- dl 0
- db 35
- dl 0
- db 35
- dl 0
- db 34
- dl 0
- db 34
- dl 0
- db 33
- dl 0
- db 33
- dl 0
- db 32
- dl 0
- db 32
- dl 0
- db 31
- dl 0
- db 31
- dl 0
- db 30
- dl 0
- db 30
- dl 0
- db 29
- dl 0
- db 29
- dl 0
- db 28
- dl 0
- db 28
- dl 0
- db 27
- dl 0
- db 27
- dl 0
- db 26
- dl 0
- db 26
- dl 0
- db 25
- dl 0
- db 25
- dl 0
- db 24
- dl 0
- db 24
- dl 0
- db 23
- dl 0
- db 23
- dl 0
- db 22
- dl 0
- db 22
- dl 0
- db 21
- dl 0
- db 21
- dl 0
- db 20
- dl 0
- db 20
- dl 0
- db 19
- dl 0
- db 19
- dl 0
- db 18
- dl 0
- db 18
- dl 0
- db 17
- dl 0
- db 17
- dl 0
- db 16
- dl 0
- db 16
- dl 0
- db 15
- dl 0
- db 15
- dl 0
- db 14
- dl 0
- db 14
- dl 0
- db 13
- dl 0
- db 13
- dl 0
- db 12
- dl 0
- db 12
- dl 0
- db 11
- dl 0
- db 11
- dl 0
- db 10
- dl 0
- db 10
- dl 0
- db 9
- dl 0
- db 9
- dl 0
- db 8
- dl 0
- db 8
- dl 0
- db 7
- dl 0
- db 7
- dl 0
- db 6
- dl 0
- db 6
- dl 0
- db 5
- dl 0
- db 5
- dl 0
- db 4
- dl 0
- db 4
- dl 0
- db 3
- dl 0
- db 3
- dl 0
- db 2
- dl 0
- db 2
- dl 0
- db 1
- dl 0
- db 1
- dl 0
-VX_LUT_PIXEL_LENGTH:
- db 0
- dl 0
- db 1
- dl 0
- db 1
- dl 0
- db 2
- dl 0
- db 2
- dl 0
- db 3
- dl 0
- db 3
- dl 0
- db 4
- dl 0
- db 4
- dl 0
- db 5
- dl 0
- db 5
- dl 0
- db 6
- dl 0
- db 6
- dl 0
- db 7
- dl 0
- db 7
- dl 0
- db 8
- dl 0
- db 8
- dl 0
- db 9
- dl 0
- db 9
- dl 0
- db 10
- dl 0
- db 10
- dl 0
- db 11
- dl 0
- db 11
- dl 0
- db 12
- dl 0
- db 12
- dl 0
- db 13
- dl 0
- db 13
- dl 0
- db 14
- dl 0
- db 14
- dl 0
- db 15
- dl 0
- db 15
- dl 0
- db 16
- dl 0
- db 16
- dl 0
- db 17
- dl 0
- db 17
- dl 0
- db 18
- dl 0
- db 18
- dl 0
- db 19
- dl 0
- db 19
- dl 0
- db 20
- dl 0
- db 20
- dl 0
- db 21
- dl 0
- db 21
- dl 0
- db 22
- dl 0
- db 22
- dl 0
- db 23
- dl 0
- db 23
- dl 0
- db 24
- dl 0
- db 24
- dl 0
- db 25
- dl 0
- db 25
- dl 0
- db 26
- dl 0
- db 26
- dl 0
- db 27
- dl 0
- db 27
- dl 0
- db 28
- dl 0
- db 28
- dl 0
- db 29
- dl 0
- db 29
- dl 0
- db 30
- dl 0
- db 30
- dl 0
- db 31
- dl 0
- db 31
- dl 0
- db 32
- dl 0
- db 32
- dl 0
- db 33
- dl 0
- db 33
- dl 0
- db 34
- dl 0
- db 34
- dl 0
- db 35
- dl 0
- db 35
- dl 0
- db 36
- dl 0
- db 36
- dl 0
- db 37
- dl 0
- db 37
- dl 0
- db 38
- dl 0
- db 38
- dl 0
- db 39
- dl 0
- db 39
- dl 0
- db 40
- dl 0
- db 40
- dl 0
- db 41
- dl 0
- db 41
- dl 0
- db 42
- dl 0
- db 42
- dl 0
- db 43
- dl 0
- db 43
- dl 0
- db 44
- dl 0
- db 44
- dl 0
- db 45
- dl 0
- db 45
- dl 0
- db 46
- dl 0
- db 46
- dl 0
- db 47
- dl 0
- db 47
- dl 0
- db 48
- dl 0
- db 48
- dl 0
- db 49
- dl 0
- db 49
- dl 0
- db 50
- dl 0
- db 50
- dl 0
- db 51
- dl 0
- db 51
- dl 0
- db 52
- dl 0
- db 52
- dl 0
- db 53
- dl 0
- db 53
- dl 0
- db 54
- dl 0
- db 54
- dl 0
- db 55
- dl 0
- db 55
- dl 0
- db 56
- dl 0
- db 56
- dl 0
- db 57
- dl 0
- db 57
- dl 0
- db 58
- dl 0
- db 58
- dl 0
- db 59
- dl 0
- db 59
- dl 0
- db 60
- dl 0
- db 60
- dl 0
- db 61
- dl 0
- db 61
- dl 0
- db 62
- dl 0
- db 62
- dl 0
- db 63
- dl 0
- db 63
- dl 0
- db 64
- dl 0
- db 64
- dl 0
- db 65
- dl 0
- db 65
- dl 0
- db 66
- dl 0
- db 66
- dl 0
- db 67
- dl 0
- db 67
- dl 0
- db 68
- dl 0
- db 68
- dl 0
- db 69
- dl 0
- db 69
- dl 0
- db 70
- dl 0
- db 70
- dl 0
- db 71
- dl 0
- db 71
- dl 0
- db 72
- dl 0
- db 72
- dl 0
- db 73
- dl 0
- db 73
- dl 0
- db 74
- dl 0
- db 74
- dl 0
- db 75
- dl 0
- db 75
- dl 0
- db 76
- dl 0
- db 76
- dl 0
- db 77
- dl 0
- db 77
- dl 0
- db 78
- dl 0
- db 78
- dl 0
- db 79
- dl 0
- db 79
- dl 0
- db 80
- dl 0
- db 80
- dl 0
- db 81
- dl 0
- db 81
- dl 0
- db 82
- dl 0
- db 82
- dl 0
- db 83
- dl 0
- db 83
- dl 0
- db 84
- dl 0
- db 84
- dl 0
- db 85
- dl 0
- db 85
- dl 0
- db 86
- dl 0
- db 86
- dl 0
- db 87
- dl 0
- db 87
- dl 0
- db 88
- dl 0
- db 88
- dl 0
- db 89
- dl 0
- db 89
- dl 0
- db 90
- dl 0
- db 90
- dl 0
- db 91
- dl 0
- db 91
- dl 0
- db 92
- dl 0
- db 92
- dl 0
- db 93
- dl 0
- db 93
- dl 0
- db 94
- dl 0
- db 94
- dl 0
- db 95
- dl 0
- db 95
- dl 0
- db 96
- dl 0
- db 96
- dl 0
- db 97
- dl 0
- db 97
- dl 0
- db 98
- dl 0
- db 98
- dl 0
- db 99
- dl 0
- db 99
- dl 0
- db 100
- dl 0
- db 100
- dl 0
- db 101
- dl 0
- db 101
- dl 0
- db 102
- dl 0
- db 102
- dl 0
- db 103
- dl 0
- db 103
- dl 0
- db 104
- dl 0
- db 104
- dl 0
- db 105
- dl 0
- db 105
- dl 0
- db 106
- dl 0
- db 106
- dl 0
- db 107
- dl 0
- db 107
- dl 0
- db 108
- dl 0
- db 108
- dl 0
- db 109
- dl 0
- db 109
- dl 0
- db 110
- dl 0
- db 110
- dl 0
- db 111
- dl 0
- db 111
- dl 0
- db 112
- dl 0
- db 112
- dl 0
- db 113
- dl 0
- db 113
- dl 0
- db 114
- dl 0
- db 114
- dl 0
- db 115
- dl 0
- db 115
- dl 0
- db 116
- dl 0
- db 116
- dl 0
- db 117
- dl 0
- db 117
- dl 0
- db 118
- dl 0
- db 118
- dl 0
- db 119
- dl 0
- db 119
- dl 0
- db 120
- dl 0
- db 120
- dl 0
- db 121
- dl 0
- db 121
- dl 0
- db 122
- dl 0
- db 122
- dl 0
- db 123
- dl 0
- db 123
- dl 0
- db 124
- dl 0
- db 124
- dl 0
- db 125
- dl 0
- db 125
- dl 0
- db 126
- dl 0
- db 126
- dl 0
- db 127
- dl 0
- db 127
- dl 0
- db 128
- dl 0
- db 128
- dl 0
- db 129
- dl 0
- db 129
- dl 0
- db 130
- dl 0
- db 130
- dl 0
- db 131
- dl 0
- db 131
- dl 0
- db 132
- dl 0
- db 132
- dl 0
- db 133
- dl 0
- db 133
- dl 0
- db 134
- dl 0
- db 134
- dl 0
- db 135
- dl 0
- db 135
- dl 0
- db 136
- dl 0
- db 136
- dl 0
- db 137
- dl 0
- db 137
- dl 0
- db 138
- dl 0
- db 138
- dl 0
- db 139
- dl 0
- db 139
- dl 0
- db 140
- dl 0
- db 140
- dl 0
- db 141
- dl 0
- db 141
- dl 0
- db 142
- dl 0
- db 142
- dl 0
- db 143
- dl 0
- db 143
- dl 0
- db 144
- dl 0
- db 144
- dl 0
- db 145
- dl 0
- db 145
- dl 0
- db 146
- dl 0
- db 146
- dl 0
- db 147
- dl 0
- db 147
- dl 0
- db 148
- dl 0
- db 148
- dl 0
- db 149
- dl 0
- db 149
- dl 0
- db 150
- dl 0
- db 150
- dl 0
- db 151
- dl 0
- db 151
- dl 0
- db 152
- dl 0
- db 152
- dl 0
- db 153
- dl 0
- db 153
- dl 0
- db 154
- dl 0
- db 154
- dl 0
- db 155
- dl 0
- db 155
- dl 0
- db 156
- dl 0
- db 156
- dl 0
- db 157
- dl 0
- db 157
- dl 0
- db 158
- dl 0
- db 158
- dl 0
- db 159
- dl 0
- db 159
- dl 0
- db 160
- dl 0
- db 160
- dl 0
- db 161
- dl 0
+ 
+.load:
+; ix is full compiled shader adress (fetched from material)
+; save de, bc
+	push	bc
+	push	de
+	ld	a, ixh
+	ld	(VX_SHADER_STATE), a
+ 	ld	hl, (ix+VX_PIXEL_SHADER_JP)
+	ld	(vxShaderJumpWrite), hl
+	ld	hl, (ix+VX_PIXEL_SHADER_VEC0)
+	ld	(vxShaderAdress0Write), hl
+	ld	hl, (ix+VX_PIXEL_SHADER_VEC1)
+	ld	(vxShaderAdress1Write), hl
+	ld	hl, (ix+VX_PIXEL_SHADER_OFFSET)
+	ld	(vxShaderAdress2Write), hl
+	ld	hl, (ix+VX_PIXEL_SHADER_LUT_OFFSET)
+	ld	(vxShaderAdress3Write), hl
+	inc	hl
+	inc	hl
+	ld	(vxShaderAdress4Write), hl
+	lea	hl, ix+VX_PIXEL_SHADER_ASSEMBLY
+	ld	de, VX_PIXEL_SHADER_CODE
+	ld	bc, 64
+	ldir
+	pop	de
+	pop	bc
+	ret
