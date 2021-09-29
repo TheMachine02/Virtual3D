@@ -9,30 +9,40 @@ format	ti executable archived 'V3DALPHA'
 Main:
 
 .init:
-	ld	hl, VertexName
+	ld	hl, VertexName0
 	call	find
 	ret	c
-	ld	(Vertex), hl
+	ld	(Vertex0), hl
 
-	ld	hl, TriangleName
+	ld	hl, TriangleName0
 	call	find
 	ret	c
-	ld	(Triangle), hl
+	ld	(Triangle0), hl
 
-	ld	hl, Skybox.name
+	ld	hl, VertexName1
 	call	find
 	ret	c
-	ld	(Skybox.cache), hl
+	ld	(Vertex1), hl
+
+	ld	hl, TriangleName1
+	call	find
+	ret	c
+	ld	(Triangle1), hl
+		
+; 	ld	hl, Skybox.name
+; 	call	find
+; 	ret	c
+; 	ld	(Skybox.cache), hl
 	
 	ld	hl, TextName
 	call	find
 	ret	c
 	ld	(Texture), hl
 	
-	ld	hl, MipName
-	call	find
-	ret	c
-	ld	(Mipmap), hl	
+; 	ld	hl, MipName
+; 	call	find
+; 	ret	c
+; 	ld	(Mipmap), hl	
 	
 ; init the virtual 3d library (please init after OS issue)
 	call	vxMemory.layout
@@ -43,13 +53,11 @@ Main:
 	ld	de, VX_TEXTURE
 	call	vxImage.copy
 	
-	ld	hl, (Mipmap)
-	ld	a, VX_IMAGE_ZX7_COMPRESSED
-	ld	de, VX_TEXTURE_MIPMAP
-	call	vxImage.copy	
-	
-	call	Filter.generate
-	
+; 	ld	hl, (Mipmap)
+; 	ld	a, VX_IMAGE_ZX7_COMPRESSED
+; 	ld	de, VX_TEXTURE_MIPMAP
+; 	call	vxImage.copy	
+
 ; about vertex coordinate :
 ; the format inputed in glib is pure integer 16 bits coordinates, ]-32768,32768[
 ; A 1.0 coordinate in blender is equivalent to 256 in glib
@@ -73,9 +81,14 @@ Main:
 	ld	ix, vxShader.alpha
 	call	vxShader.compile
 	ret	c
-	ld	(material+VX_MATERIAL_PIXEL_SHADER), hl
+;	ld	(material0+VX_MATERIAL_PIXEL_SHADER), hl
+	ld	(material1+VX_MATERIAL_PIXEL_SHADER), hl
 
-	ld	hl, material
+	ld	hl, material0
+	ld	a, VX_MATERIAL0
+	call	vxMaterial.load
+	
+	ld	hl, material1
 	ld	a, VX_MATERIAL1
 	call	vxMaterial.load
 
@@ -96,8 +109,15 @@ MainLoop:
  
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
-	ld	hl, (Vertex)
-	ld	de, (Triangle)
+	ld	hl, (Vertex0)
+	ld	de, (Triangle0)
+	ld	a, VX_MATERIAL0
+	call	vxPrimitiveStream
+	
+	ld	ix, WorldMatrix
+	ld	iy, ModelMatrix
+	ld	hl, (Vertex1)
+	ld	de, (Triangle1)
 	ld	a, VX_MATERIAL1
 	call	vxPrimitiveStream
 
@@ -119,8 +139,11 @@ MainLoop:
 
 	ld	hl, (vxPrimitiveQueueSize)
 	ld	(debug.visible_count), hl
-	ld	iy, (Triangle)
+	ld	iy, (Triangle0)
 	ld	hl, (iy+VX_STREAM_HEADER_COUNT)
+	ld	iy, (Triangle1)
+	ld	de, (iy+VX_STREAM_HEADER_COUNT)
+	add	hl, de
 	ld	(debug.triangle_count), hl
 
 	call	vxPrimitiveDepthSort
@@ -136,24 +159,24 @@ MainLoop:
 
 	call	debug.display_panel
 
-; apply filter
-	ld	a, (posY+1)
-	rla
-	sbc	hl, hl
-	ld	a, (posY+1)
-	ld	h, a
-	ld	a, (posY)
-	ld	l, a
-; if posY >= $180, apply water palette
-	ld	de, $17F
-	or	a, a
-	sbc	hl, de
-	jp	p, .water
-	call	Filter.apply_air
-	jr	.end
-.water:
-	call	Filter.apply_water_caustic
-.end:
+; ; apply filter
+; 	ld	a, (posY+1)
+; 	rla
+; 	sbc	hl, hl
+; 	ld	a, (posY+1)
+; 	ld	h, a
+; 	ld	a, (posY)
+; 	ld	l, a
+; ; if posY >= $180, apply water palette
+; 	ld	de, $17F
+; 	or	a, a
+; 	sbc	hl, de
+; 	jp	p, .water
+; 	call	Filter.apply_air
+; 	jr	.end
+; .water:
+; 	call	Filter.apply_water_caustic
+; .end:
 
 	call	vxFramebufferSwap
 
@@ -326,13 +349,20 @@ include	"lib/virtual.asm"
 include	"font/font.asm"
 include	"debug.asm"
 
-material:
+material0:
 	db	VX_FORMAT_TEXTURE
 	dl	VX_VERTEX_BUFFER
 	dl	vxVertexShader.ftransform
 	dl	vxVertexShader.uniform
 	dl	vxPixelShader.texture
 
+material1:
+	db	VX_FORMAT_TEXTURE
+	dl	VX_VERTEX_BUFFER+16384
+	dl	vxVertexShader.ftransform
+	dl	vxVertexShader.uniform
+	dl	vxPixelShader.texture
+	
 posX:
 	dl	0*256-128
 posY:
@@ -343,14 +373,24 @@ posZ:
 Temp:
 	dl	0,0
 
-VertexName:
-	db	ti.AppVarObj, "POOLV",0
-Vertex:
+VertexName0:
+	db	ti.AppVarObj, "POOL0V",0
+Vertex0:
 	dl	0
-TriangleName:
-	db	ti.AppVarObj, "POOLF", 0
-Triangle:
+TriangleName0:
+	db	ti.AppVarObj, "POOL0F", 0
+Triangle0:
 	dl	0
+	
+VertexName1:
+	db	ti.AppVarObj, "POOL1V",0
+Vertex1:
+	dl	0
+TriangleName1:
+	db	ti.AppVarObj, "POOL1F", 0
+Triangle1:
+	dl	0	
+	
 TextName:
 	db	ti.AppVarObj, "POOLT",0
 Texture:

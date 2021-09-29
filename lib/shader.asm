@@ -30,11 +30,12 @@ define	VX_PIXEL_SHADER_VEC0			3
 define	VX_PIXEL_SHADER_VEC1			6
 define	VX_PIXEL_SHADER_OFFSET			9
 define	VX_PIXEL_SHADER_LUT_OFFSET		12
+define	VX_PIXEL_SHADER_ASSEMBLY_SIZE		15
 ; compiled code
-define	VX_PIXEL_SHADER_ASSEMBLY		16
+define	VX_PIXEL_SHADER_ASSEMBLY		20
 ; lenght LUT
-define	VX_PIXEL_SHADER_LUT			80
-define	VX_PIXEL_SHADER_LENGHT			1360 ; 16+64+1280
+define	VX_PIXEL_SHADER_LUT			84
+define	VX_PIXEL_SHADER_LENGHT			1364 ; 20+64+1280
 
 align 4
 vxPixelShaderExitLUT:
@@ -83,6 +84,10 @@ include	"shader/alpha.asm"
 	ld	hl, -15
 	add	hl, de
 	ld	(iy+VX_PIXEL_SHADER_OFFSET), hl
+; we need to compute the copy size
+	ld	hl, 15 - VX_VRAM_CACHE
+	add	hl, de
+	ld	(iy+VX_PIXEL_SHADER_ASSEMBLY_SIZE), hl
 ; bc is zero here
 	ld	c, (ix+VX_SHADER_DATA1)
 	ld	hl, VX_VRAM_CACHE - 2
@@ -203,7 +208,7 @@ include	"shader/alpha.asm"
 	ld	(vxShaderAdress4Write), hl
 	lea	hl, ix+VX_PIXEL_SHADER_ASSEMBLY
 	ld	de, VX_VRAM_CACHE
-	ld	bc, 64
+	ld	bc, (ix+VX_PIXEL_SHADER_ASSEMBLY_SIZE)
 	ldir
 	pop	de
 	pop	bc
