@@ -103,13 +103,13 @@ relocate VX_PRIMITIVE_SORT_CODE
 .restore_bucket_l:
 	ld	hl, VX_DEPTH_BUCKET_L + 511
 	ld	a, (hl)
-.WBLH:=$+1
+.WBHH:=$+1
 	add	a, $CC
 	ld	d, a
 	ld	(hl), a
 	dec	h
 	ld	a, (hl)
-.WBLL:=$+1
+.WBHL:=$+1
 	add	a, $CC
 	ld	e, a
 	ld	(hl), a
@@ -118,13 +118,13 @@ relocate VX_PRIMITIVE_SORT_CODE
 .restore_bucket_h:
 	ld	hl, VX_DEPTH_BUCKET_H + 511
 	ld	a, (hl)
-.WBHH:=$+1
+.WBLH:=$+1
 	add	a, $CC
 	ld	d, a
 	ld	(hl), a
 	dec	h
 	ld	a, (hl)
-.WBHL:=$+1
+.WBLL:=$+1
 	add	a, $CC
 	ld	e, a
 	ld	(hl), a
@@ -143,7 +143,7 @@ relocate VX_PRIMITIVE_SORT_CODE
 .sort_bucket_l:
 .SZ0:=$+1
 	ld	bc, $CCCCCC
-.WBL:=$+1
+.WBH:=$+1
 	ld	de, $CCCCCC
 	ld	ix, (vxPrimitiveQueue)
 	ld	hl, VX_DEPTH_BUCKET_L
@@ -161,9 +161,9 @@ relocate VX_PRIMITIVE_SORT_CODE
 ; load iyh instead of iyl
 	ld	a, $7C
 	ld	(.DOF), a
-.WBH:=$+1
+.WBL:=$+1
 	ld	de, $CCCCCC
-.RBL:=$+2
+.RBH:=$+2
 	ld	ix, $CCCCCC
 ; load up VX_DEPTH_BUCKET_H
 	inc	h
@@ -180,7 +180,7 @@ relocate VX_PRIMITIVE_SORT_CODE
 .SZ2:=$+1
 	ld	bc, $CCCCCC
 	ld	de, VX_GEOMETRY_QUEUE
-.RBH:=$+2
+.RBL:=$+2
 	ld	ix, $CCCCCC
 ; load up VX_DEPTH_BUCKET_U
 	inc	h
