@@ -266,20 +266,10 @@ define	VX_LONG_STRIDE			3
 
 define	_OS_FLAGS			$D00080
 ; standard defines ;
-define	VX_TRUE				1
-define	VX_FALSE			0
-define	VX_VRAM_CACHE			$E10010
-define	VX_VRAM_CACHE_SIZE		64
-define	VX_VRAM				$E30800
-define	VX_VRAM_SIZE			1024
 
 ; location of the mipmap level
 define	VX_TEXTURE			$D30000
 define	VX_TEXTURE_MIPMAP		$D28000
-
-define	VIRTUAL_BASE_RAM		$D00000
-define	VIRTUAL_VERSION			$10
-define	VIRTUAL_NULL_RAM		$E40000
 
 ; the align macro from fasmg
 

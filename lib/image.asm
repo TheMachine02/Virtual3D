@@ -58,18 +58,29 @@ vxImageSub:
 .swap:
 ; hl : org, bc : rect size, de : copy
 	push	bc
+	push	hl
+	push	de
+	ld	hl, .swap_vram_cache
+	ld	bc, .swap_vram_cache_size
+	ld	de, VX_VRAM_CACHE
+	ldir
+	pop	de
+	pop	hl
 	ld	bc, VX_IMAGE_PAGE
 	add	hl, bc
 	ex	de, hl
 	add	hl, bc
 	ex	de, hl
 	pop	bc
-	ld	a, b
-	ld	b, 0
-; ready to copy
-.swap_loop:
-	push	af
-	push	bc
+	ld	a, c
+	ld	i, a
+	jp	.swap_kernel
+
+.swap_vram_cache:
+relocate VX_VRAM_CACHE
+.swap_kernel:
+	ld	a, i
+	ld	c, a
 	push	de
 	push	hl
 .swap_inner:
@@ -78,30 +89,24 @@ vxImageSub:
 	dec	hl
 	ld	(hl), a
 	inc	hl
-	jp	pe, .swap_inner
+	xor	a, a
+	or	a, c
+	jr	nz, .swap_inner
 	pop	hl
-	inc	b
-	add	hl, bc
 	pop	de
-	ex	de, hl
-	add	hl, bc
-	ex	de, hl
-	pop	bc
-	pop	af
-	dec	a
-	jr	nz, .swap_loop
-	ret	
-
+	inc	h
+	inc	d
+	djnz	.swap_kernel
+	ret
+.swap_vram_cache_size:= $ - VX_VRAM_CACHE
+end	relocate
+	
 vxImage:
 
 .clear:
-	ld	bc, 65535
-	xor	a, a
-	ld	(hl), a
 	ex	de, hl
-	sbc	hl, hl
-	add	hl, de
-	inc	de
+	ld	bc, 65536
+	ld	hl, VIRTUAL_NULL_RAM
 	ldir
 	ret
 
