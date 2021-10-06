@@ -199,6 +199,12 @@ include	"image.asm"
 include	"shader.asm"
 include	"timer.asm"
 include	"vector.asm"
+; default optimized shader
+include	"shader/vertex.asm"
+include	"shader/texture.asm"
+include	"shader/gouraud.asm"
+include	"shader/alpha.asm"
+include	"shader/lightning.asm"
 ; helper
 include	"ports.asm"
 include	"lz4.asm"

@@ -1,4 +1,29 @@
+; Virtual-3D library, version 1.0
+;
+; MIT License
+; 
+; Copyright (c) 2017 - 2021 TheMachine02
+; 
+; Permission is hereby granted, free of charge, to any person obtaining a copy
+; of this software and associated documentation files (the "Software"), to deal
+; in the Software without restriction, including without limitation the rights
+; to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+; copies of the Software, and to permit persons to whom the Software is
+; furnished to do so, subject to the following conditions:
+; 
+; The above copyright notice and this permission notice shall be included in all
+; copies or substantial portions of the Software.
+; 
+; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+; SOFTWARE.
+
 vxVertexShader:
+; please note, vertex shader uniform should realloc to vram itself with uniform call
 
 ; this is non-critical code, called only one time per vertex stream execution
 .uniform:
@@ -117,6 +142,8 @@ vxVertexShader:
 	ld	(.SHX), hl
 	sbc	hl, hl
 	ld	(.SLX), hl
+; 	call	vxMath.random
+; 	ld	(.RNG), hl
 	ret
 
 .vram:
@@ -380,6 +407,19 @@ relocate VX_VRAM
 .LA=$+1
 	adc	a, $CC
 ; min(a,15)
+; .RNG:=$+1
+; 	ld	hl, $0
+; 	add.s	hl, hl
+; 	sbc	a, a
+; 	and	a, 00101101b
+; 	xor	a, l
+; 	ld	l, a
+; 	ld	a, r
+; 	add	a, a
+; 	add	a, h
+; 	ld	(.RNG), hl
+; 	and	a, 7
+; 	add	a, 10
 	cp	a, 32
 	jr	c, $+4
 	ld	a, 31

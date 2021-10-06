@@ -24,18 +24,20 @@
 
 define	VX_PIXEL_SHADER_CACHE_MAX		4	; (default is 0, allowed 3 more)
 define	VX_PIXEL_SHADER_CACHE_SIZE		3072	; 2648
+
 ; control block
-define	VX_PIXEL_SHADER_JP			0
-define	VX_PIXEL_SHADER_VEC0			3
-define	VX_PIXEL_SHADER_VEC1			6
-define	VX_PIXEL_SHADER_OFFSET			9
-define	VX_PIXEL_SHADER_LUT_OFFSET		12
-define	VX_PIXEL_SHADER_ASSEMBLY_SIZE		15
-; compiled code
-define	VX_PIXEL_SHADER_ASSEMBLY		20
-; lenght LUT
-define	VX_PIXEL_SHADER_LUT			84
-define	VX_PIXEL_SHADER_LENGHT			1364 ; 20+64+1280
+virtual at 0
+	VX_PIXEL_SHADER_JP:		rb	3	; jump inside the shader code
+	VX_PIXEL_SHADER_VEC0:		rb	3	; first SMC
+	VX_PIXEL_SHADER_VEC1:		rb	3	; second SMC
+	VX_PIXEL_SHADER_OFFSET:		rb	3	; offset SMC
+	VX_PIXEL_SHADER_LUT_OFFSET:	rb	3	; LUT start
+	VX_PIXEL_SHADER_ASSEMBLY_SIZE:	rb	3	; size of total pixel shader
+	VX_PIXEL_SHADER_ASSEMBLY:	rb	64
+	align	4
+	VX_PIXEL_SHADER_LUT:		rb	1280	; LUT table
+	VX_PIXEL_SHADER_LENGHT:		rb	1280	; middle of LUT
+end virtual
 
 align 4
 vxPixelShaderExitLUT:
@@ -46,22 +48,19 @@ vxShaderCompileEntry:
  
 vxShader:
 ; include standard shader
-include	"shader/texture.asm"
-include	"shader/gouraud.asm"
-include	"shader/lightning.asm"
-include	"shader/alpha.asm"
 
 .init:
 	ld	hl, VX_PIXEL_SHADER_CACHE
 	ld	(vxShaderCompileEntry), hl
 	ld	a, -1
 	ld	(VX_SHADER_STATE), a
-	ld	ix, .default
+	ld	ix, vxPixelShader.default
 ; fallback
 	
 .compile:
-; ix is the shader to compile
+; ix is the shader to compile/allocate
 ; return hl = compiled shader
+; please note uniform should be matched to this shader
 	ld	iy, (vxShaderCompileEntry)
 ; check VX_PIXEL_SHADER_CACHE_MAX
 	ld	de,  VX_PIXEL_SHADER_CACHE + VX_PIXEL_SHADER_CACHE_MAX*VX_PIXEL_SHADER_CACHE_SIZE
@@ -185,6 +184,18 @@ include	"shader/alpha.asm"
 	ld	hl, (iy+VX_REGISTER2)	; v
 	ld	b, a
 	jp	(ix)
+ 
+; .fragment_copy_next:
+;  	lea	iy, iy+VX_REGISTER_SIZE
+; .fragment_setup_next:
+; 	ld	hl, (iy+VX_REGISTER2)		; v
+; 	exx
+; 	ld	hl, (iy+VX_REGISTER3)		; u and upper byte
+; 	ld	de, (iy+VX_REGISTER_VRAM)	; screen adress
+; 	nop
+; 	exx
+; 	ld	b, (iy+VX_REGISTER_LENGHT)
+; 	jp	(iy)
  
 .load:
 ; ix is full compiled shader adress (fetched from material)

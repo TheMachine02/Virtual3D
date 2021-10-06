@@ -67,7 +67,7 @@ Main:
 ; set option
 	ld	(Viewframe.option), a
 ; compile the shader
-	ld	ix, vxShader.gouraud
+	ld	ix, vxPixelShader.gouraud
 	call	vxShader.compile
 	ret	c
 	ld	(Model.material+VX_MATERIAL_PIXEL_SHADER), hl
@@ -389,8 +389,8 @@ Model:
 	dl	VX_VERTEX_BUFFER
 	dl	vxVertexShader.ftransform
 	dl	vxVertexShader.uniform
-	dl	0
-	dl	0
+	dl	vxPixelShader.texture
+	dl	vxPixelShader.uniform
 ; simple appv detect
 ; archivate the appv if not already archivated (TODO)
 .load_ressource:

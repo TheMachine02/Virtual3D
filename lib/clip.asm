@@ -623,11 +623,11 @@ vxParametric:
 
 vxScissor:
 	
-.rect2D:
+.set2D:
 ; set the scissor to given rect2D
 	ret
 
-.compose:
+.compose2D:
 ; set the scissor given rect2D adapated to the current scissor
 	ret
 	

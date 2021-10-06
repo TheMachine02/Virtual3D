@@ -270,7 +270,7 @@ assert	VX_LUT_SIN mod 2 = 0
 	ld	e, a
 	ret 
 
-_mulf16:
+._mulf16:
 ; hl = hl * de fixed point 8.8 multiplication (hl is 8.8 fixed point)
 	xor	a, a
 	bit	7, h
@@ -359,3 +359,39 @@ _mulf16:
 ;     ex de,hl \ add hl,hl \ sbc hl,de \ add hl,de \ ex de,hl
 ;     jr nc,$+6 \ sbc hl,de \ inc de \ inc de
 ;     rr d \ rr e \ ret
+
+
+.random:
+	ld	ix, .random_seed
+	ld	hl, (ix)
+	ld	de, (ix+3)
+	ld	b, h
+	ld	c, l
+	add	hl, hl
+	rl	e
+	rl	d
+	add	hl, hl
+	rl	e
+	rl	d
+	inc	l
+	add	hl, bc
+	ld	(ix), hl
+	adc	hl, de
+	ld	(ix+3), hl
+	ex	de, hl
+	ld	hl, (ix+6)
+	ld	bc, (ix+9)
+	add	hl, hl
+	rl	c
+	rl	b
+	ld	(ix+9), bc
+	sbc	a, a
+	and	a, 11000101b
+	xor	a, l
+	ld	l, a
+	ld	(ix+6), hl
+	ex	de, hl
+	add	hl, bc
+	ret
+.random_seed:
+	rb	12

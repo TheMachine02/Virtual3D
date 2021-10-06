@@ -118,7 +118,7 @@ void generate_inverse()
 	for(double inverse=0.0f;inverse<322.0f;inverse+=1.0f)
 	{
 		out << " dw ";
-		out << (int)round(65536.0f/inverse)-1;
+		out << (int)round(65536.0f/inverse);
 		out << "\n";
 	}
 	

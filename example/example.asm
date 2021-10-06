@@ -78,12 +78,16 @@ Main:
 	ld	a, 0
 	ld	(vxLightUniform+4), a
 
-	ld	ix, vxShader.alpha
+	ld	ix, vxPixelShader.alpha
 	call	vxShader.compile
 	ret	c
-;	ld	(material0+VX_MATERIAL_PIXEL_SHADER), hl
 	ld	(material1+VX_MATERIAL_PIXEL_SHADER), hl
 
+; 	ld	ix, vxPixelShader.lightning
+; 	call	vxShader.compile
+; 	ret	c
+; 	ld	(material0+VX_MATERIAL_PIXEL_SHADER), hl
+	
 	ld	hl, material0
 	ld	a, VX_MATERIAL0
 	call	vxMaterial.load
@@ -355,6 +359,7 @@ material0:
 	dl	vxVertexShader.ftransform
 	dl	vxVertexShader.uniform
 	dl	vxPixelShader.texture
+	dl	vxPixelShader.uniform
 
 material1:
 	db	VX_FORMAT_TEXTURE
@@ -362,6 +367,7 @@ material1:
 	dl	vxVertexShader.ftransform
 	dl	vxVertexShader.uniform
 	dl	vxPixelShader.texture
+	dl	vxPixelShader.uniform
 	
 posX:
 	dl	0*256-128

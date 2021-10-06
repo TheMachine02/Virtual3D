@@ -74,7 +74,7 @@ vxPrimitiveTextureRaster:
 	ldir
 	inc	de
 	ld	c, 2
-	ldir	
+	ldir
 .triangleSetup:
 .triangleInv_dy:
 ; ~ 500 cc
@@ -84,8 +84,9 @@ vxPrimitiveTextureRaster:
 	ld	hl, VX_LUT_INVERSE shr 1
 	ld	l, a
 	add	hl, hl
-	ld	de, (hl)
-	inc.s	de
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
 .triangleCompute_dvdy:
 ; dvdy = (v2-v0)*inv/256;
 	ld	a, (iy+VX_REGISTER_V2)
@@ -290,7 +291,7 @@ VX_SMC_EDGE1_INC=$
 	jr	c, .edge1Propagate
 .edge1End:
 ; add 78 cycles per span
-; 	exx
+;	exx
 ; 	lea	hl, ix+0
 ; 	ld	de, (iy+VX_REGISTER_VRAM)
 ; 	add	hl, de
@@ -415,8 +416,9 @@ vxShaderAdress2Write=$+1
 	add	hl, hl
 	ld	de, VX_LUT_INVERSE + 2
 	add	hl, de
-	ld	de, (hl)
-	inc.s	de	; de = 65536/dx
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
 .triangleCompute_dvdx:
 	ld	a, (iy+VX_REGISTER_V1)
 	sub	a, (iy+VX_REGISTER_VS)
