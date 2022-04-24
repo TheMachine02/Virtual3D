@@ -30,7 +30,7 @@ vxVariableShading:
 ; this work as a POC, the actual speed gain is NOT here due to the nop, we need to adjust jump table
 .rate:
 	ld	a, (VX_SHADER_STATE)
-	cp	a, $40
+	cp	a, ( VX_PIXEL_SHADER_CACHE shr 8 ) and 255
 	ret	nz
 	ld	hl, (iy+VX_FDVDX)
 ; push zero into the upper dx
@@ -51,7 +51,7 @@ vxVariableShading:
 	ldir
 	ld	hl, .djnz_single
 	ld	c, 2
-	ldir	
+	ldir
 	ret
 .vrs_common:
 	ld	(iy+VX_FDVDX), hl

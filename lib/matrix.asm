@@ -32,10 +32,11 @@ vxLookAtMatrix:
  dl	0,0,0
 
 ; TODO : clean this file, remove useless function, optimize other (matrix multiplication could benefit from full unroll) 
-; TODO : Use 8.8 and 16.8 for matrix instead of stranger format
+; TODO : maybe we can still use 2.6 and 18.6 format instead of full fat 8.8, however, we need some serious multiplication routine for doing signed 2.6 times 18.6 result in 18.6
 
-vxMatrixLoadIdentity:
-vxMatrix.loadIdentity:
+vxMatrix:
+
+.load_identity:
 ; input : hl matrix
 	ex	de, hl
 	ld	hl, vxIdentityMatrix
@@ -47,7 +48,7 @@ vxMatrix.loadIdentity:
 	add	hl, bc
 	ret
 
-.rotateX:
+.rotate_x:
 	push	hl
 	call	vxMath.sin
 	ld	a, h
@@ -64,7 +65,7 @@ vxMatrix.loadIdentity:
 	ld	(ix+VX_MATRIX_C8), h
 	ret
 
-.rotateZ:
+.rotate_z:
 	push	hl
 	call	vxMath.sin
 	ld	a, h
@@ -82,7 +83,7 @@ vxMatrix.loadIdentity:
 	ld	(ix+VX_MATRIX_C8), 64
 	ret
 
-.rotateY:
+.rotate_y:
 	push	hl
 	call	vxMath.sin
 	ld	a, h
@@ -99,83 +100,15 @@ vxMatrix.loadIdentity:
 	ld	(ix+VX_MATRIX_C8), h
 	ret
 
-vxMatrixMlt:
-vxMatrix.mlt3:
-; (hl) = (iy) * (ix)
-; WARNING : hl can't be equal to ix
-; 116 bytes, ~3800 TStates
-	ex	de, hl
-	ld	bc, $000303
-vxMatrixColLoop:
-	push	bc
-	ld	b, c
-vxMatrixRowLoop:
-	push	bc
-	ld	h, (ix+0)
-	ld	l, (iy+0)
-	xor	a, a
-	bit	7, h
-	jr	z, $+3
-	sub	a, l
-	bit	7, l
-	jr	z, $+3
-	sub	a, h
-	mlt	hl
-	ld	b, (ix+1)
-	ld	c, (iy+3)
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	mlt	bc
-	add	hl, bc
-	ld	b, (ix+2)
-	ld	c, (iy+6)
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	mlt	bc
-	add	hl, bc
-	ld	b, a
-	xor	a, a
-	ld	c, a
-	add	hl, bc
-	add	hl, hl
-	add	hl, hl
-	ld	a, h
-	rl	l
-	adc	a, c
-	ld	(de), a
-	inc	de
-	inc	iy
-	pop	bc
-	djnz	vxMatrixRowLoop
-	add	ix, bc
-	lea	iy, iy-3
-	pop	bc
-	djnz	vxMatrixColLoop
-	ld	bc, -9
-	add	ix, bc
-	ex	de, hl
-	add	hl, bc
-	ret
-	
-vxMatrixTransform:
-vxMatrix.mlt4:
+.mlt4:
 ; (hl) = (iy)*(ix) with translation
 ; iy is a matrix, ix is a matrix, hl is matrix
 	push	hl
 ; load up the translation of matrix
 	lea	iy, iy+VX_MATRIX_TX
-	call	vxfTransformDouble
+	call	vxMatrix.ftransform
 	lea	iy, iy-VX_MATRIX_TX
 	pop	hl
-	call	vxMatrixMlt
 ; copy translation data to result (hl)
 	ld	bc, 9
 	add	hl, bc
@@ -186,17 +119,39 @@ vxMatrix.mlt4:
 	ld	c, -VX_MATRIX_SIZE
 	ex	de, hl
 	add	hl, bc
+
+.mlt3:
+; (hl) = (iy) * (ix)
+; WARNING : hl can't be equal to ix
+; 116 bytes, ~3800 TStates
+	ex	de, hl
+	mtxi
+	inc	iy
+	mtxi
+	inc	iy
+	mtxi
+	lea	ix, ix+3
+	lea	iy, iy-2
+	mtxi
+	inc	iy
+	mtxi
+	inc	iy
+	mtxi
+	lea	ix, ix+3
+	lea	iy, iy-2
+	mtxi
+	inc	iy
+	mtxi
+	inc	iy
+	mtxi
+	lea	ix, ix-6
+	lea	iy, iy-2
+	ld	bc, -9
+	ex	de, hl
+	add	hl, bc
 	ret
 
-vxMatrix.fixed_vector_transform:
-; input : iy vector, ix matrix
-; [ix+0]*[iy]+[ix+2]*[iy+2]+[ix+2]*[iy+4]+[ix+9]=x
-; [ix+3]*[iy]+[ix+4]*[iy+2]+{ix+5]*[iy+4]+[ix+12]=y
-; [ix+6]*[iy]+[ix+7]*[iy+2]+[ix+8]*[iy+4]+[ix+15]=z
-	
-	
-vxMatrixTranspose:
-vxMatrix.transpose:
+.transpose:
 	ld	c, (ix+VX_MATRIX_C3)
 	ld	a, (ix+VX_MATRIX_C1)
 	ld	(ix+VX_MATRIX_C3), a
@@ -226,21 +181,107 @@ vxMatrix.transpose:
 	ld	(ix+VX_MATRIX_TZ), hl
 	ret
 
-vxMatrix.scale3:
-; scale the matrix by a 3 wide 8.8 vector
-; (iy) is the matrix, (ix) is the vector
-; first line is multiplied by (ix), second by (ix+1) and third by (ix+2)
-
-
-vxMatrix.scale4:
-; scale a matrix by a 3 wide 8.8 vector
+.scale4:
+; scale a matrix by a 3 wide 2.6 vector
 ; also scale the translation part of the matrix
 ; (iy) is the matrix, (ix) is the vector
 ; first line is multiplied by (ix), second by (ix+1) and third by (ix+2)
 ; for translation, x is scaled by (ix), y is scaled by (ix+1) and z is scaled by (ix+2)
+	ld	a, (ix+0)
+	fmlt	(iy+9)
+	ld	(iy+VX_MATRIX_TX), hl
+	ld	a, (ix+1)
+	fmlt	(iy+12)
+	ld	(iy+VX_MATRIX_TY), hl
+	ld	a, (ix+2)
+	fmlt	(iy+15)
+	ld	(iy+VX_MATRIX_TZ), hl
 
+.scale3:
+; scale the matrix by a 3 wide 2.6 vector
+; (iy) is the matrix, (ix) is the vector
+; first line is multiplied by (ix), second by (ix+1) and third by (ix+2)
+	ld	c, 3
+	ld	b, c
+.scale3_col_loop:
+	ld	e, (ix+0)
+.scale3_row_loop:
+	xor	a, a
+	ld	d, (iy+0)
+	bit	7, e
+	jr	z, $+3
+	add	a, d
+	bit	7, d
+	jr	z, $+3
+	add	a, e
+	mlt	hl
+	add	a, h
+	ld	h, a
+	add	hl, hl
+	add	hl, hl
+	ld	(iy+0), h
+	inc	iy
+	djnz	.scale3_row_loop
+	inc	ix
+	dec	c
+	jr	nz, .scale3_col_loop
+	lea	iy, iy-9
+	lea	ix, ix-3
 	ret
 
+.extend:
+; extend an 18.6 fixed point translation vector of a matrix to a 24.0 translation vector
+; extend on x
+; input in iy, output in ix
+	ld	hl, (iy+VX_VECTOR_LX)
+	ld	a, (iy+VX_VECTOR_LX+2)
+	add.s	hl, hl
+	adc	a, a
+	ex	de, hl
+	sbc	hl, hl
+	ex	de, hl
+	add.s	hl, hl
+	adc	a, a
+	ld	e, h
+	ld	d, a
+	rl	l
+	jr	nc, $+3
+	inc	de
+	ld	(ix+VX_VECTOR_LX), de
+; extend on y
+	ld	hl, (iy+VX_VECTOR_LY)
+	ld	a, (iy+VX_VECTOR_LY+2)
+	add.s	hl, hl
+	adc	a, a
+	ex	de, hl
+	sbc	hl, hl
+	ex	de, hl
+	add.s	hl, hl
+	adc	a, a
+	ld	e, h
+	ld	d, a
+	rl	l
+	jr	nc, $+3
+	inc	de
+	ld	(ix+VX_VECTOR_LY), de
+; extend on z
+	ld	hl, (iy+VX_VECTOR_LZ)
+	ld	a, (iy+VX_VECTOR_LZ+2)
+	add.s	hl, hl
+	adc	a, a
+	ex	de, hl
+	sbc	hl, hl
+	ex	de, hl
+	add.s	hl, hl
+	adc	a, a
+	ld	e, h
+	ld	d, a
+	rl	l
+	jr	nc, $+3
+	inc	de
+	ld	(ix+VX_VECTOR_LZ), de
+	ret
+	
 vxMatrixLightning:
 	ld	b, 3
 vxMatrixLightLoop:
@@ -269,7 +310,7 @@ vxMatrixLightLoop:
 	inc	hl
 	push	hl
 	lea	iy, iy+VX_LIGHT_POSITION
-	call	vxfTransform
+; 	call	vxfTransform
 ; now copy back to my light !
 ; I need to divide the position by 64
 	ld	hl, (vxPosition)
@@ -301,413 +342,329 @@ vxMatrixLightLoop:
 	ld	(hl), d
 	ret
 
-vxfPositionExtract:
-; vxPosition/64 -> de
-	ld	hl, (vxPosition)
-	add	hl, hl
-	sbc	a, a
-	add	hl, hl
-	dec	sp
-	push	hl
-	inc	sp
-	pop	bc
-	rla
-	ld	a, l
-	sbc	hl, hl
-	ld	h, b
-	ld	l, c
-	rla
-	jr	nc, $+3
-	inc	hl
-	ex	de, hl
-	ld	(hl), de
-	inc	hl
-	inc	hl
-	inc	hl
-	ex	de, hl
-	ld	hl, (vxPosition+3)
-	add	hl, hl
-	sbc	a, a
-	add	hl, hl
-	dec	sp
-	push	hl
-	inc	sp
-	pop	bc
-	rla
-	ld	a, l
-	sbc	hl, hl
-	ld	h, b
-	ld	l, c
-	rla
-	jr	nc, $+3
-	inc	hl
-	ex	de, hl
-	ld	(hl), de
-	inc	hl
-	inc	hl
-	inc	hl
-	ex	de, hl
-	ld	hl, (vxPosition+6)
-	add	hl, hl
-	sbc	a, a
-	add	hl, hl
-	dec	sp
-	push	hl
-	inc	sp
-	pop	bc
-	rla
-	ld	a, l
-	sbc	hl, hl
-	ld	h, b
-	ld	l, c
-	rla
-	jr	nc, $+3
-	inc	hl
-	ex	de, hl
-	ld	(hl), de
-	ret
+; vxVector.extend:
+; ; simple extend 16.8 -> 24.0
+; ; extend on x
+; 	ld	a, (iy+2)
+; 	rlca
+; 	sbc	hl, hl
+; 	rrca
+; 	ld	h, a
+; 	ld	l, (iy+1)
+; 	ld	(iy+VX_VECTOR_LX), hl
+; ; extend on y
+; 	ld	a, (iy+5)
+; 	rlca
+; 	sbc	hl, hl
+; 	rrca
+; 	ld	h, a
+; 	ld	l, (iy+4)
+; 	ld	(iy+VX_VECTOR_LY), hl
+; ; extend on z
+; 	ld	a, (iy+8)
+; 	rlca
+; 	sbc	hl, hl
+; 	rrca
+; 	ld	h, a
+; 	ld	l, (iy+7)
+; 	ld	(iy+VX_VECTOR_LZ), hl
+; 	ret
 
-vxfMatrixPerspective:
-; (hl) = transform the modelview matrix (iy) by a specific fov 90° aspect ratio 4:3 matrix
-; first lign  *48/64 (signed*unsigned)
-	ld	d, (iy+0)
-	ld	e, 192
-	xor	a, a
-	bit	7, d
-	jr	z, $+3
-	sub	a, e
-	mlt	de
-	rl	e
-	adc	a, d
-	ld	(hl), a
-	inc	hl
-
-	ld	d, (iy+1)
-	ld	e, 192
-	xor	a, a
-	bit	7, d
-	jr	z, $+3
-	sub	a, e
-	mlt	de
-	rl	e
-	adc	a, d
-	ld	(hl), a
-	inc	hl
-	
-	ld	d, (iy+2)
-	ld	e, 192
-	xor	a, a
-	bit	7, d
-	jr	z, $+3
-	sub	a, e
-	mlt	de
-	rl	e
-	adc	a, d
-	ld	(hl), a
-	inc	hl
-
-	ex	de, hl
-	lea	hl, iy+3
-	ld	bc, VX_MATRIX_SIZE - 3
-	ldir
-	ld	bc, -9
-	ex	de, hl
-	add	hl, bc
-; hl is TX of created matrix
-; iy is source
-	push	hl
-	ld	a, 192
-	ld	h, (iy+VX_MATRIX_TX+2)
-	ld	l, a
-	bit	7, h
-	mlt	hl
-	jr	z, $+6
-	neg
-	add	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	ld	e, (iy+VX_MATRIX_TX+1)
-	ld	d, 192
-	mlt	de
-	add	hl, de
-	ld	d, 192
-	ld	e, (iy+VX_MATRIX_TX)
-	mlt	de
-	rl	e
-	ld	e, d
-	ld	d, 0
-	adc	hl, de
-	ex	de, hl
-	pop	hl
-	ld	(hl), de
-	ret
-	
-vxfTransformDouble:
-	lea	hl, iy+0
-	ld	de, vxPosition
-	ld	bc, 9
-	ldir
-	lea	de, iy+0
-	call	vxfPositionExtract
-vxfTransform:
+vxMatrix.ftransform:
 ; input : iy vector, ix matrix
 ; [ix+0]*[iy]+[ix+1]*[iy+2]+[ix+2]*[iy+4]+[ix+9]=x
 ; [ix+3]*[iy]+[ix+4]*[iy+2]+{ix+5]*[iy+4]+[ix+12]=y
 ; [ix+6]*[iy]+[ix+7]*[iy+2]+[ix+8]*[iy+4]+[ix+15]=z
-; From 1566+x? TStates to 1654 TStates, 333 bytes
-; X coordinate
-; you know, I am really madd ! *coder stare at you*
-	ld	bc, (iy+0)
-	ld	de, (ix+9)
-	ld	a, (ix+0)
-	ld	h, b
-	ld	l, a
-	mlt	hl
-	cp	$80
-	jr	c, $+4
-	sbc	hl, bc
-	bit	7, b
-	ld	b, a
-	jr	z, $+5
-	cpl
-	adc	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	mlt	bc
-	add	hl, bc
-	add	hl, de
-	ld	a, (ix+1)
-	ld	bc, (iy+3)
-	ex	de, hl
-	ld	h, b
-	ld	l, a
-	mlt	hl
-	cp	$80
-	jr	c, $+4
-	sbc	hl, bc
-	bit	7, b
-	ld	b, a
-	jr	z, $+5
-	cpl
-	adc	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	mlt	bc
-	add	hl, bc
-	add	hl, de
-	ld	a, (ix+2)
-	ld	bc, (iy+6)
-	ld	d, c
-	ld	e, a
-	mlt	de
-	add	hl, de
-	ex	de, hl
-	ld	h, b
-	ld	l, a
-	mlt	hl
-; watch the carry flag !
-	cp	$80
-	jr	c, $+4
-	sbc	hl, bc
-	bit	7, b
-	jr	z, $+5
-	cpl
-	adc	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, de
-	ld	(vxPosition), hl
-; Y coordinate
-	ld	de, (ix+12)
-	ld	a, (ix+5)
-	ld	h, b
-	ld	l, a
-	mlt	hl
-	cp	$80
-	jr	c, $+4
-	sbc	hl, bc
-	bit	7, b
-	ld	b, a
-	jr	z, $+5
-	cpl
-	adc	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	mlt	bc
-	add	hl, bc
-	add	hl, de
-	ld	a, (ix+4)
-	ld	bc, (iy+3)
-	ex	de, hl
-	ld	h, b
-	ld	l, a
-	mlt	hl
-	cp	$80
-	jr	c, $+4
-	sbc	hl, bc
-	bit	7, b
-	ld	b, a
-	jr	z, $+5
-	cpl
-	adc	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	mlt	bc
-	add	hl, bc
-	add	hl, de
-	ld	a, (ix+3)
-	ld	bc, (iy+0)
-	ld	d, c
-	ld	e, a
-	mlt	de
-	add	hl, de
-	ex	de, hl
-	ld	h, b
-	ld	l, a
-	mlt	hl
-; watch the carry flag !
-	cp	$80
-	jr	c, $+4
-	sbc	hl, bc
-	bit	7, b
-	jr	z, $+5
-	cpl
-	adc	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, de
-	ld	(vxPosition+3), hl
-; Z coordinate
-	ld	de, (ix+15)
-	ld	a, (ix+6)
-	ld	h, b
-	ld	l, a
-	mlt	hl
-	cp	$80
-	jr	c, $+4
-	sbc	hl, bc
-	bit	7, b
-	ld	b, a
-	jr	z, $+5
-	cpl
-	adc	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	mlt	bc
-	add	hl, bc
-	add	hl, de
-	ld	a, (ix+7)
-	ld	bc, (iy+3)
-	ex	de, hl
-	ld	h, b
-	ld	l, a
-	mlt	hl
-	cp	$80
-	jr	c, $+4
-	sbc	hl, bc
-	bit	7, b
-	ld	b, a
-	jr	z, $+5
-	cpl
-	adc	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	mlt	bc
-	add	hl, bc
-	add	hl, de
-	ld	a, (ix+8)
-	ld	bc, (iy+6)
-	ld	d, c
-	ld	e, a
-	mlt	de
-	add	hl, de
-	ex	de, hl
-	ld	h, b
-	ld	l, a
-	mlt	hl
-; watch the carry flag !
-	cp	$80
-	jr	c, $+4
-	sbc	hl, bc
-	bit	7, b
-	jr	z, $+5
-	cpl
-	adc	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, de
-	ld	(vxPosition+6), hl
+	ld	de, (ix+VX_MATRIX_TX)
+	ld	a, (ix+VX_MATRIX_C0)
+	fma	(iy+0)
+	ld	a, (ix+VX_MATRIX_C1)
+	fma	(iy+3)
+	ld	a, (ix+VX_MATRIX_C2)
+	fma	(iy+6)
+	ld	(vxPosition), de
+	ld	de, (ix+VX_MATRIX_TY)
+	ld	a, (ix+VX_MATRIX_C3)
+	fma	(iy+0)
+	ld	a, (ix+VX_MATRIX_C4)
+	fma	(iy+3)
+	ld	a, (ix+VX_MATRIX_C5)
+	fma	(iy+6)
+	ld	(vxPosition+3), de
+	ld	de, (ix+VX_MATRIX_TZ)
+	ld	a, (ix+VX_MATRIX_C6)
+	fma	(iy+0)
+	ld	a, (ix+VX_MATRIX_C7)
+	fma	(iy+3)
+	ld	a, (ix+VX_MATRIX_C8)
+	fma	(iy+6)
+	ld	(vxPosition+6), de
 	ret
+
+; vxfTransformDouble:
+; vxMatrix.ftransform:
+; ; 	lea	hl, iy+0
+; ; 	ld	de, vxPosition
+; ; 	ld	bc, 9
+; ; 	ldir
+; ; 	lea	de, iy+0
+; ; 	call	vxfPositionExtract
+; 	push	ix
+; 	lea	ix, iy+0
+; 	call	vxMatrix.extend
+; 	pop	ix
+; vxfTransform:
+; ; input : iy vector, ix matrix
+; ; [ix+0]*[iy]+[ix+1]*[iy+2]+[ix+2]*[iy+4]+[ix+9]=x
+; ; [ix+3]*[iy]+[ix+4]*[iy+2]+{ix+5]*[iy+4]+[ix+12]=y
+; ; [ix+6]*[iy]+[ix+7]*[iy+2]+[ix+8]*[iy+4]+[ix+15]=z
+; ; From 1566+x? TStates to 1654 TStates, 333 bytes
+; ; X coordinate
+; ; you know, I am really madd ! *coder stare at you*
+; 	ld	bc, (iy+0)
+; 	ld	de, (ix+9)
+; 	ld	a, (ix+0)
+; 	ld	h, b
+; 	ld	l, a
+; 	mlt	hl
+; 	cp	$80
+; 	jr	c, $+4
+; 	sbc	hl, bc
+; 	bit	7, b
+; 	ld	b, a
+; 	jr	z, $+5
+; 	cpl
+; 	adc	a, h
+; 	ld	h, a
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	mlt	bc
+; 	add	hl, bc
+; 	add	hl, de
+; 	ld	a, (ix+1)
+; 	ld	bc, (iy+3)
+; 	ex	de, hl
+; 	ld	h, b
+; 	ld	l, a
+; 	mlt	hl
+; 	cp	$80
+; 	jr	c, $+4
+; 	sbc	hl, bc
+; 	bit	7, b
+; 	ld	b, a
+; 	jr	z, $+5
+; 	cpl
+; 	adc	a, h
+; 	ld	h, a
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	mlt	bc
+; 	add	hl, bc
+; 	add	hl, de
+; 	ld	a, (ix+2)
+; 	ld	bc, (iy+6)
+; 	ld	d, c
+; 	ld	e, a
+; 	mlt	de
+; 	add	hl, de
+; 	ex	de, hl
+; 	ld	h, b
+; 	ld	l, a
+; 	mlt	hl
+; ; watch the carry flag !
+; 	cp	$80
+; 	jr	c, $+4
+; 	sbc	hl, bc
+; 	bit	7, b
+; 	jr	z, $+5
+; 	cpl
+; 	adc	a, h
+; 	ld	h, a
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, de
+; 	ld	(vxPosition), hl
+; ; Y coordinate
+; 	ld	de, (ix+12)
+; 	ld	a, (ix+5)
+; 	ld	h, b
+; 	ld	l, a
+; 	mlt	hl
+; 	cp	$80
+; 	jr	c, $+4
+; 	sbc	hl, bc
+; 	bit	7, b
+; 	ld	b, a
+; 	jr	z, $+5
+; 	cpl
+; 	adc	a, h
+; 	ld	h, a
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	mlt	bc
+; 	add	hl, bc
+; 	add	hl, de
+; 	ld	a, (ix+4)
+; 	ld	bc, (iy+3)
+; 	ex	de, hl
+; 	ld	h, b
+; 	ld	l, a
+; 	mlt	hl
+; 	cp	$80
+; 	jr	c, $+4
+; 	sbc	hl, bc
+; 	bit	7, b
+; 	ld	b, a
+; 	jr	z, $+5
+; 	cpl
+; 	adc	a, h
+; 	ld	h, a
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	mlt	bc
+; 	add	hl, bc
+; 	add	hl, de
+; 	ld	a, (ix+3)
+; 	ld	bc, (iy+0)
+; 	ld	d, c
+; 	ld	e, a
+; 	mlt	de
+; 	add	hl, de
+; 	ex	de, hl
+; 	ld	h, b
+; 	ld	l, a
+; 	mlt	hl
+; ; watch the carry flag !
+; 	cp	$80
+; 	jr	c, $+4
+; 	sbc	hl, bc
+; 	bit	7, b
+; 	jr	z, $+5
+; 	cpl
+; 	adc	a, h
+; 	ld	h, a
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, de
+; 	ld	(vxPosition+3), hl
+; ; Z coordinate
+; 	ld	de, (ix+15)
+; 	ld	a, (ix+6)
+; 	ld	h, b
+; 	ld	l, a
+; 	mlt	hl
+; 	cp	$80
+; 	jr	c, $+4
+; 	sbc	hl, bc
+; 	bit	7, b
+; 	ld	b, a
+; 	jr	z, $+5
+; 	cpl
+; 	adc	a, h
+; 	ld	h, a
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	mlt	bc
+; 	add	hl, bc
+; 	add	hl, de
+; 	ld	a, (ix+7)
+; 	ld	bc, (iy+3)
+; 	ex	de, hl
+; 	ld	h, b
+; 	ld	l, a
+; 	mlt	hl
+; 	cp	$80
+; 	jr	c, $+4
+; 	sbc	hl, bc
+; 	bit	7, b
+; 	ld	b, a
+; 	jr	z, $+5
+; 	cpl
+; 	adc	a, h
+; 	ld	h, a
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	mlt	bc
+; 	add	hl, bc
+; 	add	hl, de
+; 	ld	a, (ix+8)
+; 	ld	bc, (iy+6)
+; 	ld	d, c
+; 	ld	e, a
+; 	mlt	de
+; 	add	hl, de
+; 	ex	de, hl
+; 	ld	h, b
+; 	ld	l, a
+; 	mlt	hl
+; ; watch the carry flag !
+; 	cp	$80
+; 	jr	c, $+4
+; 	sbc	hl, bc
+; 	bit	7, b
+; 	jr	z, $+5
+; 	cpl
+; 	adc	a, h
+; 	ld	h, a
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, de
+; 	ld	(vxPosition+6), hl
+; 	ret
 
 ; vxMatrixLookAt:
 ; ; zaxis = normal(At - Eye)
@@ -770,44 +727,6 @@ vxfTransform:
 ; 	sbc hl,hl
 ; 	sbc hl, de
 ; 	ld	(ix+VX_MATRIX_TZ), hl
-; 	ret
-; vxProjectionVector:
-;  db	192, 0, 0
-;  
-; vxMatrixProjection:
-; ; scale the matrix iy by the projection vector
-; ; 0 = 256
-; 	ld	hl, vxProjectionVector
-; 	ld	c, 3
-; .outer:
-; 	ld	b, 3
-; 	xor	a, a
-; .outer0:
-; 	or	a, (hl)
-; 	jr	nz, .inner
-; 	lea	iy, iy+3
-; 	inc	hl
-; 	dec	c
-; 	jr	nz, .outer0
-; 	jr	.translate
-; .inner:
-; 	ld	d, (iy+0)
-; 	ld	e, (hl)
-; 	xor	a, a
-; 	bit	7, d
-; 	jr	z, $+3
-; 	sub	a, e
-; 	mlt	de
-; 	rl	e
-; 	adc	a, d
-; 	ld	(iy+0), a
-; 	inc	iy
-; 	djnz	.inner
-; 	inc	hl
-; 	dec	c
-; 	jr	nz, .outer
-; ; now the translation
-; .translate:
 ; 	ret
 ; 
 ; ; (iy)*(de) (signed 24 bits * unsigned 8 bits / 256)

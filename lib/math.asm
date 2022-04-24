@@ -22,81 +22,115 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
 
-; perform hl = de * bc + hl
-; doesnt destroy de
-macro fma.s? hl
-	push.s	hl
-	xor	a, a
-	ld	h, b
-	ld	l, d
-	mlt	hl
-	bit	7, b
-	jr	z, $+4
-	sbc	hl, de
-	bit	7, d
-	jr	z, $+5
-	or	a, a
-	sbc	hl, bc
-	ld	h, l
-	ld	l, a
-	ld	a, c
-	ld	c, e
-	mlt	bc
-	add	hl, bc
-	ld	c, a
-	ld	b, d
-	mlt	bc
-	add	hl, bc
-	ld	c, a
-	ld	b, e
-	mlt	bc
-	ld	c, b
-	xor	a, a
-	ld	b, a
-	add	hl, bc
-	pop.s	bc
-	add.s	hl, bc
-end macro
+; macro	fmlt
+; 	xor	a, a
+; 	bit	7, h
+; 	ld	b, h
+; 	ld	c, l
+; 	ld	l, d
+; 	mlt	hl
+; 	jr	z, $+4
+; 	sbc	hl, de
+; 	bit	7, d
+; 	jr	z, $+5
+; 	or	a, a
+; 	sbc	hl, bc
+; 	ld	h, l
+; 	ld	l, a
+; 	ld	a, c
+; 	ld	c, e
+; 	mlt	bc
+; 	add	hl, bc
+; 	ld	c, a
+; 	ld	b, d
+; 	mlt	bc
+; 	add	hl, bc
+; 	ld	c, a
+; 	ld	b, e
+; 	mlt	bc
+; 	ld	c, b
+; 	xor	a, a
+; 	ld	b, a
+; 	add	hl, bc
+; end	macro
 
-macro fma? hl
-	push	hl
-	ld	h, b
-	ld	l, d
-	mlt	hl
-	bit	7, b
-	jr	z, $+5
-	or	a, a
-	sbc	hl, de
-	bit	7, d
-	jr	z, $+5
-	or	a, a
-	sbc	hl, bc
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	ld	a, c
-	ld	c, e
-	mlt	bc
-	add	hl, bc
-	ld	c, a
-	ld	b, d
-	mlt	bc
-	add	hl, bc
-	ld	c, a
-	ld	b, e
-	mlt	bc
-	ld	c, b
-	xor	a, a
-	ld	b, a
-	add	hl, bc
-	pop	bc
-	add	hl, bc
-end macro
+
+; 
+; ; perform hl = de * bc + hl
+; ; doesnt destroy de
+; macro fma.s? hl
+; 	push.s	hl
+; 	xor	a, a
+; 	ld	h, b
+; 	ld	l, d
+; 	mlt	hl
+; 	bit	7, b
+; 	jr	z, $+4
+; 	sbc	hl, de
+; 	bit	7, d
+; 	jr	z, $+5
+; 	or	a, a
+; 	sbc	hl, bc
+; 	ld	h, l
+; 	ld	l, a
+; 	ld	a, c
+; 	ld	c, e
+; 	mlt	bc
+; 	add	hl, bc
+; 	ld	c, a
+; 	ld	b, d
+; 	mlt	bc
+; 	add	hl, bc
+; 	ld	c, a
+; 	ld	b, e
+; 	mlt	bc
+; 	ld	c, b
+; 	xor	a, a
+; 	ld	b, a
+; 	add	hl, bc
+; 	pop.s	bc
+; 	add.s	hl, bc
+; end macro
+; 
+; macro fma? hl
+; 	push	hl
+; 	ld	h, b
+; 	ld	l, d
+; 	mlt	hl
+; 	bit	7, b
+; 	jr	z, $+5
+; 	or	a, a
+; 	sbc	hl, de
+; 	bit	7, d
+; 	jr	z, $+5
+; 	or	a, a
+; 	sbc	hl, bc
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	add	hl, hl
+; 	ld	a, c
+; 	ld	c, e
+; 	mlt	bc
+; 	add	hl, bc
+; 	ld	c, a
+; 	ld	b, d
+; 	mlt	bc
+; 	add	hl, bc
+; 	ld	c, a
+; 	ld	b, e
+; 	mlt	bc
+; 	ld	c, b
+; 	xor	a, a
+; 	ld	b, a
+; 	add	hl, bc
+; 	pop	bc
+; 	add	hl, bc
+; end macro
 
 vxMath:
 
@@ -272,6 +306,7 @@ assert	VX_LUT_SIN mod 2 = 0
 
 ._mulf16:
 ; hl = hl * de fixed point 8.8 multiplication (hl is 8.8 fixed point)
+; de is not destroyed
 	xor	a, a
 	bit	7, h
 	ld	b, h

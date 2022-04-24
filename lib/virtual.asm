@@ -208,6 +208,7 @@ include	"image.asm"
 include	"shader.asm"
 include	"timer.asm"
 include	"vector.asm"
+include	"vop.asm"
 ; default optimized shader
 include	"shader/vertex.asm"
 include	"shader/texture.asm"

@@ -30,41 +30,42 @@ define	VX_MAX_VERTEX			2048
 ; poison bit to mark vertex as to be not transformed
 ; it should be reset if we should transform it
 define	VX_VERTEX_POISON		1 shl VX_VERTEX_POISON_BIT
-define	VX_VERTEX_POISON_BIT		7
-
-define	VX_REGISTER_US	-36-11
-define	VX_REGISTER_VS	-36-10
-define	VX_REGISTER_STARTPOINT -36-9
-define	VX_REGISTER_OFFSET -36-6
-define	VX_REGISTER_MIDPOINT -36-3
-define	VX_REGISTER_TMP	-36+0
-define	VX_REGISTER_Y0	-32+0
-define	VX_REGISTER_X0	-32+1
-define	VX_REGISTER_C0	-32+3
-define	VX_REGISTER_U0	-32+4
-define	VX_REGISTER_V0	-32+5
-define	VX_REGISTER_Y1	-26+0
-define	VX_REGISTER_X1	-26+1
-define	VX_REGISTER_C1	-26+3
-define	VX_REGISTER_U1	-26+4
-define	VX_REGISTER_V1	-26+5
-define	VX_REGISTER_Y2	-20+0
-define	VX_REGISTER_X2	-20+1
-define	VX_REGISTER_C2	-20+3
-define	VX_REGISTER_U2	-20+4
-define	VX_REGISTER_V2	-20+5
+define	VX_VERTEX_POISON_BIT		0
 
 define	VX_FDVDY	-12
 define	VX_FDUDY	-10
 define	VX_FDVDX	-6
 define	VX_FDUDX	-4
 
+virtual at -64
+	VX_REGISTER_UE:		rb	1
+	VX_REGISTER_VE:		rb	1
+	VX_REGISTER_STARTPOINT:	rb	3
+	VX_REGISTER_OFFSET:	rb	3
+	VX_REGISTER_MIDPOINT:	rb	3
+	VX_REGISTER_TMP:	rb	4
+	VX_REGISTER_Y0:		rb	1
+	VX_REGISTER_X0:		rb	2
+	VX_REGISTER_U0:		rb	1
+	VX_REGISTER_V0:		rb	1
+	VX_REGISTER_Y1:		rb	1
+	VX_REGISTER_X1:		rb	2
+	VX_REGISTER_U1:		rb	1
+	VX_REGISTER_V1:		rb	1
+	VX_REGISTER_Y2:		rb	1
+	VX_REGISTER_X2:		rb	2
+	VX_REGISTER_U2:		rb	1
+	VX_REGISTER_V2:		rb	1
+end virtual
+
 define	VX_PRIMITIVE_INTERPOLATION_SIZE	1024
 
+align 64
  rb	64
 VX_REGISTER_DATA:
  db	3072	dup	$D3
 
+VX_GPR_STATUS:		rb	1
 VIRTUAL_PIPELINE_STATE:
  db	0
 ; pipeline state
@@ -132,8 +133,8 @@ vxIdentityMatrix:
 ; projection matrix is (1/tan(fov/2)) / aspect and the (1/tan(fov/2))
 ; note we loose precision because 0.6 isn't quite enough (move to 8.8 ?)
 vxProjectionMatrix:
- db	64,0,0
- db	0,85,0
+ db	68,0,0	; this is actually fov=70°
+ db	0,91,0	; 85
  db	0,0,64
 vxProjectionMatrix_t:
  dl	0,0,0
@@ -196,6 +197,8 @@ VX_SHADER_STATE:=$+1
 	ld	b, l
 	djnz	.deferred
 .deferred_reset:
+	ld	a, $D0
+	ld	mb, a
 	jp	vxVertexCache.reset
 	
 vxPrimitiveStream:
@@ -242,38 +245,14 @@ vxPrimitiveStream:
 	lea	hl, ix+VX_MATRIX_TX
 	lea	de, iy+0
 	ld	bc, 9
-	ldir	
+	ldir
 	ld	(ix+VX_MATRIX_TZ), bc
 	ld	(ix+VX_MATRIX_TY), bc
 	ld	(ix+VX_MATRIX_TX), bc
-	call	vxfTransformDouble
-; later this will be a simple extend 16.8 -> 24.0
-; extend on x
-;	ld	a, (iy+2)
-;	rlca
-;	sbc	hl, hl
-;	rrca
-;	ld	h, a
-;	ld	l, (iy+1)
-;	ld	(iy+0), hl
-; extend on y
-;	ld	a, (iy+5)
-;	rlca
-;	sbc	hl, hl
-;	rrca
-;	ld	h, a
-;	ld	l, (iy+4)
-;	ld	(iy+3), hl
-; extend on z
-;	ld	a, (iy+8)
-;	rlca
-;	sbc	hl, hl
-;	rrca
-;	ld	h, a
-;	ld	l, (iy+7)
-;	ld	(iy+6), hl
-	lea	de, iy+0
-	call	vxfPositionExtract
+	call	vxMatrix.ftransform
+	lea	ix, iy+0
+	ld	iy, vxPosition
+	call	vxMatrix.extend
 ; modelworldreverse=transpose(modelworld)
 	ld	ix, vxModelWorldReverse
 	call	vxMatrix.transpose
@@ -362,7 +341,7 @@ vxPrimitiveStream:
 vxVertexCache:
 
 ; .unpack:
-; less than 110 cycles ??
+; less than 96 cycles () > 147 cycles minimum
 ; ; de - base adress
 ; ; bc - vertex count
 ; ; hl - vertex stream

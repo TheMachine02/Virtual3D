@@ -19,10 +19,23 @@
 ; FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 ; AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 ; LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE US OR OTHER DEALINGS IN THE
 ; SOFTWARE.
 
+define	VX_GPR_HINT_HUGE_TILE	1 slh 0		; bigger than 32 pixels height triangle 
+define	VX_GPR_HINT_DUAL_PIXEL	1 slh 1		; we can output dual pixel (vrs)
+define	VX_GPR_HINT_MIPMAP	1 slh 2		; perform mipmap computation
+define	VX_GPR_HINT_DAMAGE	1 slh 3		; sha 256 area was damaged
+define	VX_GPR_NO_HINT		1 slh 7		; disable hinting
+
+; WARNING : this routine assume vertex buffer is in the first 64K of RAM
+assert VX_PATCH_VERTEX_POOL < $D10000
+assert VX_VERTEX_BUFFER < $D10000
+
 vxPrimitiveTextureRaster:
+; about 200 cycles to swap in place
+	ld	a, VX_REGISTER_DATA shr 16
+	ld	mb, a
 	inc	hl
 	inc	de
 	inc	bc
@@ -34,11 +47,17 @@ vxPrimitiveTextureRaster:
 	ld	a, (bc)
 	sub	a, (hl)
 	jr	nc, .swap1
-	push	hl
-	or	a, a
-	sbc	hl, hl
-	add	hl, bc
-	pop	bc
+; 	push	hl
+; 	or	a, a
+; 	sbc	hl, hl
+; 	add	hl, bc
+; 	pop	bc
+	ld	a, h
+	ld	h, b
+	ld	b, a
+	ld	a, l
+	ld	l, c
+	ld	c, a
 .swap1:
 	ld	a, (de)
 	sub	a, (hl)
@@ -53,27 +72,18 @@ vxPrimitiveTextureRaster:
 .cacheRegister:
 	cce	ge_pxl_raster
 	ld	(VX_SMC_STACK_REGISTER), sp
-; copy x&y u&v to constant area
+; copy x&y u&v to constant area : 219 cycles
 	ld	iy, VX_REGISTER_DATA
 	push	bc
 	push	de
-	lea	de, iy-32
-	ld	bc, 3
+	lea	de, iy+VX_REGISTER_Y0
+	ld	bc, 5
 	ldir
-	inc	de
-	ld	c, 2
-	ldir	
 	pop	hl
-	ld	c, 3
+	ld	c, 5
 	ldir
-	inc	de
-	ld	c, 2
-	ldir	
 	pop	hl
-	ld	c, 3
-	ldir
-	inc	de
-	ld	c, 2
+	ld	c, 5
 	ldir
 .triangleSetup:
 .triangleInv_dy:
@@ -119,7 +129,7 @@ vxPrimitiveTextureRaster:
 	rl	l
 	adc	a, h
 	add	a, c
-	ld	(iy+VX_REGISTER_VS), a
+	ld	(iy+VX_REGISTER_VE), a
 .triangleCompute_dudy:
 ; dudy = (u2-u0)*inv/256;
 	ld	a, (iy+VX_REGISTER_U2)
@@ -153,13 +163,13 @@ vxPrimitiveTextureRaster:
 	rl	l
 	adc	a, h
 	add	a, c
-	ld	(iy+VX_REGISTER_US), a
+	ld	(iy+VX_REGISTER_UE), a
 .edge0Setup:
 ; perform necessary computation to interpolate over the edge0, which is line(x0,y0,x2,y2)
 ; ~ 250cc
 .edge0Compute_offset:
 ; register_offset=320*y0+x0+framebuffer;
-	ld	de, (iy+VX_REGISTER_X0)
+	ld.s	de, (iy+VX_REGISTER_X0)
 	ld	l, (iy+VX_REGISTER_Y0)
 	ld	h, 160
 	mlt	hl
@@ -172,7 +182,7 @@ vxPrimitiveTextureRaster:
 .edge0Compute_dx:
 ; compute the deltas for vxRegisterInterpolation
 ; dx = abs(x2-x0) [de]
-	ld	de, (iy+VX_REGISTER_X2)	; load x2
+	ld.s	de, (iy+VX_REGISTER_X2)	; load x2
 ; hl already hold _x0
 ;	ld	hl, (iy+VX_REGISTER_X0)	; load x0
 	ld	a, $23 or $08	; inc ix
@@ -227,7 +237,7 @@ VX_SMC_EDGE0_INC=$
 	ld	hl, (vxFramebuffer)
 	add	hl, de
 	add	hl, de
-	ld	de, (ix+VX_REGISTER_X2)
+	ld.s	de, (ix+VX_REGISTER_X2)
 	add	hl, de
 	ld	(iy+VX_REGISTER0), hl
 	ex	de, hl
@@ -254,8 +264,8 @@ vxShaderAdress4Write:=$+2
 	ld	ix, $CCCCCC + 2 ; (+2 is double carry sbc)
 	add	ix, de
 .edge1Compute_dx:
-	ld	hl, (iy+VX_REGISTER_X0)
-	ld	de, (iy+VX_REGISTER_X1)
+	ld.s	hl, (iy+VX_REGISTER_X0)
+	ld.s	de, (iy+VX_REGISTER_X1)
 	ld	a, $23	; dec ix
 	or	a, a
 	sbc	hl, de	; hl = x1-x0
@@ -321,7 +331,7 @@ VX_SMC_EDGE1_INC=$
 	ld	hl, (vxFramebuffer)
 	add	hl, de
 	add	hl, de
-	ld	de, (ix+VX_REGISTER_X1)
+	ld.s	de, (ix+VX_REGISTER_X1)
 	ld	b, d
 	ld	c, e
 	add	hl, de
@@ -332,7 +342,7 @@ VX_SMC_EDGE1_INC=$
 	sbc	hl, hl
 	sbc	hl, de
 	ex	de, hl
-	ld	hl, (ix+VX_REGISTER_X2)
+	ld.s	hl, (ix+VX_REGISTER_X2)
 vxShaderAdress3Write:=$+2
 	ld	ix, $CCCCCC
 	add	ix, de
@@ -421,7 +431,7 @@ vxShaderAdress2Write=$+1
 	ld	d, (hl)
 .triangleCompute_dvdx:
 	ld	a, (iy+VX_REGISTER_V1)
-	sub	a, (iy+VX_REGISTER_VS)
+	sub	a, (iy+VX_REGISTER_VE)
 	ld	h, d
 	ld	l, a
 	mlt	hl
@@ -432,15 +442,15 @@ vxShaderAdress2Write=$+1
 	ld	b, e
 	ld	c, a
 	mlt	bc
+	rl	c
 	ld	c, b
-	xor	a, a
-	ld	b, a
-	add	hl, bc
+	ld	b, 0
+	adc	hl, bc
 .triangleNull_dvdx:
 	ld	(iy+VX_FDVDX), hl
 .triangleCompute_dudx:
 	ld	a, (iy+VX_REGISTER_U1)
-	sub	a, (iy+VX_REGISTER_US)
+	sub	a, (iy+VX_REGISTER_UE)
 	ld	h, d
 	ld	l, a
 	mlt	hl
@@ -450,10 +460,10 @@ vxShaderAdress2Write=$+1
 	sbc	hl, de
 	ld	d, a
 	mlt	de
+	rl	e
 	ld	e, d
-	xor	a, a
-	ld	d, a
-	add	hl, de
+	ld	d, 0
+	adc	hl, de
 .triangleNull_dudx:
 	ld	(iy+VX_FDUDX), hl
 .triangleMipmap:

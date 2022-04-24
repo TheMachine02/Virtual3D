@@ -71,7 +71,7 @@ Main:
 	ld	hl, 0
 	ld	(EulerAngle), hl
 	ld	hl, WorldMatrix
-	call	vxMatrixLoadIdentity
+	call	vxMatrix.load_identity
 
 	ld	a, 15
 	ld	(vxLightUniform+3), a
@@ -102,14 +102,23 @@ MainLoop:
 	call	Camera
 	ret	nz
 	
-	ld	hl, 0*256+128
-	ld	de, 0*256+160
-	ld	bc, 32*256+32
-	call	vxImageSub.swap
-	ld	hl, 128*256+128
-	ld	de, 128*256+160
-	ld	bc, 32*256+32
-	call	vxImageSub.swap
+; 	ld	hl, 0*256+128
+; 	ld	de, 0*256+160
+; 	ld	bc, 32*256+32
+; 	call	vxImageSub.swap
+; 	ld	hl, 128*256+128
+; 	ld	de, 128*256+160
+; 	ld	bc, 32*256+32
+; 	call	vxImageSub.swap
+; 
+; 	ld	hl, 64*256+192
+; 	ld	de, 64*256+224
+; 	ld	bc, 32*256+32
+; 	call	vxImageSub.swap
+; 	ld	hl, 192*256+192
+; 	ld	de, 192*256+224
+; 	ld	bc, 32*256+32
+; 	call	vxImageSub.swap	
  
 	ld	ix, WorldMatrix
 	ld	iy, ModelMatrix
@@ -370,11 +379,11 @@ material1:
 	dl	vxPixelShader.uniform
 	
 posX:
-	dl	0*256-128
+	dl	(0*256-128)*64
 posY:
-	dl	-1*256
+	dl	(-1*256)*64
 posZ:
-	dl	0*256-128
+	dl	(0*256-128)*64
 
 Temp:
 	dl	0,0
@@ -459,7 +468,7 @@ _kskip:
 _kskip2:
 
 	ld	hl, WorldMatrix
-	call	vxMatrixLoadIdentity
+	call	vxMatrix.load_identity
 
 	ld	hl, (EulerAngle)
 	ld	iy, Quaternion
@@ -472,25 +481,21 @@ _kskip2:
 	bit	0, a
 	jr	z, _kskip3
 
-
 	ld	de, (posX)
 	ld	a, (WorldMatrix+6)
 	rla
 	sbc	hl, hl
 	rra
-	ld	l, a
-	add	hl, hl
+	ld	h, a
 	or	a, a
 	add	hl, de
 	ld	de, (posY)
-;	ld	(posXt), hl
 	ld	(posX), hl
 	ld	a, (WorldMatrix+7)
 	rla
 	sbc	hl, hl
 	rra
-	ld	l, a
-	add	hl, hl
+	ld	h, a
 	or	a, a
 	add	hl, de
 	ld	de, (posZ)
@@ -500,8 +505,7 @@ _kskip2:
 	rla
 	sbc	hl, hl
 	rra
-	ld	l, a
-	add	hl, hl
+	ld	h, a
 	or	a, a
 	add	hl, de
 ;	ld	(posZt), hl
@@ -518,40 +522,34 @@ _kskip3:
 	rla
 	sbc	hl, hl
 	rra
-	ld	l, a
-	add	hl, hl
+	ld	h, a
 	or	a, a
 	add	hl, de
-	ld	de, (posY)
-;	ld	(posXt), hl
 	ld	(posX), hl
+	ld	de, (posY)
 	ld	a, (WorldMatrix+7)
 	neg
 	rla
 	sbc	hl, hl
 	rra
-	ld	l, a
-	add	hl, hl
+	ld	h, a
 	or	a, a
 	add	hl, de
-	ld	de, (posZ)
-;	ld	(posYt), hl
 	ld	(posY), hl
+	ld	de, (posZ)
 	ld	a, (WorldMatrix+8)
 	neg
 	rla
 	sbc	hl, hl
 	rra
-	ld	l, a
-	add	hl, hl
+	ld	h, a
 	or	a, a
 	add	hl, de
-;	ld	(posZt), hl
 	ld	(posZ), hl
 _kskip4:
 
 	ld	hl, (posY)
-	ld	de, 32
+	ld	de, 32*64
 	ld	a, ($F50012)
 	bit	0, a
 	jr	z, _kskip6
@@ -564,10 +562,7 @@ _kskip6:
 	sbc	hl, de
 _kskip7:
 	
-	ld	a, l
-	ld	(posY), a
-	ld	a, h
-	ld	(posY+1), a
+	ld	(posY), hl
 
 ; #comment
 ; 	call	GetHeightMap
@@ -596,7 +591,7 @@ _kskip7:
 ; #endcomment
 	ld	ix, WorldMatrix
 	ld	iy, posX
-	call	vxfTransform
+	call	vxMatrix.ftransform
 	ld	hl, vxPosition
 	ld	de, WorldMatrix+9
 	ld	bc, 9

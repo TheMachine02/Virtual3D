@@ -36,21 +36,21 @@ Main:
 	call	vxMemory.layout
 	ret	c		; quit if error at init
 
-	ld	hl, (Model.texture_source)
-	ld	a, VX_IMAGE_ZX7_COMPRESSED
-	ld	de, $D30000
-	call	vxImage.copy
+; 	ld	hl, (Model.texture_source)
+; 	ld	a, VX_IMAGE_ZX7_COMPRESSED
+; 	ld	de, $D30000
+; 	call	vxImage.copy
 	
-	ld	hl, (Model.mipmap_source)
-	ld	a, VX_IMAGE_ZX7_COMPRESSED
-	ld	de, VX_TEXTURE_MIPMAP
-	call	vxImage.copy
+; 	ld	hl, (Model.mipmap_source)
+; 	ld	a, VX_IMAGE_ZX7_COMPRESSED
+; 	ld	de, VX_TEXTURE_MIPMAP
+; 	call	vxImage.copy
 
 ; setup global variable for rendering, euler angle and the translation of World.matrix
 	ld	hl, Model.matrix
-	call	vxMatrixLoadIdentity
+	call	vxMatrix.load_identity
 	ld	hl, World.matrix
-	call	vxMatrixLoadIdentity
+	call	vxMatrix.load_identity
 	ld	ix, World.matrix
 	ld	hl, 1024*64
 	ld	(ix+VX_MATRIX_TZ), hl
@@ -131,8 +131,7 @@ Main:
 
 	call	vxPrimitiveDepthSort
 
-	ld	c, $00
-	call	vxFramebufferClearColor
+	call	vxFramebufferClear
 
 	call	vxPrimitiveSubmit
 
@@ -371,14 +370,14 @@ Model:
 	db	ti.AppVarObj, "SUZANF",0
 .triangle_source:
 	dl	0
-.texture_appv:
-	db	ti.AppVarObj, "MATEUST", 0
-.texture_source:
-	dl	0
-.mipmap_appv:
-	db	ti.AppVarObj, "MATEUSM", 0
-.mipmap_source:
-	dl	0
+; .texture_appv:
+; 	db	ti.AppVarObj, "MATEUST", 0
+; .texture_source:
+; 	dl	0
+; .mipmap_appv:
+; 	db	ti.AppVarObj, "MATEUSM", 0
+; .mipmap_source:
+; 	dl	0
 .matrix:
 	db	64,0,0
 	db	0,64,0
@@ -418,3 +417,51 @@ Model:
 include	"lib/virtual.asm"
 include	"font/font.asm"
 include	"debug.asm"
+
+
+TEST:
+	ld	iy, .value
+	ld	a, -32
+	ld	bc, (iy+0)
+	ld	h, a
+	ld	l, (iy+2)
+	mlt	hl
+	cp	a, $80
+	jr	c, $+4
+	sbc	hl, bc
+	ld	c, a
+	bit	7, (iy+2)
+	jr	z, $+5
+	cpl
+	adc	a, h
+	ld	h, a
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	ld	b, (iy+1)
+	ld	a, c
+	mlt	bc
+	add	hl, bc
+	add	hl, hl
+	add	hl, hl
+	ld	b, (iy+0)
+	ld	c, a
+	mlt	bc
+	xor	a, a
+	rl	c
+	rl	b
+	adc	a, a
+	rl	c
+	rl	b
+	adc	a, a
+	ld	c, b
+	ld	b, a
+	add	hl, bc
+	ret
+.value:
+	dl	256*64

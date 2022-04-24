@@ -22,8 +22,8 @@
 ; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ; SOFTWARE.
 
-define	VX_SCREEN_WIDTH		320
-define	VX_SCREEN_HEIGHT	240
+define	VX_SCREEN_WIDTH		240
+define	VX_SCREEN_HEIGHT	160
 define	VX_SCREEN_WIDTH_CENTER	VX_SCREEN_WIDTH shr 1
 define	VX_SCREEN_HEIGHT_CENTER	VX_SCREEN_HEIGHT shr 1
 
@@ -148,6 +148,7 @@ vxFramebufferSwap:
 	ld	de, (vxFramebuffer)
 	ld	(vxFramebuffer), hl
 	ld	(VX_LCD_BUFFER), de
+	ret
 
 vxFramebufferVsync:
 	ld	hl, VX_LCD_ISR

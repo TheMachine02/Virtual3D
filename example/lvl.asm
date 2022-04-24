@@ -23,15 +23,15 @@ format	ti executable 'LVL'
 	ret	c
 	ld	(dataLevel), hl
 
-	ld	hl, laraIndexName
-	call	find
-	ret	c
-	ld	(dataLaraTriangle), hl
-
-	ld	hl, laraVertexName
-	call	find
-	ret	c
-	ld	(dataLaraVertex), hl
+; 	ld	hl, laraIndexName
+; 	call	find
+; 	ret	c
+; 	ld	(dataLaraTriangle), hl
+; 
+; 	ld	hl, laraVertexName
+; 	call	find
+; 	ret	c
+; 	ld	(dataLaraVertex), hl
 
 ; 	ld	hl, SkyName
 ; 	call	find
@@ -55,7 +55,7 @@ format	ti executable 'LVL'
 	ld	(CameraAngle), hl
 	ld	(LaraAngle), hl
 	ld	hl, WorldMatrix
-	call	vxMatrixLoadIdentity
+	call	vxMatrix.load_identity
 
 	ld	hl, Light
 	ld	de, vxLightUniform
@@ -116,31 +116,31 @@ renderLevel:
 
 	call	Render.room_list
 
-	ld	a, VX_FORMAT_TEXTURE
-	ld	ix, WorldMatrix
-	ld	iy, LaraMatrix
-	ld	bc, (cacheAdress)
-	ld	hl, (dataLaraVertex)
-	ld	de, (dataLaraTriangle)
-	
-	push	hl
-	push	de
-	push	bc
-	ex	de, hl
-	inc	hl
-	ld	bc, (hl)
-	ld	hl, (debug.triangle_count)
-	add.s	hl, bc
-	ld	(debug.triangle_count), hl
-	pop	bc
-	pop	de
-	pop	hl
-
-	call	vxPrimitiveStream
-
-	ld	hl, (vxGeometrySize)
-	ld	(debug.visible_count), hl
-
+; 	ld	a, VX_FORMAT_TEXTURE
+; 	ld	ix, WorldMatrix
+; 	ld	iy, LaraMatrix
+; 	ld	bc, (cacheAdress)
+; 	ld	hl, (dataLaraVertex)
+; 	ld	de, (dataLaraTriangle)
+; 	
+; 	push	hl
+; 	push	de
+; 	push	bc
+; 	ex	de, hl
+; 	inc	hl
+; 	ld	bc, (hl)
+; 	ld	hl, (debug.triangle_count)
+; 	add.s	hl, bc
+; 	ld	(debug.triangle_count), hl
+; 	pop	bc
+; 	pop	de
+; 	pop	hl
+; 
+; 	call	vxPrimitiveStream
+; 
+; 	ld	hl, (vxGeometrySize)
+; 	ld	(debug.visible_count), hl
+; 
 	call	vxPrimitiveDepthSort
 	call	vxFramebufferClear
 ; 	ld	hl, (Skybox)
@@ -301,10 +301,10 @@ skipit:
 	ld	iy, LaraStaticMatrix
 	ld	ix, LaraMatrix0
 	ld	hl, LaraMatrix
-	call	vxMatrixMlt
+	call	vxMatrix.mlt3
 
 	ld	hl, WorldMatrix
-	call	vxMatrixLoadIdentity
+	call	vxMatrix.load_identity
 
 	ld	de, (CameraAngle)
 
@@ -320,7 +320,7 @@ skipit:
 	ld	iy, WorldMatrix
 	ld	ix, vxProjectionMatrix
 	ld	hl, WorldMatrix
-	call	vxMatrixMlt
+	call	vxMatrix.mlt3
 
 	ld	a, ($F5001E)
 	bit	0, a
@@ -425,7 +425,7 @@ _kskip7:
 
 	ld	ix, WorldMatrix
 	ld	iy, posX
-	call	vxfTransform
+	call	vxMatrix.ftransform
 
 	ld	hl, (vxPosition+6)
 ;	ld	de, 29184
