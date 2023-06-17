@@ -19,15 +19,15 @@ Main:
 	ret	c
 	ld	(Triangle0), hl
 
-	ld	hl, VertexName1
-	call	find
-	ret	c
-	ld	(Vertex1), hl
-
-	ld	hl, TriangleName1
-	call	find
-	ret	c
-	ld	(Triangle1), hl
+; 	ld	hl, VertexName1
+; 	call	find
+; 	ret	c
+; 	ld	(Vertex1), hl
+; 
+; 	ld	hl, TriangleName1
+; 	call	find
+; 	ret	c
+; 	ld	(Triangle1), hl
 		
 ; 	ld	hl, Skybox.name
 ; 	call	find
@@ -39,10 +39,10 @@ Main:
 	ret	c
 	ld	(Texture), hl
 	
-; 	ld	hl, MipName
-; 	call	find
-; 	ret	c
-; 	ld	(Mipmap), hl	
+	ld	hl, MipName
+	call	find
+	ret	c
+	ld	(Mipmap), hl	
 	
 ; init the virtual 3d library (please init after OS issue)
 	call	vxMemory.layout
@@ -53,10 +53,10 @@ Main:
 	ld	de, VX_TEXTURE
 	call	vxImage.copy
 	
-; 	ld	hl, (Mipmap)
-; 	ld	a, VX_IMAGE_ZX7_COMPRESSED
-; 	ld	de, VX_TEXTURE_MIPMAP
-; 	call	vxImage.copy	
+	ld	hl, (Mipmap)
+	ld	a, VX_IMAGE_ZX7_COMPRESSED
+	ld	de, VX_TEXTURE_MIPMAP
+	call	vxImage.copy
 
 ; about vertex coordinate :
 ; the format inputed in glib is pure integer 16 bits coordinates, ]-32768,32768[
@@ -78,10 +78,10 @@ Main:
 	ld	a, 0
 	ld	(vxLightUniform+4), a
 
-	ld	ix, vxPixelShader.alpha
-	call	vxShader.compile
-	ret	c
-	ld	(material1+VX_MATERIAL_PIXEL_SHADER), hl
+; 	ld	ix, vxPixelShader.alpha
+; 	call	vxShader.compile
+; 	ret	c
+; 	ld	(material1+VX_MATERIAL_PIXEL_SHADER), hl
 
 ; 	ld	ix, vxPixelShader.lightning
 ; 	call	vxShader.compile
@@ -127,12 +127,12 @@ MainLoop:
 	ld	a, VX_MATERIAL0
 	call	vxPrimitiveStream
 	
-	ld	ix, WorldMatrix
-	ld	iy, ModelMatrix
-	ld	hl, (Vertex1)
-	ld	de, (Triangle1)
-	ld	a, VX_MATERIAL1
-	call	vxPrimitiveStream
+; 	ld	ix, WorldMatrix
+; 	ld	iy, ModelMatrix
+; 	ld	hl, (Vertex1)
+; 	ld	de, (Triangle1)
+; 	ld	a, VX_MATERIAL1
+; 	call	vxPrimitiveStream
 
 ;	ld	a, VX_GEOMETRY_TI9
 ;	ld	ix, WorldMatrix
@@ -154,9 +154,9 @@ MainLoop:
 	ld	(debug.visible_count), hl
 	ld	iy, (Triangle0)
 	ld	hl, (iy+VX_STREAM_HEADER_COUNT)
-	ld	iy, (Triangle1)
-	ld	de, (iy+VX_STREAM_HEADER_COUNT)
-	add	hl, de
+; 	ld	iy, (Triangle1)
+; 	ld	de, (iy+VX_STREAM_HEADER_COUNT)
+; 	add	hl, de
 	ld	(debug.triangle_count), hl
 
 	call	vxPrimitiveDepthSort
@@ -389,25 +389,25 @@ Temp:
 	dl	0,0
 
 VertexName0:
-	db	ti.AppVarObj, "POOL0V",0
+	db	ti.AppVarObj, "KALIYAV",0
 Vertex0:
 	dl	0
 TriangleName0:
-	db	ti.AppVarObj, "POOL0F", 0
+	db	ti.AppVarObj, "KALIYAF", 0
 Triangle0:
 	dl	0
 	
-VertexName1:
-	db	ti.AppVarObj, "POOL1V",0
-Vertex1:
-	dl	0
-TriangleName1:
-	db	ti.AppVarObj, "POOL1F", 0
-Triangle1:
-	dl	0	
+; VertexName1:
+; 	db	ti.AppVarObj, "POOL1V",0
+; Vertex1:
+; 	dl	0
+; TriangleName1:
+; 	db	ti.AppVarObj, "POOL1F", 0
+; Triangle1:
+; 	dl	0	
 	
 TextName:
-	db	ti.AppVarObj, "POOLT",0
+	db	ti.AppVarObj, "KALIYAT",0
 Texture:
 	dl	0
 MipName:

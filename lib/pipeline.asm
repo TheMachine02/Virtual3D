@@ -65,7 +65,10 @@ align 64
 VX_REGISTER_DATA:
  db	3072	dup	$D3
 
-VX_GPR_STATUS:		rb	1
+ rb	64
+VX_GPR_REGISTER_DATA:
+ db	2048	dup	$C3
+ 
 VIRTUAL_PIPELINE_STATE:
  db	0
 ; pipeline state

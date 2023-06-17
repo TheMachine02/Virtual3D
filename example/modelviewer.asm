@@ -22,29 +22,29 @@ Main:
 	ret	c
 	ld	(Model.triangle_source), hl
 
-; 	ld	hl, Model.texture_appv
-; 	call	Model.load_ressource
-; 	ret	c
-; 	ld	(Model.texture_source), hl
-; 	
-; 	ld	hl, Model.mipmap_appv
-; 	call	Model.load_ressource
-; 	ret	c
-; 	ld	(Model.mipmap_source), hl
+	ld	hl, Model.texture_appv
+	call	Model.load_ressource
+	ret	c
+	ld	(Model.texture_source), hl
+	
+	ld	hl, Model.mipmap_appv
+	call	Model.load_ressource
+	ret	c
+	ld	(Model.mipmap_source), hl
 	
 ; init the virtual 3d library (setup memory layout)
 	call	vxMemory.layout
 	ret	c		; quit if error at init
 
-; 	ld	hl, (Model.texture_source)
-; 	ld	a, VX_IMAGE_ZX7_COMPRESSED
-; 	ld	de, $D30000
-; 	call	vxImage.copy
+	ld	hl, (Model.texture_source)
+	ld	a, VX_IMAGE_ZX7_COMPRESSED
+	ld	de, $D30000
+	call	vxImage.copy
 	
-; 	ld	hl, (Model.mipmap_source)
-; 	ld	a, VX_IMAGE_ZX7_COMPRESSED
-; 	ld	de, VX_TEXTURE_MIPMAP
-; 	call	vxImage.copy
+	ld	hl, (Model.mipmap_source)
+	ld	a, VX_IMAGE_ZX7_COMPRESSED
+	ld	de, VX_TEXTURE_MIPMAP
+	call	vxImage.copy
 
 ; setup global variable for rendering, euler angle and the translation of World.matrix
 	ld	hl, Model.matrix
@@ -67,7 +67,7 @@ Main:
 ; set option
 	ld	(Viewframe.option), a
 ; compile the shader
-	ld	ix, vxPixelShader.gouraud
+	ld	ix, vxPixelShader.alpha
 	call	vxShader.compile
 	ret	c
 	ld	(Model.material+VX_MATERIAL_PIXEL_SHADER), hl
@@ -97,23 +97,23 @@ Main:
 	ld	hl, (World.angle_y)
 	ld	iy, World.quaternion_y
 	ld	ix, World.unit_vector_y
-	call	vxQuaternionRotationAxis
+	call	vxQuaternion.rotation_axis
 	ld	hl, (World.angle_x)
 	ld	iy, World.quaternion_x
 	ld	ix, World.unit_vector_x
-	call	vxQuaternionRotationAxis
+	call	vxQuaternion.rotation_axis
 	ld	hl, (World.angle_z)
 	ld	iy, World.quaternion_z
 	ld	ix, World.unit_vector_z
-	call	vxQuaternionRotationAxis
+	call	vxQuaternion.rotation_axis
 	ld	ix, World.quaternion_x
 	ld	iy, World.quaternion_y
-	call	vxQuaternionMlt
+	call	vxQuaternion.mlt
 	ld	iy, World.quaternion_z
-	call	vxQuaternionMlt
+	call	vxQuaternion.mlt
 	ld	iy, World.quaternion_x
 	ld	ix, World.matrix
-	call	vxQuaternionGetMatrix
+	call	vxQuaternion.get_matrix
 	
 	ld	ix, World.matrix
 	ld	iy, Model.matrix
@@ -361,30 +361,30 @@ World:
 	
 Model:
 .vertex_appv:
-;	db	ti.AppVarObj, "MATEUSV",0
-	db	ti.AppVarObj, "SUZANV",0
+	db	ti.AppVarObj, "FRANV",0
+;	db	ti.AppVarObj, "SUZANV",0
 .vertex_source:
 	dl	0
 .triangle_appv:
-;	db	ti.AppVarObj, "MATEUSF", 0
-	db	ti.AppVarObj, "SUZANF",0
+	db	ti.AppVarObj, "FRANF", 0
+;	db	ti.AppVarObj, "SUZANF",0
 .triangle_source:
 	dl	0
-; .texture_appv:
-; 	db	ti.AppVarObj, "MATEUST", 0
-; .texture_source:
-; 	dl	0
-; .mipmap_appv:
-; 	db	ti.AppVarObj, "MATEUSM", 0
-; .mipmap_source:
-; 	dl	0
+.texture_appv:
+	db	ti.AppVarObj, "FRANT", 0
+.texture_source:
+	dl	0
+.mipmap_appv:
+	db	ti.AppVarObj, "MATEUSM", 0
+.mipmap_source:
+	dl	0
 .matrix:
 	db	64,0,0
 	db	0,64,0
 	db	0,0,64
 	dl	0,0,0
 .material:
-	db	VX_FORMAT_GOURAUD	; VX_FORMAT_TEXTURE	;
+	db	VX_FORMAT_TEXTURE ; VX_FORMAT_GOURAUD	; VX_FORMAT_TEXTURE	;
 	dl	VX_VERTEX_BUFFER
 	dl	vxVertexShader.ftransform
 	dl	vxVertexShader.uniform
@@ -417,51 +417,3 @@ Model:
 include	"lib/virtual.asm"
 include	"font/font.asm"
 include	"debug.asm"
-
-
-TEST:
-	ld	iy, .value
-	ld	a, -32
-	ld	bc, (iy+0)
-	ld	h, a
-	ld	l, (iy+2)
-	mlt	hl
-	cp	a, $80
-	jr	c, $+4
-	sbc	hl, bc
-	ld	c, a
-	bit	7, (iy+2)
-	jr	z, $+5
-	cpl
-	adc	a, h
-	ld	h, a
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	add	hl, hl
-	ld	b, (iy+1)
-	ld	a, c
-	mlt	bc
-	add	hl, bc
-	add	hl, hl
-	add	hl, hl
-	ld	b, (iy+0)
-	ld	c, a
-	mlt	bc
-	xor	a, a
-	rl	c
-	rl	b
-	adc	a, a
-	rl	c
-	rl	b
-	adc	a, a
-	ld	c, b
-	ld	b, a
-	add	hl, bc
-	ret
-.value:
-	dl	256*64

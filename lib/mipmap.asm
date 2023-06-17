@@ -24,8 +24,6 @@
 
 ; mipmapping :
 
-define	VX_MIPMAP_BIAS	0
-
 vxVariableShading:
 ; this work as a POC, the actual speed gain is NOT here due to the nop, we need to adjust jump table
 .rate:
@@ -81,77 +79,6 @@ vxVariableShading:
 	rb	14
 .djnz_dual:
 	djnz	.dummy_2
-
-.fragment_dual_issue:
-; we never copy the first shader write
-; 	add	hl, de
-; 	ld	a, h
-; 	exx
-; 	adc	hl, sp
-; 	ld	h, a
-; 	ld	a, (hl)
-; 	ld	(de), a
-; 	inc	de
-; 	exx
-	exx
-	ld	(de), a
-	inc	de
-	exx
-	djnz	.fragment_dual_issue
-	exx
-	ld	hl, (iy+VX_REGISTER1)
-	ld	de, (iy+VX_REGISTER0)
-	add	hl, de
-	add	hl, hl
-	add	hl, hl
-	nop
-	ld	a, (hl)
-	inc	hl
-	ld	ix, (hl)
-	ld	hl, (iy+VX_REGISTER3)
-	exx
-	ld	hl, (iy+VX_REGISTER2)
-	ld	b, a
-	lea	iy, iy+VX_REGISTER_SIZE
-	jp	(ix)
-
-.fragment_single_issue:
-; we never copy the first shader write
-; 	add	hl, de
-; 	ld	a, h
-; 	exx
-; 	adc	hl, sp
-; 	ld	h, a
-; 	ld	a, (hl)
-; 	ld	(de), a
-; 	inc	de
-; 	exx
-	add	hl, de
-	ld	a, h
-	exx
-	adc	hl, sp
-	ld	h, a
-	ld	a, (hl)
-	ld	(de), a
-	inc	de
-	exx
-	djnz	.fragment_single_issue
-	exx
-	ld	hl, (iy+VX_REGISTER1) ; lut adress
-	ld	de, (iy+VX_REGISTER0)	; screen adress
-	add	hl, de
-	add	hl, hl
-	add	hl, hl
-	nop
-	ld	a, (hl)			; fetch correct size
-	inc	hl
-	ld	ix, (hl)			; fetch jump \o/
-	ld	hl, (iy+VX_REGISTER3)
-	exx
-	ld	hl, (iy+VX_REGISTER2)	; v
-	ld	b, a
-	lea	iy, iy+VX_REGISTER_SIZE
-	jp	(ix)
 	
 vxMipmap:
 
@@ -204,36 +131,28 @@ vxMipmap:
 	ld	l, a
 	mlt	hl
 	add	hl, bc
-; min(512,hl)
 ; hl = max(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
-; MAX_FILTER, unused (a bit too much agressive)
-; 	or	a, a
 ; 	sbc	hl, de
 ; 	add	hl, de
-; 	jr	c, $+3
+; 	jr	nc, $+3
 ; 	ex	de, hl
-; 	ld	a, d
+; 	ld	a, h
 ; 	or	a, a
-; 	ld	a, e
+; 	ld	a, l
 ; 	jr	z, $+4
-; 	ld	a, $FF
+; 	scf
+; 	sbc	a, a
 ; hl = mix(dot(dx_vtc, dx_vtc), dot(dy_vtc, dy_vtc));
 	add	hl, de
-	ld	de, 510
-	or	a, a
-	sbc	hl, de
-	add	hl, de
-	jr	c, $+3
-	ex	de, hl
 	srl	h
 	ld	a, l
+	jr	z, $+4
+	scf
+	sbc	a, a
 	rra
-; hl is max(dot,dot)
 	ld	hl, VX_LOG_LUT
 	adc	a, l
 	ld	l, a
-	ld	bc, VX_MIPMAP_BIAS
-	add	hl, bc
 	ld	a, (hl)
 	or	a, a
 	jr	nz, .mipmap_level_lod

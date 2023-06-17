@@ -468,7 +468,8 @@ vxShaderAdress2Write=$+1
 	ld	(iy+VX_FDUDX), hl
 .triangleMipmap:
 ; 	ld	sp, TMP
-; 	call	vxVariableShading.rate
+; 	call	vxMipmap.gradient
+;	call	vxVariableShading.rate
 ; fixup adress
 ; 	ld	a, (iy+VX_SHADER_INTERPOLATE_VEC)
 ; ; write inc/dec

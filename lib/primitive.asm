@@ -198,11 +198,13 @@ relocate VX_VRAM
 ; de = p1 adress
 ; bc = p2 adress
 include "texture.asm"
+;include	"gpr.asm"
 
 assert $ < $E30C01
 end relocate
 
 include "clip.asm"
+;include	"texture.asm"
 
 ; polygons
 ; vxPrimitiveRenderPolygon:
