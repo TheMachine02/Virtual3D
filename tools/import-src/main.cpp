@@ -62,8 +62,9 @@ int main(int argc, char* argv[])
         printf("-n : output vertex normal\n");
         printf("-c : output material color\n");
         printf("-b : output bounding box\n");
-        printf("-s : output different files for vertex and index");
+        printf("-s : output different files for vertex and index\n");
 	printf("-x : output face normal\n");
+        printf("-o= : define an Output file for fasmg compilation or ignore the fasmg header if not set");
         return false;
     }
 
@@ -113,8 +114,7 @@ int main(int argc, char* argv[])
         return false;
     }
     if(name==NULL){
-	    printf("No output file has been set\n");
-	return false;
+        printf("No output file has been set\n");
 }
     
     load_obj(path,name,option);
@@ -132,7 +132,7 @@ bool load_obj(const char * path, const char * name, unsigned short option)
 
 
     string line;
-
+    string o_name;
     vector <vec3> vertexTable;
     vector <vec2> textTable;
     vector <vec3> normalTable;
@@ -397,13 +397,16 @@ bool load_obj(const char * path, const char * name, unsigned short option)
 	out << "include \"include/fasmg/tiformat.inc\"\n";
 	out << "define nan 0\n";
 	out << "define inf 0\n";
-	out << "format ti archived appvar \'";
-	
-	string o_name = name;
-	o_name = o_name.substr(3);
-	out << o_name;
-	out << "V" << "\'\n";
-
+        
+        if(name!=NULL)
+        {  
+            out << "format ti archived appvar \'";
+            o_name = name;
+            o_name = o_name.substr(3);
+            out << o_name;
+            out << "V" << "\'\n";
+        }
+        
 //    out << "include \"vxModel.inc\"" << '\n';
     out << "VERTEX_STREAM:" << '\n';
     out << "db " << option << '\n';
@@ -472,7 +475,10 @@ bool load_obj(const char * path, const char * name, unsigned short option)
 	out << "include \"include/fasmg/ez80.inc\"\n";
 	out << "include \"include/fasmg/tiformat.inc\"\n";
 	out << "define nan 0\n";
-	out << "format ti archived appvar \'" << o_name << "F" << "\'\n";
+        if(name!=NULL)
+        {          
+            out << "format ti archived appvar \'" << o_name << "F" << "\'\n";
+        }
     }
 
     out << "INDEX_STREAM:" << '\n';
