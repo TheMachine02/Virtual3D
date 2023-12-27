@@ -389,11 +389,11 @@ Temp:
 	dl	0,0
 
 VertexName0:
-	db	ti.AppVarObj, "KALIYAV",0
+	db	ti.AppVarObj, "VIERAV",0
 Vertex0:
 	dl	0
 TriangleName0:
-	db	ti.AppVarObj, "KALIYAF", 0
+	db	ti.AppVarObj, "VIERAF", 0
 Triangle0:
 	dl	0
 	
@@ -407,7 +407,7 @@ Triangle0:
 ; 	dl	0	
 	
 TextName:
-	db	ti.AppVarObj, "KALIYAT",0
+	db	ti.AppVarObj, "VIERAT",0
 Texture:
 	dl	0
 MipName:
@@ -473,9 +473,9 @@ _kskip2:
 	ld	hl, (EulerAngle)
 	ld	iy, Quaternion
 	ld	ix, UnitVector
-	call	vxQuaternionRotationAxis
+	call	vxQuaternion.rotation_axis
 	ld	ix, WorldMatrix
-	call	vxQuaternionGetMatrix
+	call	vxQuaternion.get_matrix
 
 	ld	a, ($F5001E)
 	bit	0, a

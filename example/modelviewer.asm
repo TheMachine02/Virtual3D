@@ -26,11 +26,11 @@ Main:
 	call	Model.load_ressource
 	ret	c
 	ld	(Model.texture_source), hl
-	
-	ld	hl, Model.mipmap_appv
-	call	Model.load_ressource
-	ret	c
-	ld	(Model.mipmap_source), hl
+; 	
+; 	ld	hl, Model.mipmap_appv
+; 	call	Model.load_ressource
+; 	ret	c
+; 	ld	(Model.mipmap_source), hl
 	
 ; init the virtual 3d library (setup memory layout)
 	call	vxMemory.layout
@@ -41,10 +41,10 @@ Main:
 	ld	de, $D30000
 	call	vxImage.copy
 	
-	ld	hl, (Model.mipmap_source)
-	ld	a, VX_IMAGE_ZX7_COMPRESSED
-	ld	de, VX_TEXTURE_MIPMAP
-	call	vxImage.copy
+; 	ld	hl, (Model.mipmap_source)
+; 	ld	a, VX_IMAGE_ZX7_COMPRESSED
+; 	ld	de, VX_TEXTURE_MIPMAP
+; 	call	vxImage.copy
 
 ; setup global variable for rendering, euler angle and the translation of World.matrix
 	ld	hl, Model.matrix
@@ -67,7 +67,7 @@ Main:
 ; set option
 	ld	(Viewframe.option), a
 ; compile the shader
-	ld	ix, vxPixelShader.alpha
+	ld	ix, vxPixelShader.lightning
 	call	vxShader.compile
 	ret	c
 	ld	(Model.material+VX_MATERIAL_PIXEL_SHADER), hl
@@ -361,30 +361,30 @@ World:
 	
 Model:
 .vertex_appv:
-	db	ti.AppVarObj, "FRANV",0
-;	db	ti.AppVarObj, "SUZANV",0
+;	db	ti.AppVarObj, "FRANV",0
+	db	ti.AppVarObj, "TONBV",0
 .vertex_source:
 	dl	0
 .triangle_appv:
-	db	ti.AppVarObj, "FRANF", 0
-;	db	ti.AppVarObj, "SUZANF",0
+;	db	ti.AppVarObj, "FRANF", 0
+	db	ti.AppVarObj, "TONBF",0
 .triangle_source:
 	dl	0
 .texture_appv:
-	db	ti.AppVarObj, "FRANT", 0
+	db	ti.AppVarObj, "TONBT", 0
 .texture_source:
 	dl	0
-.mipmap_appv:
-	db	ti.AppVarObj, "MATEUSM", 0
-.mipmap_source:
-	dl	0
+; .mipmap_appv:
+; 	db	ti.AppVarObj, "MATEUSM", 0
+; .mipmap_source:
+; 	dl	0
 .matrix:
 	db	64,0,0
 	db	0,64,0
 	db	0,0,64
 	dl	0,0,0
 .material:
-	db	VX_FORMAT_TEXTURE ; VX_FORMAT_GOURAUD	; VX_FORMAT_TEXTURE	;
+	db	VX_FORMAT_TEXTURE	; VX_FORMAT_TEXTURE	;
 	dl	VX_VERTEX_BUFFER
 	dl	vxVertexShader.ftransform
 	dl	vxVertexShader.uniform

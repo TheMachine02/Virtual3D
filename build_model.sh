@@ -18,7 +18,6 @@ fasmg example/file/TrainRoomTRIII1.inc bin/TRAINF.8xv
 fasmg example/file/PoolTRIII0.inc bin/POOLV.8xv
 fasmg example/file/PoolTRIII1.inc bin/POOLF.8xv
 
-
 ./tools/import  example/file/PoolTRIII_tex.obj -T -N -S -B -X -o=POOL0
 fasmg example/file/PoolTRIII_tex0.inc bin/POOL0V.8xv
 fasmg example/file/PoolTRIII_tex1.inc bin/POOL0F.8xv
