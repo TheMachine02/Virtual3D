@@ -177,13 +177,9 @@ port_new:
 	out0	($22),a
 	ret
 .priv_lock:
-	in0	a, ($06)
-	or	a, $04
-	out0	($06), a
-; relock the memory protection which is unlocked by the helper
-	ld	a,$d1
-	out0	($22),a
-	ret
+; lock unlock shenanigans, since we dont have privilege anymore on $D0-$D1 range 
+	call	port_unlock
+	jp	port_lock
 
 port_read:
 	push	iy,de,bc,hl

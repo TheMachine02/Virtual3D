@@ -153,7 +153,7 @@ file	'ram'
 	ld	bc, $02577F
 	ldir
 ; relock SHA256
-	call	.open_port
+;	call	.open_port
 	call	.lock_sha256
 	ld	hl, $F50000
 	ld	(hl), h	; Mode 0
