@@ -42,7 +42,7 @@ Main:
 	ld	hl, MipName
 	call	find
 	ret	c
-	ld	(Mipmap), hl	
+	ld	(Mipmap), hl
 	
 ; init the virtual 3d library (please init after OS issue)
 	call	vxMemory.layout
@@ -389,11 +389,11 @@ Temp:
 	dl	0,0
 
 VertexName0:
-	db	ti.AppVarObj, "VIERAV",0
+	db	ti.AppVarObj, "KALIYAV",0
 Vertex0:
 	dl	0
 TriangleName0:
-	db	ti.AppVarObj, "VIERAF", 0
+	db	ti.AppVarObj, "KALIYAF", 0
 Triangle0:
 	dl	0
 	
@@ -407,7 +407,7 @@ Triangle0:
 ; 	dl	0	
 	
 TextName:
-	db	ti.AppVarObj, "VIERAT",0
+	db	ti.AppVarObj, "KALIYAT",0
 Texture:
 	dl	0
 MipName:

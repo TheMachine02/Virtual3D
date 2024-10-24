@@ -67,7 +67,7 @@ Main:
 ; set option
 	ld	(Viewframe.option), a
 ; compile the shader
-	ld	ix, vxPixelShader.lightning
+	ld	ix, vxPixelShader.alpha
 	call	vxShader.compile
 	ret	c
 	ld	(Model.material+VX_MATERIAL_PIXEL_SHADER), hl
@@ -361,17 +361,17 @@ World:
 	
 Model:
 .vertex_appv:
-;	db	ti.AppVarObj, "FRANV",0
-	db	ti.AppVarObj, "TONBV",0
+	db	ti.AppVarObj, "FRANV",0
+;	db	ti.AppVarObj, "TONBV",0
 .vertex_source:
 	dl	0
 .triangle_appv:
-;	db	ti.AppVarObj, "FRANF", 0
-	db	ti.AppVarObj, "TONBF",0
+	db	ti.AppVarObj, "FRANF", 0
+;	db	ti.AppVarObj, "TONBF",0
 .triangle_source:
 	dl	0
 .texture_appv:
-	db	ti.AppVarObj, "TONBT", 0
+	db	ti.AppVarObj, "FRANT", 0
 .texture_source:
 	dl	0
 ; .mipmap_appv:

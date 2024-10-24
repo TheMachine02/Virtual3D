@@ -18,10 +18,10 @@ echo "building example 2..."
 fasmg example/modelviewer.asm bin/V3DVIEW.8xp
 #spasm -L -T -E -A -S -I include/ -I lib/ example/example2.ez80 bin/TEST2.8xp
 
-echo "building level example..."
+#echo "building level example..."
 #spasm -L -T -E -A -S -I include/ -I lib/ example/lvl.ez80 bin/TESTLVL.8xp
-fasmg example/lvl.asm bin/LVL.8xp
+#fasmg example/lvl.asm bin/LVL.8xp
 
-echo "building animation example..."
+#echo "building animation example..."
 #spasm -L -T -E -A -S -I include/ -I lib/ example/lvl.ez80 bin/TESTLVL.8xp
-fasmg example/animation.asm bin/ANIMATE.8xp
+#fasmg example/animation.asm bin/ANIMATE.8xp
