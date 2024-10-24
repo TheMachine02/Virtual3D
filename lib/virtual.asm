@@ -152,8 +152,8 @@ file	'ram'
 	ld	de, $D1A881
 	ld	bc, $02577F
 	ldir
-; relock SHA256, port setup has been restored by destroy device (or should be)
-;	call	.open_port
+; relock SHA256
+	call	.open_port
 	call	.lock_sha256
 	ld	hl, $F50000
 	ld	(hl), h	; Mode 0
@@ -191,8 +191,8 @@ file	'ram'
 .open_port:=port_setup
 .lock_flash:=port_lock
 .unlock_flash:=port_unlock
-.lock_sha256:=port_privilege_lock
-.unlock_sha256:=port_privilege_unlock
+.lock_sha256:=priv_lock
+.unlock_sha256:=priv_unlock
 
 ; core of the library
 include	"assembly.asm"
