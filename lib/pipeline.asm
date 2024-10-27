@@ -310,6 +310,18 @@ vxPrimitiveStream:
 ; stream the bounding box as standard vertex stream into the stream routine
 	cce	ge_vtx_transform
 	ld	ix, VX_PATCH_VERTEX_POOL
+; poison reset the vertex pool since we use the same vertex shader as stream
+	xor	a, a
+	ld	(ix+0), a
+	ld	(ix+16), a
+	ld	(ix+32), a
+	ld	(ix+48), a
+	ld	(ix+64), a
+	lea	ix, ix+64
+	ld	(ix+16), a
+	ld	(ix+32), a
+	ld	(ix+48), a
+	lea	ix, ix-64
 	call	.ftransform
 	ccr	ge_vtx_transform
 ; account for end marker

@@ -115,7 +115,7 @@ int main(int argc, char* argv[])
     }
     if(name==NULL){
         printf("No output file has been set\n");
-}
+    }
     
     load_obj(path,name,option);
 }
@@ -192,7 +192,7 @@ bool load_obj(const char * path, const char * name, unsigned short option)
             int datasize=(int)data.size()/3;
             if(datasize>3)
             {
-                printf("Model contains quads, please triangulate before usingdlconv");
+                printf("Model contains quads, please triangulate before using import");
                 exit(EXIT_FAILURE);
             }
 
@@ -393,13 +393,12 @@ bool load_obj(const char * path, const char * name, unsigned short option)
 
 // in vertex shader we'll compute :
 // (acos(dot(normal,normalize(view)))-coffset) +- cangle (based on the angle : always toward 0)
-	out << "include \"include/fasmg/ez80.inc\"\n";
-	out << "include \"include/fasmg/tiformat.inc\"\n";
-	out << "define nan 0\n";
-	out << "define inf 0\n";
-        
         if(name!=NULL)
         {  
+
+            out << "include \"include/fasmg/ez80.inc\"\n";
+            out << "include \"include/fasmg/tiformat.inc\"\n";
+        
             out << "format ti archived appvar \'";
             o_name = name;
             o_name = o_name.substr(3);
@@ -407,8 +406,12 @@ bool load_obj(const char * path, const char * name, unsigned short option)
             out << "V" << "\'\n";
         }
         
+        out << "define nan 0\n";
+        out << "define inf 0\n";
+
+        
 //    out << "include \"vxModel.inc\"" << '\n';
-    out << "VERTEX_STREAM:" << '\n';
+//    out << "VERTEX_STREAM:" << '\n';
     out << "db " << option << '\n';
     out << "dl " << vertexTable.size() << '\n';
 	int sm=0;
@@ -422,17 +425,19 @@ bool load_obj(const char * path, const char * name, unsigned short option)
 //             out << round(boundbox[i][0]*256.0) << ",";
 //             out << round(boundbox[i][1]*256.0) << ",";
 //             out << round(boundbox[i][2]*256.0) << '\n';
-
-		
-	sm = sgn(round(boundbox[i][0]*256.0)) << 7 | ( sgn(round(boundbox[i][1]*256.0)) << 6) | (sgn(round(boundbox[i][2]*256.0)) << 5);
-	out << "db "<< sm << "\n";
-        out << "dw ";
-        out << abs(round(boundbox[i][0]*256.0)) << ",";
-        out << abs(round(boundbox[i][1]*256.0)) << ",";
-        out << abs(round(boundbox[i][2]*256.0)) << '\n';
-        if(option & NORMAL){
+            sm = sgn(round(boundbox[i][0]*256.0)) << 7 | ( sgn(round(boundbox[i][1]*256.0)) << 6) | (sgn(round(boundbox[i][2]*256.0)) << 5);
+            if((abs(round(boundbox[i][0]*256.0))<256) && (abs(round(boundbox[i][1]*256.0))<256) && (abs(round(boundbox[i][2]*256.0))<256)) {
+                sm |= 16;    
+            }
+            out << "db "<< sm << "\n";
+            out << "dw ";
+            out << abs(round(boundbox[i][0]*256.0)) << ",";
+            out << abs(round(boundbox[i][1]*256.0)) << ",";
+            out << abs(round(boundbox[i][2]*256.0)) << '\n';
+        
+            if(option & NORMAL){
 		out << "db 0,0,0\n";
-	}
+            }
 	}
     out << "; end marker\ndb 1\n";    //dw 0,0,0\ndb 0,0,0\n
     }
@@ -472,16 +477,16 @@ bool load_obj(const char * path, const char * name, unsigned short option)
         cerr << "Cannot open " << newpath2.c_str() << endl;
         exit(EXIT_FAILURE);
     }
-	out << "include \"include/fasmg/ez80.inc\"\n";
-	out << "include \"include/fasmg/tiformat.inc\"\n";
-	out << "define nan 0\n";
         if(name!=NULL)
         {          
+            out << "include \"include/fasmg/ez80.inc\"\n";
+            out << "include \"include/fasmg/tiformat.inc\"\n";
             out << "format ti archived appvar \'" << o_name << "F" << "\'\n";
         }
+        out << "define nan 0\n";
     }
 
-    out << "INDEX_STREAM:" << '\n';
+ //   out << "INDEX_STREAM:" << '\n';
     out << "db " << option << '\n';
     out << "dl " << face_index.size()/10 << '\n';
 
@@ -558,8 +563,8 @@ vector <vec3> getBoundingBox(vector <vec3> stream)
 {
     vector <vec3> box;
     vec3 tmp(0.0f,0.0f,0.0f);
-    vec3 vmax(0.0f,0.0f,0.0f);
-    vec3 vmin(0.0f,0.0f,0.0f);
+    vec3 vmax(-FLT_MAX,-FLT_MAX,-FLT_MAX);
+    vec3 vmin(FLT_MAX,FLT_MAX,FLT_MAX);
     unsigned int i;
     for(i=0;i<stream.size();i++)
     {
