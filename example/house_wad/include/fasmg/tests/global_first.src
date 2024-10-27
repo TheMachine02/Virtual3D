@@ -1,0 +1,25 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -nomodsect -peephole -globalopt -localcse -optsize
+; -const=ROM 
+;	FILE	".\GLOBAL_FIRST.C"
+	assume ADL=1
+	section .text
+;    1	void second(void);
+;    2	void first(void) { second(); }
+_first:
+	CALL	_second
+	RET	
+
+
+;**************************** _first ***************************
+;Name                         Addr/Register   Size   Type
+;_second                             IMPORT  -----   function
+
+
+; Stack Frame Size: 6 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	EXTERN	_second
+	PUBLIC	_first
+;	END

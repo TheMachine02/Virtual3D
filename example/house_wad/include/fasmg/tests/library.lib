@@ -1,0 +1,6 @@
+library	LIBRARY, 1
+	ignore
+	export	function
+ignore:
+	export_pointer	pointer
+        end if

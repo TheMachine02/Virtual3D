@@ -1,0 +1,4 @@
+	section	.text
+	public	_main
+_main := 1
+	include	"ez80insts.src"

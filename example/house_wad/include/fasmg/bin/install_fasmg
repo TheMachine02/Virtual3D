@@ -1,0 +1,12 @@
+#!/bin/bash -ex
+case `uname -s` in
+    Linux)  os=linux/x64 path=fasmg.x64              ;;
+    Darwin) os=macos/x64 path=source/macos/x64/fasmg ;;
+    *)      os=windows   path=fasmg.exe              ;;
+esac
+curl --silent --compressed "https://flatassembler.net/`curl --silent --compressed https://flatassembler.net/download.php | xmllint --html --xpath 'string(//a[starts-with(text(),"flat assembler g ")]/@href)' -`" --output /tmp/fasmg.zip
+unzip -od fasmg /tmp/fasmg.zip
+chmod +x fasmg/$path
+fasmg/$path fasmg/source/$os/fasmg.asm bin/fasmg
+chmod +x bin/fasmg
+diff -s fasmg/$path bin/fasmg

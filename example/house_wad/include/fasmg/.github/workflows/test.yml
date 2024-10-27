@@ -1,0 +1,29 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        runs-on: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{matrix.runs-on}}
+    steps:
+      - name: Install XML Lint
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install libxml2-utils
+      - name: Checkout Project
+        uses: actions/checkout@v2
+      - name: Install Fasmg
+        run: bin/install_fasmg
+      - name: Fetch Include
+        run: bin/fetch_ti84pce
+      - name: Test
+        run: tests/test

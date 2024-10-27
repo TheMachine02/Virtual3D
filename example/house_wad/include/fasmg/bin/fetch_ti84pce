@@ -1,0 +1,2 @@
+#!/bin/bash -ex
+curl --silent --compressed 'https://wikiti.brandonw.net/index.php?title=84PCE:OS:Include_File&action=raw' | sed -E '/^\[\[.*\]\]$/d;s|</?pre>||' > ti84pce.inc

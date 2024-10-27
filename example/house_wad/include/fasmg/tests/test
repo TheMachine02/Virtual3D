@@ -1,0 +1,18 @@
+#!/bin/bash
+passed=0
+failed=0
+total=0
+cd "$(dirname "$0")/.."
+export INCLUDE="$(dirname "$0");$(dirname "$0")/.."
+for test in "$(dirname "$0")"/*.asm; do
+	test="${test%.asm}"
+	if bin/fasmg -v 1 -e 9999 "$test.asm" "$test.out" && diff "$test.out" "$test.bin" >/dev/null; then
+		printf "\e[32m$test passed.\e[m\n"
+		((passed++))
+	else
+		printf "\e[31m$test failed.\e[m\n"
+		((failed++))
+	fi
+done
+printf "===\e[32m $passed tests passed \e[31m $failed tests failed \e[m===\n"
+((failed == 0))
