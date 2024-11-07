@@ -179,7 +179,7 @@ vxFramebufferClear:
 	cce	fb_ops
 	ld	ix, (vxFramebuffer)
 	ld	de, 76800
-	add	ix, de	
+	add	ix, de
 	sbc	hl, hl
 	add     hl, sp           ; saves SP in HL
 	mlt	de		; then de=0

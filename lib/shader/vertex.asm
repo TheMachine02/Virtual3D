@@ -142,8 +142,6 @@ vxVertexShader:
 	ld	(.SHX), hl
 	sbc	hl, hl
 	ld	(.SLX), hl
-; 	call	vxMath.random
-; 	ld	(.RNG), hl
 	ret
 
 .vram:
@@ -156,6 +154,7 @@ relocate VX_VRAM
 .ftransform:
 	ld	a, (iy+VX_VERTEX_SIGN)
 	dec	a
+; no vertex stream ?
 	ret	z
 	ld	(.SP_RET), sp
 .ftransform_trampoline:
@@ -406,24 +405,24 @@ relocate VX_VRAM
 .light_ambient:
 .LA=$+1
 	adc	a, $CC
-; min(a,15)
-; .RNG:=$+1
-; 	ld	hl, $0
-; 	add.s	hl, hl
-; 	sbc	a, a
-; 	and	a, 00101101b
-; 	xor	a, l
-; 	ld	l, a
-; 	ld	a, r
-; 	add	a, a
-; 	add	a, h
-; 	ld	(.RNG), hl
-; 	and	a, 7
-; 	add	a, 10
 	cp	a, 32
 	jr	c, $+4
 	ld	a, 31
 	ld	(ix+VX_VERTEX_GPR2), a
+; .fog:
+; ; simple fog algorithm
+; 	ld	hl, (ix+VX_VERTEX_RZ+1)
+; 	ld	a, 4
+; 	sub	a, h
+; 	jr	nc, $+3
+; 	xor	a, a
+; 	add	a, a
+; 	add	a, a
+; ; clamp
+; 	cp	a, 32
+; 	jr	c, $+4
+; 	ld	a, 31
+; 	ld	(ix+VX_VERTEX_GPR2), a
 ; use this target for gouraud shading, this is v register
 	ld	(ix+VX_VERTEX_GPR1), a
 	lea	ix, ix+VX_VERTEX_SIZE
