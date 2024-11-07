@@ -60,6 +60,8 @@ macro	mtxi
 	add	hl, hl
 	add	hl, hl
 	ld	a, h
+	rl	l
+	adc	a, 0
 	ld	(de), a
 	inc	de
 end	macro
@@ -72,10 +74,10 @@ macro	fma	arg
 		ld	bc, (iy+cc)
 		ld	h, a
 		ld	l, (iy+2+cc)
+		bit	7, l
 		mlt	hl
 		ld	d, b
 		ld	e, a
-		bit	7, (iy+2+cc)
 		jr	z, $+6
 		neg
 		add	a, h
@@ -104,8 +106,10 @@ macro	fma	arg
 		adc	hl, hl
 		rla
 		adc	hl, hl
+	; round off since we truncate the lower bits
+		rla
 		pop	de
-		add	hl, de
+		adc	hl, de
 		ex	de, hl
 	end	match
 end	macro
@@ -115,10 +119,10 @@ macro	fmlt	arg2
 		ld	bc, (iy+cc)
 		ld	h, a
 		ld	l, (iy+2+cc)
+		bit	7, l
 		mlt	hl
 		ld	d, b
 		ld	e, a
-		bit	7, (iy+2+cc)
 		jr	z, $+6
 		neg
 		add	a, h
@@ -147,5 +151,9 @@ macro	fmlt	arg2
 		adc	hl, hl
 		rla
 		adc	hl, hl
+		ld	c, b
+	; round off since we truncate the lower bits
+		rla
+		adc	hl, bc
 	end	match
 end	macro
