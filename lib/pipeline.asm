@@ -101,7 +101,8 @@ vxModelWorldReverse_t:
 vxLightUniform:
  db	0,0,0
  db	0,0,0
- dw	0,0,0
+vxLightUniform_t:
+ dl	0,0,0
 vxAnimationKey:
  db	0
 vxTexturePage:
@@ -118,10 +119,11 @@ vxModelView:
  db    0,0,0
 vxModelView_t:
  dl    0,0,0
-vxLight:
+vxModelLight:
  db    0,0,0
  db    0,0
- dw    0,0,0
+vxModelLight_t:
+ dl    0,0,0
 vxModelViewReverse:
  db	0,0,0
  db	0,0,0
@@ -256,14 +258,32 @@ vxPrimitiveStream:
 	lea	ix, iy+0
 	ld	iy, vxPosition
 	call	vxMatrix.extend
+.setup_lightning:
 ; modelworldreverse=transpose(modelworld)
 	ld	ix, vxModelWorldReverse
 	call	vxMatrix.transpose
-; light=lightuniform*transpose(modelworld)
-; do light*matrix (hl) = (iy)*(ix)
-	ld	hl, vxLight
+; modellight=lightuniform*transpose(modelworld)
+; transform the light vector by the transpose of modelworld matrix
+	ld	hl, vxModelLight
 	ld	iy, vxLightUniform
-	call	vxMatrixLightning
+	call	vxVector.mlt3
+	inc	hl
+	inc	hl
+	inc	hl
+; copy the lightning parameter
+	ld	de, (iy+VX_LIGHT_AMBIENT)
+	ld	(hl), de
+	ld	a, (iy+VX_LIGHT_PARAM)
+	bit	VX_LIGHT_POINT_BIT, a
+	jr	z, .setup_shader
+.setup_lightning_world:
+; transform the light position by the transpose of modelworld matrix (this give us the absolute position in model space), however we need to transform in back to 24.0 values
+	ld	iy, vxLightUniform_t
+	call	vxMatrix.ftransform
+	ld	ix, vxModelLight_t
+	ld	iy, vxPosition
+	call	vxMatrix.extend
+.setup_shader:
 ; load up shader data
 	ld	ix, (vxPrimitiveMaterial)
 	ld	hl, (ix+VX_MATERIAL_VERTEX_UNIFORM)

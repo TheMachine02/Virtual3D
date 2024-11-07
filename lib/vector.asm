@@ -24,7 +24,30 @@
 
 ; code start - vector utility fonctions
 
-vxCrossProduct:
+; multiply a vec3 by a matrix
+vxVector:
+.mlt3:
+; vec3(hl) = mat3(ix) * vec3(iy)
+	push	hl
+	ld	b, 3
+.mlt3_loop:
+	push	bc
+	push	hl
+	call	.dot3
+	add	hl, hl
+	add	hl, hl
+	ld	a, h
+	pop	hl
+	ld	(hl), a
+	inc	hl
+	lea	ix, ix+3
+	pop	bc
+	djnz	.mlt3_loop
+	lea	ix, ix-9
+	pop	hl
+	ret
+
+.cross3:
 ; (hl) = (ix) cross (iy)
 ; 774 TStates, 177 Bytes
 ; v1.y*v2.z-v1.z*v2.y
@@ -149,7 +172,7 @@ vxCrossProduct:
 	dec	hl
 	ret
 
-vxDotProduct:
+.dot3:
 ; hl = (ix) dot (iy)
 	ld	h, (ix+0)
 	ld	l, (iy+0)
@@ -200,17 +223,19 @@ vxDotProduct:
 	ld	b, d
 	sbc	hl, bc
 	ret
-vxNormalize:
+
+.normalize3:
 ; iy vector, hl output
 	ret
-vxLength:
+
+.length3:
 	ret
 
-vxReflect:
+.reflect3:
 ; I = ix, N = iy, hl = result
 ; reflection direction I-2*dot(N,I)*N
 	push	hl
-	call	vxDotProduct
+	call	.dot3
 	add	hl, hl
 	add	hl, hl
 	add	hl, hl
