@@ -28,23 +28,40 @@
 vxVector:
 .mlt3:
 ; vec3(hl) = mat3(ix) * vec3(iy)
-	push	hl
-	ld	b, 3
-.mlt3_loop:
-	push	bc
-	push	hl
+	exx
 	call	.dot3
 	add	hl, hl
 	add	hl, hl
 	ld	a, h
-	pop	hl
+	rl	l
+	adc	a, 0
+	exx
 	ld	(hl), a
 	inc	hl
 	lea	ix, ix+3
-	pop	bc
-	djnz	.mlt3_loop
-	lea	ix, ix-9
-	pop	hl
+	exx
+	call	.dot3
+	add	hl, hl
+	add	hl, hl
+	ld	a, h
+	rl	l
+	adc	a, 0
+	exx
+	ld	(hl), a
+	inc	hl
+	lea	ix, ix+3
+	exx
+	call	.dot3
+	add	hl, hl
+	add	hl, hl
+	ld	a, h
+	rl	l
+	adc	a, 0
+	exx
+	ld	(hl), a
+	lea	ix, ix-6
+	ld	bc, -2
+	add	hl, bc
 	ret
 
 .cross3:
@@ -173,55 +190,39 @@ vxVector:
 	ret
 
 .dot3:
-; hl = (ix) dot (iy)
+; hl (16 bits signed) = (ix) dot (iy)
 	ld	h, (ix+0)
 	ld	l, (iy+0)
-	ld	a, h
-	rla
-	sbc	a, a
-	and	a, l
-	ld	e, a
-	ld	a, l
-	rla
-	sbc	a, a
-	and	a, h
-	add	a, e
+	xor	a, a
+	bit	7, h
+	jr	z, $+3
+	sub	a, l
+	bit	7, l
+	jr	z, $+3
+	sub	a, h
 	mlt	hl
-	ld	e, a
 	ld	b, (ix+1)
 	ld	c, (iy+1)
-	ld	a, b
-	rla
-	sbc	a, a
-	and	a, c
-	ld	d, a
-	ld	a, c
-	rla
-	sbc	a, a
-	and	a, b
-	add	a, d
-	mlt	bc
-	add	hl, bc
-	ld	d, a
-	ld	b, (ix+2)
-	ld	c, (iy+2)
-	xor	a, a
 	bit	7, b
 	jr	z, $+3
-	add	a, c
+	sub	a, c
 	bit	7, c
 	jr	z, $+3
-	add	a, b
+	sub	a, b
 	mlt	bc
 	add	hl, bc
-	ld	b, a
-	xor	a, a
-	ld	c, a
-	sbc	hl, bc
-	ld	b, e
-	sbc	hl, bc
-	ld	b, d
-	sbc	hl, bc
+	ld	b, (ix+2)
+	ld	c, (iy+2)
+	bit	7, b
+	jr	z, $+3
+	sub	a, c
+	bit	7, c
+	jr	z, $+3
+	sub	a, b
+	mlt	bc
+	add	hl, bc
+	add	a, h
+	ld	h, a
 	ret
 
 .normalize3:

@@ -439,6 +439,7 @@ vxPrimitiveClipPlane:
 	xor	a, a
 	jp	.parametricCCompute
 
+; recompute code with the update intersected position
 .parametric_zclip_ry:
 	xor	a, a
 	ld	de, (VX_PATCH_VERTEX+VX_VERTEX_RZ)
@@ -457,7 +458,7 @@ vxPrimitiveClipPlane:
 	add	hl, hl
 	jp	nc, .parametricCCompute
 	or	a, 01000000b
-	jp	.parametricCCompute	
+	jp	.parametricCCompute
 
 vxParametric:
 .mlt:
@@ -514,7 +515,7 @@ vxParametric:
 
 .factor:
 ; bc (16bits) = abs(hl)*65536/abs(hl-de)
- ; abs(hl) < abs(hl-de)
+; abs(hl) < abs(hl-de)
 ; de < 0 and hl > 0 : substract carry
 ; hl > 0 and de < 0 : substract dont carry, we need to negate
 	ex	de, hl
