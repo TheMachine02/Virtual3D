@@ -138,8 +138,8 @@ vxIdentityMatrix:
 ; projection matrix is (1/tan(fov/2)) / aspect and the (1/tan(fov/2))
 ; note we loose precision because 0.6 isn't quite enough (move to 8.8 ?)
 vxProjectionMatrix:
- db	68,0,0	; this is actually fov=70°
- db	0,91,0	; 85
+ db	69,0,0		; 69
+ db	0,91,0		; 91
  db	0,0,64
 vxProjectionMatrix_t:
  dl	0,0,0
