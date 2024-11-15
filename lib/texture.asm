@@ -487,11 +487,13 @@ vxShaderAdress2Write=$+1
 	ccr	ge_pxl_raster
 	cce	ge_pxl_shading
 .triangle_gpr_subtexel:
+; 403 cycles worst case with last jump
 	ld	bc, (iy+VX_FDVDX)
 	ld	hl, (iy+VX_FDVDY)
 	ld	d, h
 	ld	e, b
-	or	a, a
+; NOTE : carry is undefined but we don't really care for on 1/256 off error on 8.8
+; 	or	a, a
 	sbc	hl, bc
 	sra	h
 	rr	l
@@ -499,9 +501,32 @@ vxShaderAdress2Write=$+1
 	add	a, h
 	ld	h, a
 	ld	i, hl
-	ld	bc, (iy+VX_FDUDX)
+.triangle_gpr_subtexel_shift:
+; now adapt because of the layout in memory : [lDVDY][hDVDY][lDUDY][hDUDY]
+; if dvdy is < 0 then adding will always propagate a carry inside dudy, which is a no-no
 	ld	hl, (iy+VX_FDUDY)
-	or	a, a
+; check the sign of FDVDY
+	bit	7, d
+	jr	z, .triangle_gpr_subtexel_dy
+	dec	hl
+; only write 1 byte because the other one is register passed, we only change in memory for the 24 bits load
+	ld	(iy+VX_FDUDY), l
+.triangle_gpr_subtexel_dy:
+	ld	a, h
+vxShaderAdress5Write=$+1
+	ld	($D00000), a
+	ld	bc, (iy+VX_FDUDX)
+; check the sign if FDVDX
+	bit	7, e
+	jr	z, .triangle_gpr_subtexel_dx
+	dec	bc
+; only write 1 byte because the other one is register passed, we only change in memory for the 24 bits load
+	ld	(iy+VX_FDUDX), c
+.triangle_gpr_subtexel_dx:
+; 	ld	bc, (iy+VX_FDUDX)
+; 	ld	hl, (iy+VX_FDUDY)
+; NOTE : carry is undefined but max is 1/256 off error on 8.8, also possibility for more error due to the dec bc / dec hl
+; 	or	a, a
 	sbc	hl, bc
 	sra	h
 	rr	l
@@ -509,35 +534,13 @@ vxShaderAdress2Write=$+1
 	ld	mb, a
 	ld	a, (iy+VX_REGISTER_U0)
 	add	a, h
+.triangle_gpr_render_pixel:
+; initialise drawing span parameters
 	exa
-; now adapt because of the layout in memory : [lDVDY][hDVDY][lDUDY][hDUDY]
-; if dvdy is < 0 then adding will always propagate a carry inside dudy, which is a no-no
-	ld	bc, (iy+VX_FDUDY)
-; check the sign of FDVDY
-	bit	7, d
-	jr	z, .triangle_gpr_merge_dy
-	dec	bc
-; only write 1 byte because the other one is register passed, we only change in memory for the 24 bits load
-	ld	(iy+VX_FDUDY), c
-.triangle_gpr_merge_dy:
-	ld	a, b
-vxShaderAdress5Write=$+1
-	ld	($D00000), a
-	ld	bc, (iy+VX_FDUDX)
-; check the sign if FDVDX
-	bit	7, e
-	jr	z, .triangle_gpr_merge_dx
-	dec	bc
-; only write 1 byte because the other one is register passed, we only change in memory for the 24 bits load
-	ld	(iy+VX_FDUDX), c
-.triangle_gpr_merge_dx:
-; and finish it up
 	ld	hl, i
 	ex	de, hl
 	ld	ix, 0
 	add	ix, de
-.triangle_gpr_render_pixel:
-; initialise drawing span parameters
 .SMC0:=$+1
 	ld	a, $D3
 	ld	mb, a

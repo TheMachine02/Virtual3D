@@ -194,8 +194,7 @@ vxShader:
 ; iy+0, jp $000000 (also end marker)
 ; iy+2, length/2 for djnz
 ; iy+4, screen VRAM adress
-; iy+7 and iy+10, u&v value
-; total : 13 bytes
+; total : 7 bytes
 	lea	iy, iy+VX_GPR_REGISTER_SIZE
 .fragment_setup:
 	exa

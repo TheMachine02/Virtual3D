@@ -145,14 +145,6 @@ Main:
 .swap:
 	call	vxFramebufferSwap
 
-.keyboard:
-	ld	hl, $F50000
-	ld	(hl), 2
-	xor	a, a
-.wait:
-	cp	a, (hl)
-	jr	nz, .wait
-
 	ld	de, (VX_TIMER_COUNTER_FR+1)
 ; divide de by 187
 	ex	de, hl
@@ -189,6 +181,15 @@ Main:
 	inc	hl
 	pop	de
 	push	hl
+	
+.keyboard:
+	ld	hl, $F50000
+	ld	(hl), 2
+	xor	a, a
+.wait:
+	cp	a, (hl)
+	jr	nz, .wait
+		
 	ld	a, ($F5001E)
 	bit	1, a
 	jr	z, .skip0
@@ -361,13 +362,13 @@ World:
 	
 Model:
 .vertex_appv:
-;	db	ti.AppVarObj, "FRANV",0
 	db	ti.AppVarObj, "TONBV",0
+; 	db	ti.AppVarObj, "TONBV",0
 .vertex_source:
 	dl	0
 .triangle_appv:
-;	db	ti.AppVarObj, "FRANF", 0
-	db	ti.AppVarObj, "TONBF",0
+	db	ti.AppVarObj, "TONBF", 0
+;	db	ti.AppVarObj, "TONBF",0
 .triangle_source:
 	dl	0
 .texture_appv:
