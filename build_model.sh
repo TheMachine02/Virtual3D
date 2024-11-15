@@ -185,6 +185,9 @@ echo "Converting BomboFFXII.png"
 echo "Converting UltimaFFXII.png"
 ./tools/texconv -dithering -compress -o=ULTIMAT example/file/UltimaFFXII.png
 
+echo "Converting envmapgold.png"
+./tools/texconv -dithering -compress -o=TONBE example/file/envmapgold.png
+
 fasmg example/file/PoolTRIII.inc bin/POOLT.8xv
 fasmg example/file/CityTRIII.inc bin/CITYT.8xv 
 fasmg example/file/TrainRoomTRIII.inc bin/TRAINT.8xv 
@@ -207,3 +210,4 @@ fasmg example/file/BackgroundNevada.inc bin/SKYBOX3.8xv
 fasmg example/file/BackgroundLondon.inc bin/SKYBOX4.8xv 
 fasmg example/file/BomboFFXII.inc bin/BOMBOT.8xv 
 fasmg example/file/UltimaFFXII.inc bin/ULTIMAT.8xv 
+fasmg example/file/envmapgold.inc bin/TONBE.8xv 

@@ -67,11 +67,11 @@ Main:
 ; set option
 	ld	(Viewframe.option), a
 ; compile the shader
-	ld	ix, vxPixelShader.lightning
-	call	vxShader.compile
-	ret	c
-	ld	(Model.material+VX_MATERIAL_PIXEL_SHADER), hl
-	
+; 	ld	ix, vxPixelShader.lightning
+; 	call	vxShader.compile
+; 	ret	c
+; 	ld	(Model.material+VX_MATERIAL_PIXEL_SHADER), hl
+; 	
 ; load the model material as MATERIAL0
 	ld	hl, Model.material
 	ld	a, VX_MATERIAL0
@@ -372,7 +372,7 @@ Model:
 	dl	0
 .texture_appv:
 ;	db	ti.AppVarObj, "FRANT", 0
-	db	ti.AppVarObj, "TONBT", 0
+	db	ti.AppVarObj, "TONBE", 0
 .texture_source:
 	dl	0
 ; .mipmap_appv:
@@ -385,7 +385,7 @@ Model:
 	db	0,0,64
 	dl	0,0,0
 .material:
-	db	VX_FORMAT_TEXTURE	; VX_FORMAT_TEXTURE	;
+	db	VX_FORMAT_TEXTURE_VERTEX	; VX_FORMAT_TEXTURE	;
 	dl	VX_VERTEX_BUFFER
 	dl	vxVertexShader.ftransform
 	dl	vxVertexShader.uniform

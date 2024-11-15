@@ -120,17 +120,38 @@ vxVertexShader:
 	ld	bc, (hl)
 	ld	(.MTZ), bc
 ; lightning write
-	add	hl, de
-	ld	de, .LV0
-	ldi
-	ld	de, .LV1
-	ldi
-	ld	de, .LV2
-	ldi
-	ld	de, .LA
-	ldi
-	ld	de, .LE
-	ldi
+; 	add	hl, de
+; 	ld	de, .LV0
+; 	ldi
+; 	ld	de, .LV1
+; 	ldi
+; 	ld	de, .LV2
+; 	ldi
+; 	ld	de, .LA
+; 	ldi
+; 	ld	de, .LE
+; 	ldi
+; screen space reflection (test)
+; we use the model to view to get x,y of normal vector
+; so we only need the first two row of the matrix
+	ld	hl, vxModelView
+	ld	a, (hl)
+	ld	(.SSMC0), a
+	inc	hl
+	ld	a, (hl)
+	ld	(.SSMC1), a
+	inc	hl
+	ld	a, (hl)
+	ld	(.SSMC2), a
+	inc	hl
+	ld	a, (hl)
+	ld	(.SSMC3), a
+	inc	hl
+	ld	a, (hl)
+	ld	(.SSMC4), a
+	inc	hl
+	ld	a, (hl)
+	ld	(.SSMC5), a
 ; scissor set
 ; NOTE : this should be + 1
 	ld	a, VX_SCREEN_HEIGHT+1
@@ -351,64 +372,67 @@ relocate VX_VRAM
 	sbc	hl, de
 	jr	nc, .perspective_high_x
 .ftransform_ret:
-; lightning model is here, infinite directionnal light, no pow
-; TODO : could be made faster, either constant time multiplie (constant*normal) or other trick : 4.4 fixed point ?
-.lightning:
-	xor	a, a
-	ld	c, (iy+VX_VERTEX_NX)
-.LV0=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-	ld	c, (iy+VX_VERTEX_NY)
-.LV1=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-	ld	c, (iy+VX_VERTEX_NZ)
-.LV2=$+1
-	ld	b, $CC
-	bit	7, c
-	jr	z, $+3
-	sub	a, b
-	bit	7, b
-	jr	z, $+3
-	sub	a, c
-	mlt	bc
-	add	a, b
-; max(a,0)
-	jp	p, .light_scale
-	xor	a, a
-	jr	.light_ambient
-.light_scale:
-	add	a, a
-	add	a, a
-	ld	c, a
-; LE have a 64 scaling
-.LE=$+1
-	ld	b, $CC
-	mlt	bc
-	ld	a, b
-	rl	c
-.light_ambient:
-.LA=$+1
-	adc	a, $CC
-	cp	a, 32
-	jr	c, $+4
-	ld	a, 31
-	ld	(ix+VX_VERTEX_GPR2), a
+; simple algorithm examples : fog, infinite directionnal lightning, screen space reflection
+
+; ; lightning model is here, infinite directionnal light, no pow
+; ; TODO : could be made faster, either constant time multiplie (constant*normal) or other trick : 4.4 fixed point ?
+; .lightning:
+; 	xor	a, a
+; 	ld	c, (iy+VX_VERTEX_NX)
+; .LV0=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; 	ld	c, (iy+VX_VERTEX_NY)
+; .LV1=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; 	ld	c, (iy+VX_VERTEX_NZ)
+; .LV2=$+1
+; 	ld	b, $CC
+; 	bit	7, c
+; 	jr	z, $+3
+; 	sub	a, b
+; 	bit	7, b
+; 	jr	z, $+3
+; 	sub	a, c
+; 	mlt	bc
+; 	add	a, b
+; ; max(a,0)
+; 	jp	p, .light_scale
+; 	xor	a, a
+; 	jr	.light_ambient
+; .light_scale:
+; 	add	a, a
+; 	add	a, a
+; 	ld	c, a
+; ; LE have a 64 scaling
+; .LE=$+1
+; 	ld	b, $CC
+; 	mlt	bc
+; 	ld	a, b
+; 	rl	c
+; .light_ambient:
+; .LA=$+1
+; 	adc	a, $CC
+; 	cp	a, 32
+; 	jr	c, $+4
+; 	ld	a, 31
+; 	ld	(ix+VX_VERTEX_GPR2), a
+
 ; .fog:
 ; ; simple fog algorithm
 ; 	ld	hl, (ix+VX_VERTEX_RZ+1)
@@ -424,7 +448,90 @@ relocate VX_VRAM
 ; 	ld	a, 31
 ; 	ld	(ix+VX_VERTEX_GPR2), a
 ; use this target for gouraud shading, this is v register
+;	ld	(ix+VX_VERTEX_GPR1), a
+
+; screen space reflection
+.SSMC0=$+1
+	ld	h, $CC
+	ld	l, (iy+VX_VERTEX_NX)
+	xor	a, a
+	bit	7, h
+	jr	z, $+3
+	sub	a, l
+	bit	7, l
+	jr	z, $+3
+	sub	a, h
+	mlt	hl
+.SSMC1=$+1
+	ld	b, $CC
+	ld	c, (iy+VX_VERTEX_NY)
+	bit	7, b
+	jr	z, $+3
+	sub	a, c
+	bit	7, c
+	jr	z, $+3
+	sub	a, b
+	mlt	bc
+	add	hl, bc
+.SSMC2=$+1
+	ld	b, $CC
+	ld	c, (iy+VX_VERTEX_NZ)
+	bit	7, b
+	jr	z, $+3
+	sub	a, c
+	bit	7, c
+	jr	z, $+3
+	sub	a, b
+	mlt	bc
+	add	hl, bc
+	add	a, h
+	ld	h, a
+	add	hl, hl
+; between 0-63
+	ld	a, h
+	add	a, 64
+	ld	(ix+VX_VERTEX_GPR0), a
+	
+.SSMC3=$+1
+	ld	h, $CC
+	ld	l, (iy+VX_VERTEX_NX)
+	xor	a, a
+	bit	7, h
+	jr	z, $+3
+	sub	a, l
+	bit	7, l
+	jr	z, $+3
+	sub	a, h
+	mlt	hl
+.SSMC4=$+1
+	ld	b, $CC
+	ld	c, (iy+VX_VERTEX_NY)
+	bit	7, b
+	jr	z, $+3
+	sub	a, c
+	bit	7, c
+	jr	z, $+3
+	sub	a, b
+	mlt	bc
+	add	hl, bc
+.SSMC5=$+1
+	ld	b, $CC
+	ld	c, (iy+VX_VERTEX_NZ)
+	bit	7, b
+	jr	z, $+3
+	sub	a, c
+	bit	7, c
+	jr	z, $+3
+	sub	a, b
+	mlt	bc
+	add	hl, bc
+	add	a, h
+	ld	h, a
+	add	hl, hl
+	ld	a, h
+	add	a, 64
 	ld	(ix+VX_VERTEX_GPR1), a
+
 	lea	ix, ix+VX_VERTEX_SIZE
 	lea	iy, iy+VX_VERTEX_DATA_SIZE
 	ld	a, (iy+VX_VERTEX_SIGN)
