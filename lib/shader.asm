@@ -79,7 +79,13 @@ vxShader:
 	ld	c, .fragment_setup - .fragment
 	ldir
 ; we should jump after the lea (fragment_setup)
-	ld	(iy+VX_PIXEL_SHADER_JP), de
+	push	hl
+	push	de
+	ld	hl, .fragment_jump - .fragment_setup
+	add	hl, de
+	ld	(iy+VX_PIXEL_SHADER_JP), hl
+	pop	de
+	pop	hl
 	push	de
 	ld	c, .fragment_end - .fragment_setup
 	ldir
@@ -203,6 +209,7 @@ vxShader:
 ; a is the u integer part, copy it to hl'
 .DUDY:=$+1
 	adc	a, $00
+.fragment_jump:
 ; NOTE : we need to reset the v integer part to zero, else if previous v was < 255
 ; we might overflow into $dx and completely destroy our poor texture sampler
 ; reset both the upper byte which is the texture with mbase and h with zero
@@ -214,7 +221,6 @@ vxShader:
 .VROF:=$
 	nop
 	exx
-.fragment_jump:
 ; iy point to an in LUT jp to the correct area
 	ld	b, (iy+VX_GPR_REGISTER_LENGTH+1)
 	jp	(iy)

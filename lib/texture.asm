@@ -47,8 +47,6 @@ assert VX_VERTEX_BUFFER < $D10000
 
 vxPrimitiveTextureRaster:
 ; about 200 cycles to swap in place
-	ld	a, VX_REGISTER_DATA shr 16
-	ld	mb, a
 	inc	hl
 	inc	de
 	inc	bc
@@ -110,6 +108,9 @@ vxPrimitiveTextureRaster:
 	ld	e, (hl)
 	inc	hl
 	ld	d, (hl)
+.triangle_gpr_setup_mbase:
+	ld	a, VX_REGISTER_DATA shr 16
+	ld	mb, a
 .triangleCompute_dvdy:
 ; dvdy = (v2-v0)*inv/256;
 	ld	a, (iy+VX_REGISTER_V2)
@@ -161,8 +162,6 @@ vxPrimitiveTextureRaster:
 	ld	d, 0
 	adc	hl, de
 .triangleNull_dudy:
-; now adapt because of the layout in memory : [lDVDY][hDVDY][lDUDY][hDUDY]
-; if dvdy is < 0 then adding will always propagate a carry inside dudy, which is a no-no
 	ld	(iy+VX_FDUDY), hl
 ; compute us at longest span
 	ld	a, (iy+VX_REGISTER_Y1)
@@ -444,13 +443,13 @@ vxShaderAdress2Write=$+1
 	ld	e, (hl)
 	inc	hl
 	ld	d, (hl)
-.triangleCompute_dvdx:
+.triangle_gpr_mlt_dvdx:
 	ld	a, (iy+VX_REGISTER_V1)
 	sub	a, (iy+VX_REGISTER_VE)
 	ld	h, d
 	ld	l, a
 	mlt	hl
-	jr	z, .triangleNull_dvdx
+	jr	z, .triangle_gpr_null_dvdx
 	jr	nc, $+5
 	or	a, a
 	sbc	hl, de
@@ -461,15 +460,15 @@ vxShaderAdress2Write=$+1
 	ld	c, b
 	ld	b, 0
 	adc	hl, bc
-.triangleNull_dvdx:
+.triangle_gpr_null_dvdx:
 	ld	(iy+VX_FDVDX), hl
-.triangleCompute_dudx:
+.triangle_gpr_mlt_dudx:
 	ld	a, (iy+VX_REGISTER_U1)
 	sub	a, (iy+VX_REGISTER_UE)
 	ld	h, d
 	ld	l, a
 	mlt	hl
-	jr	z, .triangleNull_dudx
+	jr	z, .triangle_gpr_null_dudx
 	jr	nc, $+5
 	or	a, a
 	sbc	hl, de
@@ -479,103 +478,81 @@ vxShaderAdress2Write=$+1
 	ld	e, d
 	ld	d, 0
 	adc	hl, de
-.triangleNull_dudx:
+.triangle_gpr_null_dudx:
 	ld	(iy+VX_FDUDX), hl
-.triangleMipmap:
+; .triangleMipmap:
 ; 	ld	sp, TMP
 ; 	call	vxMipmap.gradient
 ; 	call	vxVariableShading.rate
-.triangleGradient:
-	ld	a, (iy+VX_REGISTER_Y2)
-	sub	a, (iy+VX_REGISTER_Y0)
-	ld	b, a
-	sbc	hl, hl
-	ld	de, (iy+VX_FDVDY)
-	sbc	hl, de
+	ccr	ge_pxl_raster
+	cce	ge_pxl_shading
+.triangle_gpr_subtexel:
 	ld	de, (iy+VX_FDVDX)
+	ld	hl, (iy+VX_FDVDY)
+	or	a, a
 	sbc	hl, de
 	sra	h
 	rr	l
 	ld	a, (iy+VX_REGISTER_V0)
 	add	a, h
 	ld	h, a
-	ld	(iy+VX_REGISTER_TMP), hl
-	or	a, a
-	sbc	hl, hl
-	ld	de, (iy+VX_FDUDY)
-	sbc	hl, de
+	ld	i, hl
 	ld	de, (iy+VX_FDUDX)
+	ld	hl, (iy+VX_FDUDY)
+	or	a, a
 	sbc	hl, de
 	sra	h
 	rr	l
-	ld	(iy+VX_REGISTER_TMP+2), l
+	ld	a, l
+	ld	mb, a
 	ld	a, (iy+VX_REGISTER_U0)
 	add	a, h
-	ld	de, (iy+VX_FDUDY)
-	bit	7, (iy+VX_FDVDY)
-	jr	z, .gpr_merge_dy
-	dec.s	de
-	ld	(iy+VX_FDUDY), de
-.gpr_merge_dy:
 	exa
-	ld	(iy+VX_REGISTER_BREG), d
-; 	ld	c, d
-; 	ld	hl, (iy+VX_REGISTER_TMP)
-; 	ld	de, (iy+VX_FDVDY)
-; 	lea	ix, iy+0
-; ; hl > ix, de > bc, b > SMC
-; ; a > a', d > SMC
-; .triangleGradientLoop:
-; 	add	hl, de
-; 	adc	a, c
-; 	ld	(ix+VX_REGISTER2), hl
-; 	ld	(ix+VX_REGISTER3), a
-; .SMC0:=$+3
-; 	ld	(ix+VX_REGISTER3+2), $D3
-; 	lea	ix, ix+VX_REGISTER_SIZE
-; 	djnz	.triangleGradientLoop
-.triangleGradientEnd:
-	ccr	ge_pxl_raster
-.triangleRenderPixel:
-	cce	ge_pxl_shading
-; initialise drawing
-; hl'= texture page and accumulator for dux	LOADED
-; bc'= low byte is dux						INIT
-; sp = dux*65536+dvx						INIT
-; de'= undefined							INIT
-; hl = accumulator for dux					LOADED
-; de = screen adress						LOADED
-; bc = djnz size							LOADED
-	ld	de, (iy+VX_FDUDX)
-	bit	7, (iy+VX_FDVDX)
-	jr	z, .gpr_merge_dx
-	dec.s	de
-	ld	(iy+VX_FDUDX), de
-.gpr_merge_dx:
+	ld	hl, i
+	ex	de, hl
+	ld	ix, 0
+	add	ix, de
+; now adapt because of the layout in memory : [lDVDY][hDVDY][lDUDY][hDUDY]
+; if dvdy is < 0 then adding will always propagate a carry inside dudy, which is a no-no
+	ld	bc, (iy+VX_FDUDY)
+	bit	7, (iy+VX_FDVDY+1)
+	jr	z, .triangle_gpr_merge_dy
+	dec.s	bc
+; only write 1 byte because the other one is register passed, we only change in memory for the 24 bits load
+	ld	(iy+VX_FDUDY), c
+.triangle_gpr_merge_dy:
+	ld	a, b
+vxShaderAdress5Write=$+1
+	ld	($D00000), a
+	ld	bc, (iy+VX_FDUDX)
+	bit	7, (iy+VX_FDVDX+1)
+	jr	z, .triangle_gpr_merge_dx
+	dec.s	bc
+; only write 1 byte because the other one is register passed, we only change in memory for the 24 bits load
+	ld	(iy+VX_FDUDX), c
+.triangle_gpr_merge_dx:
+.triangle_gpr_render_pixel:
+; initialise drawing span parameters
 .SMC0:=$+1
-	ld	a, $D3		;;
-	ld	mb, a		;;
+	ld	a, $D3
+	ld	mb, a
 	or	a, a
 	sbc	hl, hl
 	ld	i, hl
-	ld	l, d
+	ld	l, b
 	ld	sp, hl
+;	lea	hl, ix+0
+; de still hold the correct ix 24 bits value
+	ex	de, hl
 	ld	de, (iy+VX_FDVDX)
-	exx
-vxShaderUniform0=$+1
-	ld	bc, VX_PIXEL_SHADER_DATA
-	exx
-; EXTRA
 	ld	bc, (iy+VX_FDVDY)
-	ld	ix, (iy+VX_REGISTER_TMP)
-; c reg
-	ld	a, (iy+VX_REGISTER_BREG)
-vxShaderAdress5Write=$+1
-	ld	($D00000), a
-; b reg
 	ld	a, b
 vxShaderAdress6Write=$+1
 	ld	($D00000), a
+	exa
+	exx
+vxShaderUniform0=$+1
+	ld	bc, VX_PIXEL_SHADER_DATA
 vxShaderJumpWrite=$+1
 	jp	$000000
 vxPixelShaderExit:
