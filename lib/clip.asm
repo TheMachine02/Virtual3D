@@ -59,45 +59,25 @@ end if
 ; output ;
 ; iy : clipped patch (take this address only and not INPUT or OUTPUT)
 ;  b : number of point
+; carry flag set if not a valid clip output
 	ld	ix, VX_PATCH_OUTPUT
 	ld	hl, VX_PATCH_VERTEX_POOL
 	ld	(vxPatchVertexCache), hl
 	rla
-	jr	nc, .nextPlane0
-	ex	af, af'
-	xor 	a, a
-	cp	a, b
 	ld	c, VX_PLANE_BIT0
-	call	nz, vxPrimitiveClipPlane
-	ex	af, af'
-.nextPlane0:
+	call	c, .clip_plane
 	rla
-	jr	nc, .nextPlane1
-	ex	af, af'
-	xor 	a, a
-	cp	a, b
 	ld	c, VX_PLANE_BIT1
-	call	nz, vxPrimitiveClipPlane
-	ex	af, af'
-.nextPlane1:
+	call	c, .clip_plane
 	rla
-	jr	nc, .nextPlane2
-	ex	af, af'
-	xor 	a, a
-	cp	a, b
 	ld	c, VX_PLANE_BIT2
-	call	nz, vxPrimitiveClipPlane
-	ex	af, af'
-.nextPlane2:
+	call	c, .clip_plane
 	rla
 	ret	nc
-	xor 	a, a
-	cp	a, b
-	ret	z
 	ld	c, VX_PLANE_BIT3
 ; fall trough ;
 
-vxPrimitiveClipPlane:
+.clip_plane:
 ; input ;
 ; iy : patch_input (VX_PATCH_INPUT), point to a list of address of vertex
 ;  b : number of point
@@ -105,6 +85,8 @@ vxPrimitiveClipPlane:
 ; output ;
 ; iy : clipped patch (VX_PATCH_OUPUT)
 ;  b : number of point
+	exa
+; if b < 3, degenerate clip
 	push	iy
 	push	ix
 ; b : count, c : planemask
@@ -139,6 +121,14 @@ vxPrimitiveClipPlane:
 	rrca
 	ld	b, a
 	pop	ix
+	ld	a, b
+	cp	a, 3
+	jr	c, .clip_degenerate
+	exa
+	ret
+.clip_degenerate:
+;  if the triangle is degenerate, reset outcode, so no more value will be written
+	xor	a, a
 	ret
 
 ; all works is here ;
