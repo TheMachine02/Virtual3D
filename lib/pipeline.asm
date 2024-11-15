@@ -32,11 +32,6 @@ define	VX_MAX_VERTEX			2048
 define	VX_VERTEX_POISON		1 shl VX_VERTEX_POISON_BIT
 define	VX_VERTEX_POISON_BIT		0
 
-; define	VX_FDVDY	-12
-; define	VX_FDUDY	-10
-; define	VX_FDVDX	-6
-; define	VX_FDUDX	-4
-
 virtual at -64
 	VX_REGISTER_UE:		rb	1
 	VX_REGISTER_VE:		rb	1
@@ -335,16 +330,23 @@ vxPrimitiveStream:
 	ld	ix, VX_PATCH_VERTEX_POOL
 ; poison reset the vertex pool since we use the same vertex shader as stream
 	xor	a, a
-	ld	(ix+0), a
-	ld	(ix+16), a
-	ld	(ix+32), a
-	ld	(ix+48), a
-	ld	(ix+64), a
-	lea	ix, ix+64
-	ld	(ix+16), a
-	ld	(ix+32), a
-	ld	(ix+48), a
-	lea	ix, ix-64
+	ld	de, VX_VERTEX_SIZE
+	lea	hl, ix+0
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
+	add	hl, de
+	ld	(hl), a
 	call	.ftransform
 	ccr	ge_vtx_transform
 ; account for end marker
@@ -441,22 +443,6 @@ relocate VX_VRAM_CACHE
 	ld	(hl), a
 	add	hl, de
 	djnz	.reset_kernel
-	ld	hl, VX_PATCH_VERTEX_POOL
-	ld	(hl), a
-	add	hl, de
-	ld	(hl), a
-	add	hl, de
-	ld	(hl), a
-	add	hl, de
-	ld	(hl), a
-	add	hl, de
-	ld	(hl), a
-	add	hl, de
-	ld	(hl), a
-	add	hl, de
-	ld	(hl), a
-	add	hl, de
-	ld	(hl), a
 	ret
 .vram_cache_size:= $ - VX_VRAM_CACHE
 end	relocate
