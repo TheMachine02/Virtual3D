@@ -2,7 +2,7 @@
 ;
 ; MIT License
 ; 
-; Copyright (c) 2017 - 2021 TheMachine02
+; Copyright (c) 2017 - 2024 TheMachine02
 ; 
 ; Permission is hereby granted, free of charge, to any person obtaining a copy
 ; of this software and associated documentation files (the "Software"), to deal
@@ -134,7 +134,7 @@ vxVertexShader:
 ; screen space reflection (test)
 ; we use the model to view to get x,y of normal vector
 ; so we only need the first two row of the matrix
-	ld	hl, vxModelView
+	ld	hl, vxModelViewScreenSpace
 	ld	a, (hl)
 	ld	(.SSMC0), a
 	inc	hl
@@ -487,7 +487,8 @@ relocate VX_VRAM
 	add	a, h
 	ld	h, a
 	add	hl, hl
-; between 0-63
+	add	hl, hl
+; between 0-128
 	ld	a, h
 	add	a, 64
 	ld	(ix+VX_VERTEX_GPR0), a
@@ -527,6 +528,7 @@ relocate VX_VRAM
 	add	hl, bc
 	add	a, h
 	ld	h, a
+	add	hl, hl
 	add	hl, hl
 	ld	a, h
 	add	a, 64

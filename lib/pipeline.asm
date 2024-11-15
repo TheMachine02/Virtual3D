@@ -78,12 +78,6 @@ vxPrimitiveMaterial:
  dl	0
 vxPrimitiveDepth:
  dl	VX_DEPTH_OFFSET
-vxModelViewCache:
- db	0,0,0
- db	0,0,0
- db	0,0,0
-vxModelViewCache_t:
- dl	0,0,0
 vxModelWorld:
  db	0,0,0
  db	0,0,0
@@ -127,6 +121,12 @@ vxModelViewReverse:
  db	0,0,0
  db	0,0,0
 vxModelViewReverse_t:
+ dl	0,0,0
+vxModelViewScreenSpace: 
+ db	0,0,0
+ db	0,0,0
+ db	0,0,0
+vxModelViewScreenSpace_t:
  dl	0,0,0
 vxIdentityMatrix:
  db	64,0,0
@@ -236,6 +236,10 @@ vxPrimitiveStream:
 ; equivalent to eye position in modelspace
 	ld	hl, vxModelView
 	ld	de, vxModelViewReverse
+	ld	bc, VX_MATRIX_SIZE
+	ldir
+	ld	hl, vxModelView
+	ld	de, vxModelViewScreenSpace
 	ld	bc, VX_MATRIX_SIZE
 	ldir
 	ld	iy, vxModelView
