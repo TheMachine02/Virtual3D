@@ -238,9 +238,10 @@ vxPrimitiveStream:
 	ld	de, vxModelViewReverse
 	ld	bc, VX_MATRIX_SIZE
 	ldir
+; only copy the 2 first row since that what we'll need for screenspace mapping
 	ld	hl, vxModelView
 	ld	de, vxModelViewScreenSpace
-	ld	bc, VX_MATRIX_SIZE
+	ld	bc, 6
 	ldir
 	ld	iy, vxModelView
 	ld	ix, vxProjectionMatrix
