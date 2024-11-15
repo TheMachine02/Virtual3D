@@ -487,20 +487,22 @@ vxShaderAdress2Write=$+1
 	ccr	ge_pxl_raster
 	cce	ge_pxl_shading
 .triangle_gpr_subtexel:
-	ld	de, (iy+VX_FDVDX)
+	ld	bc, (iy+VX_FDVDX)
 	ld	hl, (iy+VX_FDVDY)
+	ld	d, h
+	ld	e, b
 	or	a, a
-	sbc	hl, de
+	sbc	hl, bc
 	sra	h
 	rr	l
 	ld	a, (iy+VX_REGISTER_V0)
 	add	a, h
 	ld	h, a
 	ld	i, hl
-	ld	de, (iy+VX_FDUDX)
+	ld	bc, (iy+VX_FDUDX)
 	ld	hl, (iy+VX_FDUDY)
 	or	a, a
-	sbc	hl, de
+	sbc	hl, bc
 	sra	h
 	rr	l
 	ld	a, l
@@ -508,16 +510,13 @@ vxShaderAdress2Write=$+1
 	ld	a, (iy+VX_REGISTER_U0)
 	add	a, h
 	exa
-	ld	hl, i
-	ex	de, hl
-	ld	ix, 0
-	add	ix, de
 ; now adapt because of the layout in memory : [lDVDY][hDVDY][lDUDY][hDUDY]
 ; if dvdy is < 0 then adding will always propagate a carry inside dudy, which is a no-no
 	ld	bc, (iy+VX_FDUDY)
-	bit	7, (iy+VX_FDVDY+1)
+; check the sign of FDVDY
+	bit	7, d
 	jr	z, .triangle_gpr_merge_dy
-	dec.s	bc
+	dec	bc
 ; only write 1 byte because the other one is register passed, we only change in memory for the 24 bits load
 	ld	(iy+VX_FDUDY), c
 .triangle_gpr_merge_dy:
@@ -525,12 +524,18 @@ vxShaderAdress2Write=$+1
 vxShaderAdress5Write=$+1
 	ld	($D00000), a
 	ld	bc, (iy+VX_FDUDX)
-	bit	7, (iy+VX_FDVDX+1)
+; check the sign if FDVDX
+	bit	7, e
 	jr	z, .triangle_gpr_merge_dx
-	dec.s	bc
+	dec	bc
 ; only write 1 byte because the other one is register passed, we only change in memory for the 24 bits load
 	ld	(iy+VX_FDUDX), c
 .triangle_gpr_merge_dx:
+; and finish it up
+	ld	hl, i
+	ex	de, hl
+	ld	ix, 0
+	add	ix, de
 .triangle_gpr_render_pixel:
 ; initialise drawing span parameters
 .SMC0:=$+1
