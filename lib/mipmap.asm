@@ -54,19 +54,19 @@ vxVariableShading:
 .vrs_common:
 	ld	(iy+VX_FDVDX), hl
 	ld	(iy+VX_FDUDX+1), c
-	ld	hl, VX_PIXEL_SHADER_CODE+6
+	ld	hl, VX_PIXEL_SHADER_CODE+7
 	ld	de, VX_PIXEL_SHADER_CODE+10
 	ld	a, $D9
 	ld	(de), a
 	inc	de
-	ld	bc, 4
+	ld	bc, 3
 	ldir
 	ld	hl, .djnz_dual
 	ld	c, 2
 	ldir
 ; then put some zero nop here
 	ld	hl, VIRTUAL_NULL_RAM
-	ld	c, 5
+	ld	c, 6
 	ldir
 	ret
 
@@ -76,7 +76,7 @@ vxVariableShading:
 	djnz	.dummy
 	
 .dummy_2:
-	rb	15
+	rb	14
 .djnz_dual:
 	djnz	.dummy_2
 	

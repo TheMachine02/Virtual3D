@@ -47,14 +47,6 @@ define	VX_SHADER_DATA0			4
 define	VX_SHADER_DATA1			5
 define	VX_SHADER_CODE			6
 
-; pixel shader register ;
-
-define	VX_REGISTER_SIZE		12
-define	VX_REGISTER0			0
-define	VX_REGISTER1			3
-define	VX_REGISTER2			6
-define	VX_REGISTER3			9
-
 ; cache data register (de) ;
 
 define	VX_VERTEX_SIZE			16

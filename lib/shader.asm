@@ -32,6 +32,8 @@ virtual at 0
 	VX_PIXEL_SHADER_VEC1:		rb	3	; second SMC
 	VX_PIXEL_SHADER_OFFSET:		rb	3	; offset SMC
 	VX_PIXEL_SHADER_LUT_OFFSET:	rb	3	; LUT start
+	VX_PIXEL_SHADER_DUDY:		rb	3	; DUDY SMC offset
+	VX_PIXEL_SHADER_DVDY:		rb	3	; DVDY SMC offset
 	VX_PIXEL_SHADER_ASSEMBLY_SIZE:	rb	3	; size of total pixel shader
 	VX_PIXEL_SHADER_ASSEMBLY:	rb	64
 	align	4
@@ -41,8 +43,9 @@ end virtual
 
 align 4
 vxPixelShaderExitLUT:
- db	0
+;  db	0
  dl	vxPixelShaderExit
+ db	0
 vxShaderCompileEntry:
  dl	0
  
@@ -72,19 +75,28 @@ vxShader:
 	lea	hl, ix+VX_SHADER_CODE		; load shader
 	ld	de, VX_VRAM_CACHE		; set VRAM cache first so we can have actual offset
 	ldir					; copy the assembly included
-	ld	hl, .fragment_copy
-	ld	c, 3
+	ld	hl, .fragment
+	ld	c, .fragment_setup - .fragment
 	ldir
 ; we should jump after the lea (fragment_setup)
 	ld	(iy+VX_PIXEL_SHADER_JP), de
 	push	de
-	ld	c, 25
+	ld	c, .fragment_end - .fragment_setup
 	ldir
-	ld	hl, -15
+	ld	hl, -.fragment_end+.VROF
 	add	hl, de
 	ld	(iy+VX_PIXEL_SHADER_OFFSET), hl
+	
+	ld	hl, -.fragment_end+.DUDY
+	add	hl, de
+	ld	(iy+VX_PIXEL_SHADER_DUDY), hl
+	
+	ld	hl, -.fragment_end+.DVDY
+	add	hl, de
+	ld	(iy+VX_PIXEL_SHADER_DVDY), hl
+	
 ; we need to compute the copy size
-	ld	hl, 15 - VX_VRAM_CACHE
+	ld	hl, -VX_VRAM_CACHE+.fragment_end -.VROF
 	add	hl, de
 	ld	(iy+VX_PIXEL_SHADER_ASSEMBLY_SIZE), hl
 ; bc is zero here
@@ -103,12 +115,13 @@ vxShader:
 	ld	c, l
 	ld	b, 160
 .write_lut_negative:
+	ld	h, b
 	ld	l, c
-	ld	(iy+0), b
-	ld	(iy+1), hl
+;	ld	(iy+0), b
+	ld	(iy+0), hl	; + 1 
 	ld	l, a
-	ld	(iy+4), b
-	ld	(iy+5), hl
+;	ld	(iy+4), b
+	ld	(iy+4), hl	; + 1
 	lea	iy, iy+8
 	djnz	.write_lut_negative
 ; handle null lenght
@@ -117,8 +130,9 @@ vxShader:
 	dec	de
 	dec 	de
 	dec	de
-	ld	(iy+0), b
-	ld	(iy+1), de
+;	ld	(iy+0), b
+	ld	d, b
+	ld	(iy+0), de
 ; iy divised by four is important here
 	push	iy	
 	lea	iy, iy+4
@@ -128,11 +142,12 @@ vxShader:
 .write_lut_positive:
 	inc	e
 	ld	l, a
-	ld	(iy+0), e
-	ld	(iy+1), hl
+	ld	h, e
+;	ld	(iy+0), e
+	ld	(iy+0), hl
 	ld	l, c
-	ld	(iy+4), e
-	ld	(iy+5), hl
+;	ld	(iy+4), e
+	ld	(iy+4), hl
 	lea	iy, iy+8
 	djnz	.write_lut_positive
 ; copy and quit
@@ -166,37 +181,83 @@ vxShader:
 	sbc	hl, hl
 	ret
 
-.fragment_copy:
- 	lea	iy, iy+VX_REGISTER_SIZE
+.fragment:
+; per-span fragment setup
+; exactly 28 bytes, 93 cycles (counting out bound jp $ and fetch within normal RAM)
+; register format :
+; iy+0, jp $000000 (also end marker)
+; iy+2, length/2 for djnz
+; iy+4, screen VRAM adress
+; iy+7 and iy+10, u&v value
+; total : 13 bytes
+	lea	iy, iy+VX_GPR_REGISTER_SIZE
 .fragment_setup:
+	exa
+; fixed v = v + dv, with u on upper byte
+; we only need to reload b (bc is loaded with DVDY, an sampler only use b)
+.DVDY:=$+1
+	ld	b, $00
+	add	ix, bc
+	lea	hl, ix+0
 	exx
-	ld	hl, (iy+VX_REGISTER1)	; lut adress
-	ld	de, (iy+VX_REGISTER0)	; screen adress
-	add	hl, de
-	add	hl, hl
-	add	hl, hl
+; a is the u integer part, copy it to hl'
+.DUDY:=$+1
+	adc	a, $00
+; NOTE : we need to reset the v integer part to zero, else if previous v was < 255
+; we might overflow into $dx and completely destroy our poor texture sampler
+; reset both the upper byte which is the texture with mbase and h with zero
+	ld	hl, i
+	ld	l, a
+	exa
+	ld	de, (iy+VX_GPR_REGISTER_VRAM)
+; offseting to account interpolating from left or right (later inside setup code)
+.VROF:=$
 	nop
-	ld	a, (hl)			; fetch correct size
-	inc	hl
-	ld	ix, (hl)		; fetch jump \o/
-	ld	hl, (iy+VX_REGISTER3)
 	exx
-	ld	hl, (iy+VX_REGISTER2)	; v
-	ld	b, a
-	jp	(ix)
- 
-; .fragment_copy_next:
-;  	lea	iy, iy+VX_REGISTER_SIZE
-; .fragment_setup_next:
-; 	ld	hl, (iy+VX_REGISTER2)		; v
+.fragment_jump:
+; iy point to an in LUT jp to the correct area
+	ld	b, (iy+VX_GPR_REGISTER_LENGTH+1)
+	jp	(iy)
+.fragment_end:=$
+	
+; ; per-span fragment setup
+; ; exactly 28 bytes, 95? cycles (counting out bound jp $ and fetch within normal RAM)
+; ; advance in register file
+; ; register format :
+; ; iy+0, jp $000000 (also end marker)
+; ; iy+4, length/2 for djnz
+; ; iy+5, screen VRAM adress
+; ; total : 8 bytes
+; 	lea	iy, iy+VX_GPR_REGISTER_SIZE
+; 	exa
+; ; fixed v = v + dv, with u on upper byte
+; ; .DVDY:=$+1
+; ; 	ld	bc, $CC
+; ; we only need to reload b (bc load DVDY)
+; .DVDY_H:=$+1
+; 	ld	b, $CC
+; 	add	ix, bc
+; 	lea	hl, ix+0
 ; 	exx
-; 	ld	hl, (iy+VX_REGISTER3)		; u and upper byte
-; 	ld	de, (iy+VX_REGISTER_VRAM)	; screen adress
-; 	nop
+; ; a is the u integer part, copy it to hl'
+; .DUDY:=$+1
+; 	adc	a, $CC
+; ; NOTE : we need to reset the v integer part to zero, else if previous v was < 255
+; ; we might overflow into $dx and completely destroy our poor texture sampler
+; ; reset both the upper byte which is the texture with mbase and h with zero
+; 	ld	hl, i
+; 	ld	l, a
+; 	exa
+; .fragment_setup:
+; ; screen adress
+; 	ld	de, (iy+VX_GPR_REGISTER_VRAM)
+; ; offseting to account interpolating from left or right (later inside setup code)
 ; 	exx
-; 	ld	b, (iy+VX_REGISTER_LENGHT)
+; ; iy point to an in LUT jp to the correct area
+; 	ld	b, (iy+VX_GPR_REGISTER_LENGTH)
 ; 	jp	(iy)
- 
+
+  
 .load:
 ; ix is full compiled shader adress (fetched from material)
 ; save de, bc
@@ -217,6 +278,10 @@ vxShader:
 	inc	hl
 	inc	hl
 	ld	(vxShaderAdress4Write), hl
+	ld	hl, (ix+VX_PIXEL_SHADER_DUDY)
+	ld	(vxShaderAdress5Write), hl
+	ld	hl, (ix+VX_PIXEL_SHADER_DVDY)
+	ld	(vxShaderAdress6Write), hl
 	lea	hl, ix+VX_PIXEL_SHADER_ASSEMBLY
 	ld	de, VX_VRAM_CACHE
 	ld	bc, (ix+VX_PIXEL_SHADER_ASSEMBLY_SIZE)

@@ -32,10 +32,10 @@ define	VX_MAX_VERTEX			2048
 define	VX_VERTEX_POISON		1 shl VX_VERTEX_POISON_BIT
 define	VX_VERTEX_POISON_BIT		0
 
-define	VX_FDVDY	-12
-define	VX_FDUDY	-10
-define	VX_FDVDX	-6
-define	VX_FDUDX	-4
+; define	VX_FDVDY	-12
+; define	VX_FDUDY	-10
+; define	VX_FDVDX	-6
+; define	VX_FDUDX	-4
 
 virtual at -64
 	VX_REGISTER_UE:		rb	1
@@ -56,17 +56,20 @@ virtual at -64
 	VX_REGISTER_X2:		rb	2
 	VX_REGISTER_U2:		rb	1
 	VX_REGISTER_V2:		rb	1
+	VX_REGISTER_AREG:	rb	1
+	VX_REGISTER_BREG:	rb	1
+	VX_FDVDY:		rb	2
+	VX_FDUDY:		rb	4
+	VX_FDVDX:		rb	2
+	VX_FDUDX:		rb	4
 end virtual
 
 define	VX_PRIMITIVE_INTERPOLATION_SIZE	1024
 
-align 64
- rb	64
-VX_REGISTER_DATA:
- db	3072	dup	$D3
-
+ align 64
  rb	64
 VX_GPR_REGISTER_DATA:
+VX_REGISTER_DATA:
  db	2048	dup	$C3
  
 VIRTUAL_PIPELINE_STATE:

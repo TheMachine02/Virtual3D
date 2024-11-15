@@ -28,6 +28,19 @@ define	VX_GPR_HINT_MIPMAP	1 slh 2		; perform mipmap computation
 define	VX_GPR_HINT_DAMAGE	1 slh 3		; sha 256 area was damaged
 define	VX_GPR_NO_HINT		1 slh 7		; disable hinting
 
+
+define	VX_REGISTER_SIZE		8
+define	VX_REGISTER1			1
+define	VX_REGISTER0			4
+
+define	VX_GPR_REGISTER_SIZE		8
+virtual	at 0
+	VX_GPR_REGISTER_JP:		rb	1
+	VX_GPR_REGISTER_LENGTH:		rb	3
+	VX_GPR_REGISTER_VRAM:		rb	3
+	VX_GPR_UNUSED:			rb	1
+end	virtual
+
 ; WARNING : this routine assume vertex buffer is in the first 64K of RAM
 assert VX_PATCH_VERTEX_POOL < $D10000
 assert VX_VERTEX_BUFFER < $D10000
@@ -224,7 +237,7 @@ VX_SMC_EDGE0_INC=$
 	add	hl, bc
 	jr	c, .edge0Propagate
 .edge0End:
-	ld	(iy+VX_REGISTER0), ix
+	ld	(iy+VX_GPR_REGISTER_VRAM), ix
 	add	ix, sp
 	lea	iy, iy+VX_REGISTER_SIZE
 	dec	a
@@ -239,12 +252,12 @@ VX_SMC_EDGE0_INC=$
 	add	hl, de
 	ld.s	de, (ix+VX_REGISTER_X2)
 	add	hl, de
-	ld	(iy+VX_REGISTER0), hl
-	ex	de, hl
-	ld	hl, vxPixelShaderExitLUT/4
-	or	a, a
-	sbc	hl, de
-	ld	(iy+VX_REGISTER1), hl
+	ld	(iy+VX_GPR_REGISTER_VRAM), hl
+; 	ex	de, hl
+	ld	hl, vxPixelShaderExit   ;LUT/4
+; 	or	a, a
+; 	sbc	hl, de
+	ld	(iy+VX_GPR_REGISTER_LENGTH), hl
 .edge1Setup:
 ;	ld	iy, VX_REGISTER_DATA	; load up shader data register
 	lea	iy, ix+0
@@ -288,7 +301,6 @@ vxShaderAdress4Write:=$+2
 	neg
 ; load the buffer increment on the y axis
 	ld	sp, -320
-	lea	iy, iy+VX_REGISTER1
 .edge1loop:
 ; dark magic part II
 	add	hl, de
@@ -300,22 +312,19 @@ VX_SMC_EDGE1_INC=$
 	add	hl, bc
 	jr	c, .edge1Propagate
 .edge1End:
-; add 78 cycles per span
-;	exx
-; 	lea	hl, ix+0
-; 	ld	de, (iy+VX_REGISTER_VRAM)
-; 	add	hl, de
-; 	add	hl, hl
-; 	add	hl, hl
-; 	ld	hl, (hl)
-; 	ld	(iy+VX_REGISTER_LENGTH), hl
-; 	exx
-	ld	(iy+VX_REGISTER0), ix
+	exx
+	lea	hl, ix+0
+	ld	de, (iy+VX_GPR_REGISTER_VRAM)
+	add	hl, de
+	add	hl, hl
+	add	hl, hl
+	ld	hl, (hl)
+	ld	(iy+VX_GPR_REGISTER_LENGTH), hl
+	exx
 	add	ix, sp
 	lea	iy, iy+VX_REGISTER_SIZE
 	dec	a
 	jr	nz, .edge1loop
-	lea	iy, iy-VX_REGISTER1
 .edge1Null:
 
 .edge2Setup:
@@ -375,7 +384,6 @@ vxShaderAdress3Write:=$+2
 	rr	l
 	neg
 	ld	sp, -320
-	lea	iy, iy+VX_REGISTER1
 .edge2loop:
 ; dark magic part III
 	add	hl, de
@@ -387,19 +395,26 @@ VX_SMC_EDGE2_INC=$
 	add	hl, bc
 	jr	c, .edge2Propagate
 .edge2End:
-	ld	(iy+VX_REGISTER0), ix
+	exx
+	lea	hl, ix+0
+	ld	de, (iy+VX_GPR_REGISTER_VRAM)
+	add	hl, de
+	add	hl, hl
+	add	hl, hl
+	ld	hl, (hl)
+	ld	(iy+VX_GPR_REGISTER_LENGTH), hl
+	exx
 	add	ix, sp
 	lea	iy, iy+VX_REGISTER_SIZE
 	dec	a
 	jr	nz, .edge2loop
-	lea	iy, iy-VX_REGISTER1
 .edge2Null:
 
 .triangleInv_dx:
 	ld	iy, VX_REGISTER_DATA	; load up shader data register
 	ld	ix, (iy+VX_REGISTER_MIDPOINT)	; value @x1
 	ld	hl, (iy+VX_REGISTER_OFFSET)
-	ld	de, (ix+VX_REGISTER0)
+	ld	de, (ix+VX_GPR_REGISTER_VRAM)
 	or	a, a
 	sbc	hl, de
 	jp	z, vxPixelShaderExit
@@ -467,22 +482,9 @@ vxShaderAdress2Write=$+1
 .triangleNull_dudx:
 	ld	(iy+VX_FDUDX), hl
 .triangleMipmap:
-	ld	sp, TMP
+; 	ld	sp, TMP
 ; 	call	vxMipmap.gradient
-	call	vxVariableShading.rate
-; fixup adress
-; 	ld	a, (iy+VX_SHADER_INTERPOLATE_VEC)
-; ; write inc/dec
-; vxShaderAdress0Write=$+1
-; 	ld	($D00000), a
-; vxShaderAdress1Write=$+1
-; 	ld	($D00000), a
-; ; if a = 1B, write 1B ; else write 0
-; 	xor	a, $13
-; 	jr	z, $+4
-; 	or	a, $13
-; vxShaderAdress2Write=$+1
-; 	ld	($D00000), a
+; 	call	vxVariableShading.rate
 .triangleGradient:
 	ld	a, (iy+VX_REGISTER_Y2)
 	sub	a, (iy+VX_REGISTER_Y0)
@@ -509,25 +511,29 @@ vxShaderAdress2Write=$+1
 	ld	(iy+VX_REGISTER_TMP+2), l
 	ld	a, (iy+VX_REGISTER_U0)
 	add	a, h
-	ld	hl, (iy+VX_REGISTER_TMP)
 	ld	de, (iy+VX_FDUDY)
 	bit	7, (iy+VX_FDVDY)
 	jr	z, .gpr_merge_dy
 	dec.s	de
 	ld	(iy+VX_FDUDY), de
 .gpr_merge_dy:
-	ld	c, d
-	ld	de, (iy+VX_FDVDY)
-	lea	ix, iy+0
-.triangleGradientLoop:
-	add	hl, de
-	adc	a, c
-	ld	(ix+VX_REGISTER2), hl
-	ld	(ix+VX_REGISTER3), a
-.SMC0:=$+3
-	ld	(ix+VX_REGISTER3+2), $D3
-	lea	ix, ix+VX_REGISTER_SIZE
-	djnz	.triangleGradientLoop
+	exa
+	ld	(iy+VX_REGISTER_BREG), d
+; 	ld	c, d
+; 	ld	hl, (iy+VX_REGISTER_TMP)
+; 	ld	de, (iy+VX_FDVDY)
+; 	lea	ix, iy+0
+; ; hl > ix, de > bc, b > SMC
+; ; a > a', d > SMC
+; .triangleGradientLoop:
+; 	add	hl, de
+; 	adc	a, c
+; 	ld	(ix+VX_REGISTER2), hl
+; 	ld	(ix+VX_REGISTER3), a
+; .SMC0:=$+3
+; 	ld	(ix+VX_REGISTER3+2), $D3
+; 	lea	ix, ix+VX_REGISTER_SIZE
+; 	djnz	.triangleGradientLoop
 .triangleGradientEnd:
 	ccr	ge_pxl_raster
 .triangleRenderPixel:
@@ -546,8 +552,12 @@ vxShaderAdress2Write=$+1
 	dec.s	de
 	ld	(iy+VX_FDUDX), de
 .gpr_merge_dx:
+.SMC0:=$+1
+	ld	a, $D3		;;
+	ld	mb, a		;;
 	or	a, a
 	sbc	hl, hl
+	ld	i, hl
 	ld	l, d
 	ld	sp, hl
 	ld	de, (iy+VX_FDVDX)
@@ -555,6 +565,17 @@ vxShaderAdress2Write=$+1
 vxShaderUniform0=$+1
 	ld	bc, VX_PIXEL_SHADER_DATA
 	exx
+; EXTRA
+	ld	bc, (iy+VX_FDVDY)
+	ld	ix, (iy+VX_REGISTER_TMP)
+; c reg
+	ld	a, (iy+VX_REGISTER_BREG)
+vxShaderAdress5Write=$+1
+	ld	($D00000), a
+; b reg
+	ld	a, b
+vxShaderAdress6Write=$+1
+	ld	($D00000), a
 vxShaderJumpWrite=$+1
 	jp	$000000
 vxPixelShaderExit:
