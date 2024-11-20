@@ -18,13 +18,13 @@ fasmg example/file/TrainRoomTRIII1.inc bin/TRAINF.8xv
 fasmg example/file/PoolTRIII0.inc bin/POOLV.8xv
 fasmg example/file/PoolTRIII1.inc bin/POOLF.8xv
 
-./tools/import  example/file/PoolTRIII_tex.obj -T -N -S -B -X -o=POOL0
-fasmg example/file/PoolTRIII_tex0.inc bin/POOL0V.8xv
-fasmg example/file/PoolTRIII_tex1.inc bin/POOL0F.8xv
-
-./tools/import  example/file/PoolTRIII_water.obj -T -N -S -B -X -o=POOL1
-fasmg example/file/PoolTRIII_water0.inc bin/POOL1V.8xv
-fasmg example/file/PoolTRIII_water1.inc bin/POOL1F.8xv
+# ./tools/import  example/file/PoolTRIII_tex.obj -T -N -S -B -X -o=POOL0
+# fasmg example/file/PoolTRIII_tex0.inc bin/POOL0V.8xv
+# fasmg example/file/PoolTRIII_tex1.inc bin/POOL0F.8xv
+# 
+# ./tools/import  example/file/PoolTRIII_water.obj -T -N -S -B -X -o=POOL1
+# fasmg example/file/PoolTRIII_water0.inc bin/POOL1V.8xv
+# fasmg example/file/PoolTRIII_water1.inc bin/POOL1F.8xv
 
 # ./tools/import  example/file/room_commune.obj -T -N -S -B -X -o=ROOM
 # fasmg example/file/room_commune0.inc bin/ROOMV.8xv
@@ -188,6 +188,9 @@ echo "Converting UltimaFFXII.png"
 echo "Converting envmapgold.png"
 ./tools/texconv -dithering -compress -o=TONBE example/file/envmapgold.png
 
+echo "Converting envmapback.png"
+./tools/texconv -dithering -compress -o=SKYBOXE example/file/envmapback.png
+
 fasmg example/file/PoolTRIII.inc bin/POOLT.8xv
 fasmg example/file/CityTRIII.inc bin/CITYT.8xv 
 fasmg example/file/TrainRoomTRIII.inc bin/TRAINT.8xv 
@@ -211,3 +214,4 @@ fasmg example/file/BackgroundLondon.inc bin/SKYBOX4.8xv
 fasmg example/file/BomboFFXII.inc bin/BOMBOT.8xv 
 fasmg example/file/UltimaFFXII.inc bin/ULTIMAT.8xv 
 fasmg example/file/envmapgold.inc bin/TONBE.8xv 
+fasmg example/file/envmapback.inc bin/SKYBOXE.8xv 
