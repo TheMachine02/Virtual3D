@@ -8,7 +8,7 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
-#include "glm/glm.hpp"
+#include "glm/glm/glm.hpp"
 
 #define MAX_LINE_SIZE 16777216
 
@@ -17,7 +17,14 @@ using namespace std;
 using namespace glm;
 vector <mat4x4> applyMul(vector <mat4x4> right,vector <mat4x4> left);
 void display_vector(const vector<int> &v);
-ivec2 UVMap(vec2 t);
+ivec2 map_texture(vec2 textcoord);
+
+int sgn(double x)
+{
+	if (x > 0) return 0;
+	if (x < 0) return 1;
+	return 0;
+}
 
 int main(int argc, char* argv[])
 {
@@ -371,7 +378,7 @@ int main(int argc, char* argv[])
     printf("START : %d %d %d\n", bcount,fstart,fend);
 
     //output dataset to file.
-    ofstream out("XML.ez80");
+    ofstream out("XML.asm");
     vector <mat4> mset;
     vector <int> rvlink;
 
@@ -393,20 +400,19 @@ int main(int argc, char* argv[])
     int j=0;
 
     out << "VERTEXDATA:" << '\n';
-    out << ".dl " << vertex.size()*256 << "\n";
-
-    int tsize=0;
+    out << "db " << bcount << '\n';
+    out << "dl " << vertex.size() << "\n";
 
     for(i=0; i<vertex.size(); i++)
     {
         if(prev!=link[i].first)
         {
-
+            if(prev!=-1)
+                out << "db 1" << '\n';
             prev=link[i].first;
             //write matrix data : FUN
-            out << ".dw 32768\n";
             mset=matrixTable[prev];
-            out << ".db " << fend-fstart << "\n";
+            out << "db " << fend-fstart << "\n";
             int s = mset.size();
             //fend = std::min(fend,s);
             //if(fend==0)
@@ -437,15 +443,14 @@ int main(int argc, char* argv[])
     col2-=dot(col2,col1)*col1;
     col2=normalize(col2);
 
-                out << ".db ";
+                out << "db ";
                 out << (int)(col0[0]*64.0) <<  "," << (int)(col1[0]*64.0) <<  "," << (int)(col2[0]*64.0) << "\n";
-                out << ".db ";
+                out << "db ";
                 out << (int)(col0[1]*64.0) <<  "," << (int)(col1[1]*64.0) <<  "," << (int)(col2[1]*64.0) << "\n";
-                out << ".db ";
+                out << "db ";
                 out << (int)(col0[2]*64.0) <<  "," << (int)(col1[2]*64.0) <<  "," << (int)(col2[2]*64.0) << "\n";
-                out << ".dw ";
-                out << (int)(col3[0]*256.0) << "," << (int)(col3[1]*256.0) << "," << (int)(col3[2]*256.0) << "\n";
-                tsize +=15;
+                out << "dl ";
+                out << (int)(col3[0]*256.0*64.0) << "," << (int)(col3[1]*256.0*64.0) << "," << (int)(col3[2]*256.0*64.0) << "\n";
             }
         }
 
@@ -453,19 +458,32 @@ int main(int argc, char* argv[])
         rvlink[b]=i;
 
         vec3 v=vertex[b]*scale3;
-        out << ".dw " << (int)(v[0]*256.0) << "," << (int)(v[1]*256.0) << "," << (int)(v[2]*256.0) << "\n";
+//        out << ".dw " << (int)(v[0]*256.0) << "," << (int)(v[1]*256.0) << "," << (int)(v[2]*256.0) << "\n";
+        
+        int sm = sgn(round(v[0]*256.0)) << 7 | ( sgn(round(v[1]*256.0)) << 6) | (sgn(round(v[2]*256.0)) << 5);
+	
+	if((abs(round(v[0]*256.0))<256) && (abs(round(v[1]*256.0))<256) && (abs(round(v[2]*256.0))<256)) {
+	    sm |= 16;    
+	}
+        out << "db "<< sm << "\n";
+        out << "dw ";
+        out << abs(round(v[0]*256.0)) << ",";
+        out << abs(round(v[1]*256.0)) << ",";
+        out << abs(round(v[2]*256.0)) << '\n';
+        
         if(normal.size()!=0)
         {
-            vec3 n=normal[b];
-            out << ".db " << (int)(n[0]*64.0) << "," << (int)(n[1]*64.0) << "," << (int)(n[2]*64.0) << "\n";
+            vec3 n=normalize(normal[b]);
+            out << "db " << (int)(n[0]*64.0) << "," << (int)(n[1]*64.0) << "," << (int)(n[2]*64.0) << "\n";
         }
 
-        tsize = tsize+9;
     }
+    out << "db 1" << '\n';
+    
 
     prev=-1;
     out << "TRIDATA:\n";
-    out << ".dl " << (triangle.size()/3)*256 << "\n";
+    out << "dl " << (triangle.size()/3) << "\n";
     for(int j=0; j<triangle.size()/3; j++)
 	{
 	i = tlink[j].second;
@@ -476,28 +494,28 @@ int main(int argc, char* argv[])
 		printf("new bone\n");
 	}
 	
-    out << ".dl " << rvlink[triangle[i*3].x]*16 << "," << rvlink[triangle[i*3+1].x]*16 << "," << rvlink[triangle[i*3+2].x]*16 << "\n";
+    out << "dl " << rvlink[triangle[i*3].x]*16 << "," << rvlink[triangle[i*3+1].x]*16 << "," << rvlink[triangle[i*3+2].x]*16 << "\n";
 //    out << ".db 0\n";
      vec3 edge0;
      vec3 edge1;
      edge0 = vertex[rvlink[triangle[i*3].x]] - vertex[rvlink[triangle[i*3+1].x]];
      edge1 = vertex[rvlink[triangle[i*3].x]] - vertex[rvlink[triangle[i*3+2].x]];
      vec3 norm=normalize(cross(edge0,edge1));
-     vec3 vconst(64.0,64.0,64.0);
+     vec3 vconst(31.0,31.0,31.0);
      vec3 vconst2(256.0,256.0,256.0);
      norm = norm * vconst;
      vec3 vx = vertex[rvlink[triangle[i*3].x]] * vconst2;
-     out << ".db " << round(norm[0]) << ',' << round(norm[1]) << ',' << round(norm[2]) << '\n';
-     out << ".dl " << -round(dot(norm,vx)) << '\n';
+     out << "db " << ((int)round(norm[0]))*4 << ',' << ((int)round(norm[1])*4) << ',' << ((int)round(norm[2]))*4 << '\n';
+     out << "dl " << -round(dot(norm,vx)) << '\n';
 
-    ivec2 tcoord=UVMap(texture[triangle[i*3].z]);
-    out << ".db " << tcoord[0] << "," << tcoord[1] << "\n";
-    tcoord=UVMap(texture[triangle[i*3+1].z]);
-    out << ".db " << tcoord[0] << "," << tcoord[1] << "\n";
-    tcoord=UVMap(texture[triangle[i*3+2].z]);
-    out << ".db " << tcoord[0] << "," << tcoord[1] << "\n";
+    ivec2 tcoord=map_texture(texture[triangle[i*3].z]);
+    out << "db " << tcoord[0] << "," << tcoord[1] << "\n";
+    tcoord=map_texture(texture[triangle[i*3+1].z]);
+    out << "db " << tcoord[0] << "," << tcoord[1] << "\n";
+    tcoord=map_texture(texture[triangle[i*3+2].z]);
+    out << "db " << tcoord[0] << "," << tcoord[1] << "\n";
 	}
-	out << ".db 1";
+	out << "db 1";
 
 }
 
@@ -511,10 +529,18 @@ vector <mat4x4> applyMul(vector <mat4x4> right, vector <mat4x4> left)
     return right;
 }
 
-ivec2 UVMap(vec2 t)
+// ivec2 UVMap(vec2 t)
+// {
+//     ivec2 newcoord(clamp((int)(clamp(t[0],0.0f,1.0f)*256.0),0,255), clamp((int)(clamp(1.0f-t[1],0.0f,1.0f)*256.0),0,255));
+//     return newcoord;
+// }
+
+ivec2 map_texture(vec2 texcoord)
 {
-    ivec2 newcoord(clamp((int)(clamp(t[0],0.0f,1.0f)*256.0),0,255), clamp((int)(clamp(1.0f-t[1],0.0f,1.0f)*256.0),0,255));
-    return newcoord;
+    ivec2 texture;
+    texture.x=(int)round(glm::clamp(texcoord.x*256.0f,0.0f,255.0f));
+    texture.y=(int)round(glm::clamp((1.0f-texcoord.y)*256.0f,0.0f,255.0f));
+    return texture;
 }
 
 void display_vector(const vector<int> &v)
