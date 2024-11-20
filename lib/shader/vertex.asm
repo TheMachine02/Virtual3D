@@ -530,8 +530,8 @@ relocate VX_VRAM
 	ld	h, a
 	add	hl, hl
 	add	hl, hl
-	ld	a, h
-	add	a, 64
+	ld	a, 64
+	sub	a, h
 	ld	(ix+VX_VERTEX_GPR1), a
 
 	lea	ix, ix+VX_VERTEX_SIZE
