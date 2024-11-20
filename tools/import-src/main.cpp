@@ -339,54 +339,54 @@ bool load_obj(const char * path, const char * name, unsigned short option)
         vertexNormalTable[i]=normalize(vertexNormalTable[i]);
     
     
-    face_count=face_index.size()/10;
-    vertex_count=vertexTable.size();
-    
-    //compute normal
-    vertex_normal.reserve(vertex_count);
-	vertex_cangle.reserve(vertex_count);
-	vertex_coffset.reserve(vertex_count);
-    face_normal.reserve(face_count);
-    
-	// face_index is material_id, index, index_tex, index_norm
-	
-    unsigned int v_index0, v_index1, v_index2, n_index;
-    
-    for(i=0;i<face_count;i++)
-    {
-		v_index0 = face_index[i*10+3];
-		v_index1 = face_index[i*10+6];
-	    v_index2 = face_index[i*10+9];
-		face_normal[i]= normalize( normalTable[v_index0] + normalTable[v_index1] + normalTable[v_index2]);
-		
-		// add this face normal to the vertex's normal
-		
-		for(j=0;j<3;j++)
-		{
-			n_index = face_index[i*10+j*3+1];
-			vertex_normal[n_index] = normalize(face_normal[i]+vertex_normal[n_index]);
-		}
-    }    
-    
-    // now find the vertex cone angle from face normal and vertex normal (maximal absolute angle)
-    for(i=0;i<face_count;i++)
-	{
-		vec3 f_normal = face_normal[i];
-		
-		for(j=0;j<3;j++)
-		{
-			n_index = face_index[i*10+j*3+1];
-			vec3 v_normal = vertex_normal[n_index];
-			vertex_cangle[n_index]=std::max(std::abs(acos(dot(v_normal,f_normal))),vertex_cangle[n_index]);
-		}
-	}
-    // find the associated vertex normal offset, normal calculation    
-    for(i=0;i<vertex_count;i++)
-	{
-		vec3 v_position = normalize(vertexTable[i]);
-		vec3 v_normal = vertex_normal[i];
-		vertex_coffset[i] = acos(dot(v_position, v_normal));
-	}
+//     face_count=face_index.size()/10;
+//     vertex_count=vertexTable.size();
+//     
+//     //compute normal
+//     vertex_normal.reserve(vertex_count);
+// 	vertex_cangle.reserve(vertex_count);
+// 	vertex_coffset.reserve(vertex_count);
+//     face_normal.reserve(face_count);
+//     
+// 	// face_index is material_id, index, index_tex, index_norm
+// 	
+//     unsigned int v_index0, v_index1, v_index2, n_index;
+//     
+//     for(i=0;i<face_count;i++)
+//     {
+// 		v_index0 = face_index[i*10+3];
+// 		v_index1 = face_index[i*10+6];
+// 	    v_index2 = face_index[i*10+9];
+// 		face_normal[i]= normalize( normalTable[v_index0] + normalTable[v_index1] + normalTable[v_index2]);
+// 		
+// 		// add this face normal to the vertex's normal
+// 		
+// 		for(j=0;j<3;j++)
+// 		{
+// 			n_index = face_index[i*10+j*3+1];
+// 			vertex_normal[n_index] = normalize(face_normal[i]+vertex_normal[n_index]);
+// 		}
+//     }    
+//     
+//     // now find the vertex cone angle from face normal and vertex normal (maximal absolute angle)
+//     for(i=0;i<face_count;i++)
+// 	{
+// 		vec3 f_normal = face_normal[i];
+// 		
+// 		for(j=0;j<3;j++)
+// 		{
+// 			n_index = face_index[i*10+j*3+1];
+// 			vec3 v_normal = vertex_normal[n_index];
+// 			vertex_cangle[n_index]=std::max(std::abs(acos(dot(v_normal,f_normal))),vertex_cangle[n_index]);
+// 		}
+// 	}
+ //    // find the associated vertex normal offset, normal calculation    
+ //    for(i=0;i<vertex_count;i++)
+	// {
+	// 	vec3 v_position = normalize(vertexTable[i]);
+	// 	vec3 v_normal = vertex_normal[i];
+	// 	vertex_coffset[i] = acos(dot(v_position, v_normal));
+	// }
 
 // coffset is the angle offset for the (p-v)*n :: p*n componnent
 // cangle is the cone angle

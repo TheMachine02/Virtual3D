@@ -8,3 +8,6 @@
 [submodule "tools/import-src/glm"]
 	path = tools/import-src/glm
 	url = https://github.com/g-truc/glm
+[submodule "tools/xmlconv-src/glm"]
+	path = tools/xmlconv-src/glm
+	url = https://github.com/g-truc/glm

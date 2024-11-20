@@ -187,9 +187,9 @@ void convertTexturePage(string filename, string outname, unsigned char option)
     return;
   }
   //the pixels are now in the vector "image", 4 bytes per pixel, ordered RGBA
-  if(image.size()>(256*256*4))
+  if(image.size()>(512*256*4))
   {
-    std::cout << "image has wrong size" << std::endl;
+    std::cout << "Unable to generate this image : input is too big in size" << std::endl;
     return;
   }
 
@@ -198,7 +198,7 @@ void convertTexturePage(string filename, string outname, unsigned char option)
     image_size/=2;
 
   unsigned int i=0;
-  uint8_t texture[65536];
+  uint8_t texture[65536*2];
 
   while(i<image_size)
   {
@@ -242,7 +242,7 @@ void convertTexturePage(string filename, string outname, unsigned char option)
     free(opt);
 
     if(ret==NULL || (outsize>65535)) {
-        std::cout << "Unable to generate this image" << std::endl;
+        std::cout << "Unable to generate this image : output is too big !" << std::endl;
         return;
     }
     
@@ -253,6 +253,9 @@ void convertTexturePage(string filename, string outname, unsigned char option)
     }
 	}
 	else{
+
+            if (image.size()>(256*256*4))
+                std::cout << "Unable to generate this image : output is too big !" << std::endl;      
 
 	out << "db ";
     for(unsigned int j=0;j<(image.size()/4);j++) {
