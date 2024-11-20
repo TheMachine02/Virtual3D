@@ -31,7 +31,12 @@ Main:
 ; 	call	Model.load_ressource
 ; 	ret	c
 ; 	ld	(Model.mipmap_source), hl
-	
+
+; 	ld	hl, Model.skybox_appv
+; 	call	Model.load_ressource
+; 	ret	c
+; 	ld	(Model.skybox_source), hl
+; 	
 ; init the virtual 3d library (setup memory layout)
 	call	vxMemory.layout
 	ret	c		; quit if error at init
@@ -130,8 +135,13 @@ Main:
 	ld	(debug.triangle_count), hl
 
 	call	vxPrimitiveDepthSort
-
+; 
 	call	vxFramebufferClear
+
+; 	ld	hl, (Model.skybox_source)
+; 	ld	a, VX_IMAGE_ZX7_COMPRESSED
+; 	ld	de, (vxFramebuffer)
+; 	call	vxImage.copy
 
 	call	vxPrimitiveSubmit
 
@@ -376,10 +386,14 @@ Model:
 	db	ti.AppVarObj, "TONBE", 0
 .texture_source:
 	dl	0
-; .mipmap_appv:
-; 	db	ti.AppVarObj, "MATEUSM", 0
-; .mipmap_source:
-; 	dl	0
+.mipmap_appv:
+	db	ti.AppVarObj, "TONBM", 0
+.mipmap_source:
+	dl	0
+.skybox_appv:
+	db	ti.AppVarObj, "SKYBOXE", 0
+.skybox_source:
+	dl	0
 .matrix:
 	db	64,0,0
 	db	0,64,0
