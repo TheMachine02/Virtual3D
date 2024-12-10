@@ -33,10 +33,16 @@ vxLookAtMatrix:
 
 vxMatrix:
 
+.identity:
+ db	64,0,0
+ db	0,64,0
+ db	0,0,64
+ dl	0,0,0
+
 .load_identity:
 ; input : hl matrix
 	ex	de, hl
-	ld	hl, vxIdentityMatrix
+	ld	hl, .identity
 	ld	bc, VX_MATRIX_SIZE
 	ldir
 	ex	de, hl

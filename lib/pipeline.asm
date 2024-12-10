@@ -54,6 +54,13 @@ virtual at -64
 	VX_FDUDY:		rb	4
 	VX_FDVDX:		rb	2
 	VX_FDUDX:		rb	4
+	
+	VX_GPR_FDX0_LOWER:	rb	3
+	VX_GPR_FDX0_UPPER:	rb	3
+	
+	VX_GPR_FDX0_HALF_LOWER:	rb	3
+	VX_GPR_FDX0_HALF_UPPER:	rb	3
+
 end virtual
 
 define	VX_PRIMITIVE_INTERPOLATION_SIZE	1024
@@ -125,11 +132,7 @@ vxModelViewScreenSpace:
  db	0,0,0
 vxModelViewScreenSpace_t:
  dl	0,0,0
-vxIdentityMatrix:
- db	64,0,0
- db	0,64,0
- db	0,0,64
- dl	0,0,0
+ 
 ; projection matrix is (1/tan(fov/2)) / aspect and the (1/tan(fov/2))
 ; note we loose precision because 0.6 isn't quite enough (move to 8.8 ?)
 vxProjectionMatrix:
@@ -216,11 +219,11 @@ vxPrimitiveStream:
 	ld	(vxPrimitiveMaterial), hl
 	inc	hl
 	ld	bc, (hl)
+	push	bc
+	push	de
 ; let's transform the vertex stream
 .setup_matrix:
 ; vertex source have size at the begining
-	push	bc
-	push	de
 	lea	hl, iy+0
 	ld	de, vxModelWorldReverse
 	ld	bc, VX_MATRIX_SIZE
@@ -292,11 +295,19 @@ vxPrimitiveStream:
 ; iy = source, ix = matrix
 	ld	a, (iy+VX_STREAM_HEADER_OPTION)
 ; iy+0 are options, so check those. Here, only bounding box is interesting.
-.setup_obb:
+.setup_option:
 	lea	iy, iy+VX_STREAM_HEADER_SIZE
-	and	a, VX_STREAM_HEADER_BBOX
+	tst	a, VX_STREAM_OPTION_MATRIX
+	jr	z, .setup_option_aabb
+	ld	e, (iy+VX_ANIMATION_MATRIX_COUNT)
+	ld	d, VX_ANIMATION_MATRIX_SIZE
+	mlt	de
+	inc	iy
+	add	iy, de
+.setup_option_aabb:
+	tst	a, VX_STREAM_OPTION_AABB
 	call	nz, .bounding_box
-	jp	nz, .stream_cull
+	jr	nz, .stream_cull
 	cce	ge_vtx_transform
 ; actual stream start
 	pop	ix

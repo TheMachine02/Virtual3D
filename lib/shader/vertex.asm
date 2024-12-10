@@ -374,8 +374,8 @@ relocate VX_VRAM
 .ftransform_ret:
 ; simple algorithm examples : fog, infinite directionnal lightning, screen space reflection
 
-; ; lightning model is here, infinite directionnal light, no pow
-; ; TODO : could be made faster, either constant time multiplie (constant*normal) or other trick : 4.4 fixed point ?
+; lightning model is here, infinite directionnal light, no pow
+; TODO : could be made faster, either constant time multiplie (constant*normal) or other trick : 4.4 fixed point ?
 ; .lightning:
 ; 	xor	a, a
 ; 	ld	c, (iy+VX_VERTEX_NX)

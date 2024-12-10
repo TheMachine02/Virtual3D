@@ -26,7 +26,7 @@ Main:
 	call	Model.load_ressource
 	ret	c
 	ld	(Model.texture_source), hl
-; 	
+
 ; 	ld	hl, Model.mipmap_appv
 ; 	call	Model.load_ressource
 ; 	ret	c
@@ -52,8 +52,6 @@ Main:
 ; 	call	vxImage.copy
 
 ; setup global variable for rendering, euler angle and the translation of World.matrix
-	ld	hl, Model.matrix
-	call	vxMatrix.load_identity
 	ld	hl, World.matrix
 	call	vxMatrix.load_identity
 	ld	ix, World.matrix
@@ -329,6 +327,8 @@ Main:
 Viewframe:
 .option:
 	db	0
+.key:
+	db	0
 	
 World:
 .quaternion_y:
@@ -373,16 +373,13 @@ World:
 Model:
 .vertex_appv:
 	db	ti.AppVarObj, "TONBV",0
-; 	db	ti.AppVarObj, "TONBV",0
 .vertex_source:
 	dl	0
 .triangle_appv:
-	db	ti.AppVarObj, "TONBF", 0
-;	db	ti.AppVarObj, "TONBF",0
+	db	ti.AppVarObj, "TONBF",0
 .triangle_source:
 	dl	0
 .texture_appv:
-;	db	ti.AppVarObj, "FRANT", 0
 	db	ti.AppVarObj, "TONBE", 0
 .texture_source:
 	dl	0
@@ -398,7 +395,7 @@ Model:
 	db	64,0,0
 	db	0,64,0
 	db	0,0,64
-	dl	0,0,0
+	dl	0, 0, 0
 .material:
 	db	VX_FORMAT_TEXTURE_VERTEX	; VX_FORMAT_TEXTURE	;
 	dl	VX_VERTEX_BUFFER
@@ -406,6 +403,7 @@ Model:
 	dl	vxVertexShader.uniform
 	dl	vxPixelShader.texture
 	dl	vxPixelShader.uniform
+
 ; simple appv detect
 ; archivate the appv if not already archivated (TODO)
 .load_ressource:
@@ -429,7 +427,7 @@ Model:
 	inc	hl
 	inc	hl
 	ret
-
+	
 include	"lib/virtual.asm"
 include	"font/font.asm"
 include	"debug.asm"

@@ -15,6 +15,7 @@
 #define BOUNDING_BOX  8
 #define SEPARATE    16
 #define FACE_NORMAL 32
+#define MATRIX      64
 
 using namespace std;
 using namespace glm;

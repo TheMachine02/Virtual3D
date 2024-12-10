@@ -43,6 +43,7 @@ relocate	VX_PIXEL_SHADER_CODE
 	ld	a, (hl)
 	ld	(de), a
 	inc	de
+;	ldi
 	exx
 	add	hl, de
 	ld	a, h
@@ -52,6 +53,7 @@ relocate	VX_PIXEL_SHADER_CODE
 	ld	a, (hl)
 	ld	(de), a
 	inc	de
+;	ldi
 	exx
 	djnz	.fragment
 .fragment_size:=$-.fragment

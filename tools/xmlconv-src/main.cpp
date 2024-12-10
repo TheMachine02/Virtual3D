@@ -11,7 +11,12 @@
 #include "glm/glm/glm.hpp"
 
 #define MAX_LINE_SIZE 16777216
-
+#define TEXTURE     1
+#define NORMAL      2
+#define COLOR       4
+#define BOUNDING_BOX  8
+#define SEPARATE    16
+#define MATRIX      64
 
 using namespace std;
 using namespace glm;
@@ -377,6 +382,20 @@ int main(int argc, char* argv[])
     }
     printf("START : %d %d %d\n", bcount,fstart,fend);
 
+    vector <vec3> vertex_normal;
+
+    //compute vertex normal
+    unsigned int j;
+    vertex_normal.reserve(vertex.size());
+    for(i=0;i<triangle.size()/3;i++)
+    {
+         for(j=0;j<3;j++) {
+             vertex_normal[triangle[i*3+j].x]+=normalize(normal[triangle[i*3].y]+normal[triangle[i*3+1].y]+normal[triangle[i*3+2].y]);}
+     }
+    for(i=0;i<vertex.size();i++)
+        vertex_normal[i]=normalize(vertex_normal[i]);    
+    
+    
     //output dataset to file.
     ofstream out("XML.asm");
     vector <mat4> mset;
@@ -397,18 +416,36 @@ int main(int argc, char* argv[])
 	sort(tlink.begin(),tlink.end());
     
     int prev=-1;
-    int j=0;
+    j=0;
 
-    out << "VERTEXDATA:" << '\n';
+/*; mesh format :
+; db option
+; db bone_count
+; dl vertex_stream, triangle_stream */
+
+    int option = TEXTURE | NORMAL | MATRIX;
+
+    out << "db " << option << '\n'; 
     out << "db " << bcount << '\n';
+
+    for(i=0;i<bcount;i++)
+        out << "dl vertex_stream" << i << ",index_stream" << i << "\n";
+    
+    
+    out << "vertex_stream0:" << '\n';
+    out << "db " << option << '\n'; 
     out << "dl " << vertex.size() << "\n";
 
     for(i=0; i<vertex.size(); i++)
     {
         if(prev!=link[i].first)
         {
-            if(prev!=-1)
+            if(prev!=-1){
                 out << "db 1" << '\n';
+                out << "vertex_stream" << link[i].first << ":\n";
+                out << "db " << option << '\n'; 
+                out << "dl " << vertex.size() << '\n';
+            }
             prev=link[i].first;
             //write matrix data : FUN
             mset=matrixTable[prev];
@@ -458,6 +495,8 @@ int main(int argc, char* argv[])
         rvlink[b]=i;
 
         vec3 v=vertex[b]*scale3;
+    // write vec3 back
+        vertex[b]=v;
 //        out << ".dw " << (int)(v[0]*256.0) << "," << (int)(v[1]*256.0) << "," << (int)(v[2]*256.0) << "\n";
         
         int sm = sgn(round(v[0]*256.0)) << 7 | ( sgn(round(v[1]*256.0)) << 6) | (sgn(round(v[2]*256.0)) << 5);
@@ -471,18 +510,19 @@ int main(int argc, char* argv[])
         out << abs(round(v[1]*256.0)) << ",";
         out << abs(round(v[2]*256.0)) << '\n';
         
-        if(normal.size()!=0)
-        {
-            vec3 n=normalize(normal[b]);
+        // if(vertex_normal.size()!=0)
+        // {
+            vec3 n=vertex_normal[b];
             out << "db " << (int)(n[0]*64.0) << "," << (int)(n[1]*64.0) << "," << (int)(n[2]*64.0) << "\n";
-        }
+        // }
 
     }
     out << "db 1" << '\n';
     
 
     prev=-1;
-    out << "TRIDATA:\n";
+    out << "index_stream0:" << '\n';
+    out << "db " << option << '\n'; 
     out << "dl " << (triangle.size()/3) << "\n";
     for(int j=0; j<triangle.size()/3; j++)
 	{
@@ -490,23 +530,28 @@ int main(int argc, char* argv[])
 	
 	if(prev!=tlink[i].first)
 	{
-		prev=tlink[i].first;
-		printf("new bone\n");
+		printf("Outputing new bone %d \n", tlink[i].first);
+                if(prev!=-1){
+                out << "db 1" << '\n';
+                out << "index_stream" << tlink[i].first << ":\n";
+                out << "db " << option << '\n'; 
+                out << "dl " << triangle.size()/3 << '\n';}
+                prev=tlink[i].first;
 	}
 	
     out << "dl " << rvlink[triangle[i*3].x]*16 << "," << rvlink[triangle[i*3+1].x]*16 << "," << rvlink[triangle[i*3+2].x]*16 << "\n";
-//    out << ".db 0\n";
      vec3 edge0;
      vec3 edge1;
      edge0 = vertex[rvlink[triangle[i*3].x]] - vertex[rvlink[triangle[i*3+1].x]];
      edge1 = vertex[rvlink[triangle[i*3].x]] - vertex[rvlink[triangle[i*3+2].x]];
+     // TODO : flip normal
      vec3 norm=normalize(cross(edge0,edge1));
-     vec3 vconst(31.0,31.0,31.0);
-     vec3 vconst2(256.0,256.0,256.0);
-     norm = norm * vconst;
-     vec3 vx = vertex[rvlink[triangle[i*3].x]] * vconst2;
+     vec3 cst(-31.0,-31.0,-31.0);
+     vec3 cst2(256.0,256.0,256.0);
+     norm = norm * cst;
+     vec3 point = vertex[rvlink[triangle[i*3].x]] * cst2;
      out << "db " << ((int)round(norm[0]))*4 << ',' << ((int)round(norm[1])*4) << ',' << ((int)round(norm[2]))*4 << '\n';
-     out << "dl " << -round(dot(norm,vx)) << '\n';
+     out << "dl " << -round(dot(norm,point)) << '\n';
 
     ivec2 tcoord=map_texture(texture[triangle[i*3].z]);
     out << "db " << tcoord[0] << "," << tcoord[1] << "\n";

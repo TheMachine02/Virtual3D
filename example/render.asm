@@ -58,7 +58,9 @@ Main:
 	ld	hl, material0
 	ld	a, VX_MATERIAL0
 	call	vxMaterial.load
-	
+	ld	hl, material1
+	ld	a, VX_MATERIAL1
+	call	vxMaterial.load	
 
 MainLoop:
 	call	vxTimer.reset
@@ -67,6 +69,13 @@ MainLoop:
 	ret	nz
 	 
 	call	Render
+	 
+	ld	hl, LaraMesh
+	ld	c, 6
+	ld	a, VX_MATERIAL1
+	ld	ix, WorldMatrix
+	ld	iy, ModelMatrix
+	call	 vxMeshStream
 	 
 	ld	hl, (vxPrimitiveQueueSize)
 	ld	(debug.visible_count), hl
@@ -97,6 +106,14 @@ material0:
 	db	VX_FORMAT_TEXTURE
 .cache:
 	dl	VX_VERTEX_BUFFER
+	dl	vxVertexShader.ftransform
+	dl	vxVertexShader.uniform
+	dl	vxPixelShader.texture
+	dl	vxPixelShader.uniform
+	
+material1:
+	db	VX_FORMAT_TEXTURE
+	dl	VX_VERTEX_BUFFER + 16384
 	dl	vxVertexShader.ftransform
 	dl	vxVertexShader.uniform
 	dl	vxPixelShader.texture
@@ -310,7 +327,7 @@ Render:
 	ld	hl, (Triangle0)
 	cp	a, (hl)
 	ret	nz
-	ld	b, a
+	ld	b, 2
 
 .room_list:
 	push	bc
